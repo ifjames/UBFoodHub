@@ -112,7 +112,7 @@ export default function OrderCancellationRequest({ order, onRequestSubmitted }: 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full text-red-600 border-red-300 hover:bg-red-50">
+        <Button variant="outline" className="w-full text-[#d90000] border-red-300 hover:bg-red-50">
           <X className="w-4 h-4 mr-2" />
           Request Cancellation
         </Button>

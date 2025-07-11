@@ -1,7 +1,7 @@
 # 🎉 UB FoodHub Successfully Deployed!
 
 ## Live Application URL
-**Your app is now live at:** https://ub-foodhub-hosting.web.app
+**Your app is now live at:** https://ubianfoodhub.web.app
 
 ## 📱 What's Available
 
@@ -62,7 +62,7 @@ Your fully functional mobile web app includes:
 ## 📊 Usage Instructions
 
 Share this URL with University of Batangas students: 
-**https://ub-foodhub-hosting.web.app**
+**https://ubianfoodhub.web.app**
 
 Students can immediately:
 1. Create accounts with their @ub.edu.ph emails

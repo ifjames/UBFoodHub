@@ -1,6 +1,5 @@
 {
   "hosting": {
-    "site": "ub-foodhub-hosting",
     "public": "dist",
     "ignore": [
       "firebase.json",

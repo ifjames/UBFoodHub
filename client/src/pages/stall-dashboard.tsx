@@ -996,7 +996,7 @@ export default function StallDashboard() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
           >
-            <CancellationRequestManagement stallId={userStall?.id || ""} />
+            <CancellationRequestManagement stallId={stallInfo?.id || ""} />
           </motion.div>
         )}
 

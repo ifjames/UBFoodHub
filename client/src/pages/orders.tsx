@@ -255,55 +255,59 @@ export default function Orders() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2">
+                  {/* Primary action - View Details takes full width */}
                   <Button
                     onClick={() => viewOrderDetails(order)}
-                    className="flex-1 bg-[#6d031e] hover:bg-red-700 text-white"
+                    className="w-full bg-[#6d031e] hover:bg-red-700 text-white h-12 text-base font-medium"
                   >
                     View Details
                   </Button>
                   
-                  {order.status === 'completed' && !order.hasReview && (
-                    <Button
-                      onClick={() => showReviewModal(order)}
-                      variant="outline"
-                      className="flex-1 border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white"
-                    >
-                      <Star className="w-4 h-4 mr-1" />
-                      Review
-                    </Button>
-                  )}
-                  
-                  {order.status === 'completed' && order.hasReview && (
-                    <Button
-                      disabled={true}
-                      className="flex-1 bg-green-100 text-green-600 cursor-not-allowed"
-                      title="Review already submitted"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-1" />
-                      Reviewed
-                    </Button>
-                  )}
-                  
-                  {canCancel && (
-                    <OrderCancellationRequest 
-                      order={order}
-                      onRequestSubmitted={() => {
-                        // Refresh orders list - subscription will handle the update
-                      }}
-                    />
-                  )}
-                  
-                  {order.status === 'ready' && (
-                    <Button
-                      onClick={() => showQRCode(order)}
-                      variant="outline"
-                      className="border-[#6d031e] text-[#6d031e] hover:bg-[#6d031e] hover:text-white"
-                    >
-                      <QrCode className="w-4 h-4 mr-1" />
-                      QR Code
-                    </Button>
-                  )}
+                  {/* Secondary actions in a row */}
+                  <div className="flex gap-2">
+                    {order.status === 'completed' && !order.hasReview && (
+                      <Button
+                        onClick={() => showReviewModal(order)}
+                        variant="outline"
+                        className="flex-1 border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white"
+                      >
+                        <Star className="w-4 h-4 mr-1" />
+                        Review
+                      </Button>
+                    )}
+                    
+                    {order.status === 'completed' && order.hasReview && (
+                      <Button
+                        disabled={true}
+                        className="flex-1 bg-green-100 text-green-600 cursor-not-allowed"
+                        title="Review already submitted"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-1" />
+                        Reviewed
+                      </Button>
+                    )}
+                    
+                    {canCancel && (
+                      <OrderCancellationRequest 
+                        order={order}
+                        onRequestSubmitted={() => {
+                          // Refresh orders list - subscription will handle the update
+                        }}
+                      />
+                    )}
+                    
+                    {order.status === 'ready' && (
+                      <Button
+                        onClick={() => showQRCode(order)}
+                        variant="outline"
+                        className="flex-1 border-[#6d031e] text-[#6d031e] hover:bg-[#6d031e] hover:text-white"
+                      >
+                        <QrCode className="w-4 h-4 mr-1" />
+                        QR Code
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             );

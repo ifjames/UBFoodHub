@@ -103,6 +103,18 @@ UB FoodHub is a comprehensive mobile web application designed for the University
 
 ## Recent Changes
 
+### Replit Agent to Standard Replit Migration (July 11, 2025)
+- Successfully migrated project from Replit Agent environment to standard Replit environment
+- Fixed TypeScript execution with tsx dependency
+- Resolved userStall undefined error in stall dashboard by using stallInfo instead
+- Enhanced UI/UX by improving button layout in orders page:
+  - Made "View Details" button full-width and more readable (h-12, text-base)
+  - Reorganized button layout with primary action on top and secondary actions below
+  - Fixed button sizing issues that made text hard to read
+- All workflows now running properly on standard Replit infrastructure
+- Maintained all Firebase authentication and Firestore functionality during migration
+- Ensured security practices and client/server separation remain intact
+
 ### Firebase Integration & Migration (July 06, 2025)
 - Migrated from Replit Agent to standard Replit environment
 - Fixed Firebase duplicate app initialization errors

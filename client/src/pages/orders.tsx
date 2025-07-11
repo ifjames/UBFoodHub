@@ -571,7 +571,7 @@ export default function Orders() {
                 </Button>
                 <Button
                   onClick={submitReview}
-                  className="flex-1 bg-[#6d031e] hover:bg-red-700"
+                  className="flex-1 bg-[#6d031e] hover:bg-red-700 pl-[102px] pr-[102px]"
                   disabled={isLoading || reviewRating === 0}
                 >
                   {isLoading ? "Submitting..." : "Submit Review"}

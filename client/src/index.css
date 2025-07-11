@@ -1,0 +1,268 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(345, 82%, 28%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(345, 82%, 28%);
+  --accent-foreground: hsl(0, 0%, 100%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(345, 82%, 28%);
+  --radius: 0.5rem;
+
+  /* Maroon theme colors */
+  --maroon-50: hsl(345, 71%, 97%);
+  --maroon-100: hsl(345, 71%, 91%);
+  --maroon-200: hsl(345, 71%, 82%);
+  --maroon-300: hsl(345, 71%, 70%);
+  --maroon-400: hsl(345, 71%, 55%);
+  --maroon-500: hsl(345, 71%, 40%);
+  --maroon-600: hsl(345, 82%, 28%);
+  --maroon-700: hsl(345, 82%, 20%);
+  --maroon-800: hsl(345, 82%, 15%);
+  --maroon-900: hsl(345, 82%, 10%);
+}
+
+/* Hide all scrollbars but keep scroll functionality */
+::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+* {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+html, body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* Ensure scrolling still works */
+* {
+  overflow: auto;
+}
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(345, 82%, 28%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(345, 82%, 28%);
+  --accent-foreground: hsl(0, 0%, 100%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(345, 82%, 28%);
+  --radius: 0.5rem;
+
+  /* Maroon theme colors */
+  --maroon-50: hsl(345, 71%, 97%);
+  --maroon-100: hsl(345, 71%, 91%);
+  --maroon-200: hsl(345, 71%, 82%);
+  --maroon-300: hsl(345, 71%, 70%);
+  --maroon-400: hsl(345, 71%, 55%);
+  --maroon-500: hsl(345, 71%, 40%);
+  --maroon-600: hsl(345, 82%, 28%);
+  --maroon-700: hsl(345, 82%, 20%);
+  --maroon-800: hsl(345, 82%, 15%);
+  --maroon-900: hsl(345, 82%, 10%);
+  --maroon-300: hsl(345, 71%, 69%);
+  --maroon-400: hsl(345, 71%, 54%);
+  --maroon-500: hsl(345, 71%, 45%);
+  --maroon-600: hsl(345, 82%, 36%);
+  --maroon-700: hsl(345, 82%, 28%);
+  --maroon-800: hsl(345, 82%, 22%);
+  --maroon-900: hsl(345, 82%, 18%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(345, 82%, 28%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .text-maroon-50 { color: var(--maroon-50); }
+  .text-maroon-100 { color: var(--maroon-100); }
+  .text-maroon-200 { color: var(--maroon-200); }
+  .text-maroon-300 { color: var(--maroon-300); }
+  .text-maroon-400 { color: var(--maroon-400); }
+  .text-maroon-500 { color: var(--maroon-500); }
+  .text-maroon-600 { color: var(--maroon-600); }
+  .text-maroon-700 { color: var(--maroon-700); }
+  .text-maroon-800 { color: var(--maroon-800); }
+  .text-maroon-900 { color: var(--maroon-900); }
+
+  .bg-maroon-50 { background-color: var(--maroon-50); }
+  .bg-maroon-100 { background-color: var(--maroon-100); }
+  .bg-maroon-200 { background-color: var(--maroon-200); }
+  .bg-maroon-300 { background-color: var(--maroon-300); }
+  .bg-maroon-400 { background-color: var(--maroon-400); }
+  .bg-maroon-500 { background-color: var(--maroon-500); }
+  .bg-maroon-600 { background-color: var(--maroon-600); }
+  .bg-maroon-700 { background-color: var(--maroon-700); }
+  .bg-maroon-800 { background-color: var(--maroon-800); }
+  .bg-maroon-900 { background-color: var(--maroon-900); }
+
+  .border-maroon-50 { border-color: var(--maroon-50); }
+  .border-maroon-100 { border-color: var(--maroon-100); }
+  .border-maroon-200 { border-color: var(--maroon-200); }
+  .border-maroon-300 { border-color: var(--maroon-300); }
+  .border-maroon-400 { border-color: var(--maroon-400); }
+  .border-maroon-500 { border-color: var(--maroon-500); }
+  .border-maroon-600 { border-color: var(--maroon-600); }
+  .border-maroon-700 { border-color: var(--maroon-700); }
+  .border-maroon-800 { border-color: var(--maroon-800); }
+  .border-maroon-900 { border-color: var(--maroon-900); }
+
+  .ring-maroon-50 { --tw-ring-color: var(--maroon-50); }
+  .ring-maroon-100 { --tw-ring-color: var(--maroon-100); }
+  .ring-maroon-200 { --tw-ring-color: var(--maroon-200); }
+  .ring-maroon-300 { --tw-ring-color: var(--maroon-300); }
+  .ring-maroon-400 { --tw-ring-color: var(--maroon-400); }
+  .ring-maroon-500 { --tw-ring-color: var(--maroon-500); }
+  .ring-maroon-600 { --tw-ring-color: var(--maroon-600); }
+  .ring-maroon-700 { --tw-ring-color: var(--maroon-700); }
+  .ring-maroon-800 { --tw-ring-color: var(--maroon-800); }
+  .ring-maroon-900 { --tw-ring-color: var(--maroon-900); }
+
+  /* Liquid Glass Effects */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  }
+
+  .glass-dark {
+    background: rgba(109, 3, 30, 0.2);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(109, 3, 30, 0.3);
+  }
+
+  .glass-button {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.2s ease;
+  }
+
+  .glass-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+  }
+
+  .liquid-animation {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .liquid-animation::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: rotate(-45deg);
+    transition: all 0.6s ease;
+    opacity: 0;
+  }
+
+  .liquid-animation:hover::before {
+    opacity: 1;
+    transform: rotate(-45deg) translate(100%, 100%);
+  }
+
+  /* Floating animation */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .float-animation {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Pulse effect */
+  @keyframes pulse-glow {
+    0%, 100% { 
+      box-shadow: 0 0 5px rgba(109, 3, 30, 0.5);
+    }
+    50% { 
+      box-shadow: 0 0 20px rgba(109, 3, 30, 0.8), 0 0 30px rgba(109, 3, 30, 0.6);
+    }
+  }
+
+  .pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+}

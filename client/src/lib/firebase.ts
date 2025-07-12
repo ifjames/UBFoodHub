@@ -54,6 +54,10 @@ try {
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
+// Storage
+import { getStorage } from "firebase/storage";
+export const storage = getStorage(app);
+
 // Google Auth Provider
 const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope('email');

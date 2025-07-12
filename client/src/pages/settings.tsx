@@ -12,8 +12,8 @@ import { createNotification } from "@/lib/notifications";
 import NotificationService from "@/lib/notification-service";
 import BottomNav from "@/components/layout/bottom-nav";
 import { updatePassword, updateProfile, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
-import { auth, updateDocument } from "@/lib/firebase";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { auth, storage, updateDocument } from "@/lib/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default function Settings() {
   const [, setLocation] = useLocation();
@@ -89,7 +89,7 @@ export default function Settings() {
   };
 
   const handlePasswordUpdate = async () => {
-    if (!passwordData.currentPassword) {
+    if (!passwordData.currentPassword.trim()) {
       toast({
         title: "Current password required",
         description: "Please enter your current password.",
@@ -119,9 +119,29 @@ export default function Settings() {
     setIsUpdatingPassword(true);
     try {
       const user = auth.currentUser;
-      if (!user || !user.email) {
+      if (!user) {
         throw new Error("No authenticated user found");
       }
+
+      if (!user.email) {
+        throw new Error("User email not found");
+      }
+
+      // Check if user signed in with Google (password change not allowed)
+      const isGoogleUser = user.providerData.some(
+        provider => provider.providerId === 'google.com'
+      );
+
+      if (isGoogleUser) {
+        toast({
+          title: "Password change not available",
+          description: "You signed in with Google. Password changes are managed through your Google account.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log("Attempting password change for user:", user.email);
 
       // Re-authenticate user with current password
       const credential = EmailAuthProvider.credential(user.email, passwordData.currentPassword);
@@ -131,9 +151,14 @@ export default function Settings() {
       await updatePassword(user, passwordData.newPassword);
 
       // Send notification when password changes
-      const notificationService = NotificationService.getInstance();
-      if (notificationService.isPermissionGranted()) {
-        await notificationService.sendPasswordChangeNotification();
+      try {
+        const notificationService = NotificationService.getInstance();
+        if (notificationService.isPermissionGranted()) {
+          await notificationService.sendPasswordChangeNotification();
+        }
+      } catch (notificationError) {
+        console.log("Notification sending failed:", notificationError);
+        // Don't fail the password update for notification errors
       }
 
       // Clear form
@@ -152,17 +177,19 @@ export default function Settings() {
       let errorMessage = "Failed to update password. Please try again.";
       
       if (error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
-        errorMessage = "Current password is incorrect.";
+        errorMessage = "Current password is incorrect. Please check and try again.";
       } else if (error.code === "auth/weak-password") {
-        errorMessage = "New password is too weak. Use at least 6 characters.";
+        errorMessage = "New password is too weak. Use at least 6 characters with numbers and symbols.";
       } else if (error.code === "auth/requires-recent-login") {
-        errorMessage = "Please log out and log back in, then try again.";
+        errorMessage = "For security, please log out and log back in, then try again.";
       } else if (error.code === "auth/too-many-requests") {
-        errorMessage = "Too many failed attempts. Please wait a moment and try again.";
+        errorMessage = "Too many failed attempts. Please wait a few minutes and try again.";
       } else if (error.code === "auth/user-disabled") {
-        errorMessage = "Your account has been disabled. Contact support.";
+        errorMessage = "Your account has been disabled. Please contact support.";
       } else if (error.code === "auth/operation-not-allowed") {
         errorMessage = "Password changes are not allowed for this account type.";
+      } else if (error.message) {
+        errorMessage = `Update failed: ${error.message}`;
       }
 
       toast({
@@ -211,7 +238,6 @@ export default function Settings() {
       }
 
       // Upload to Firebase Storage
-      const storage = getStorage();
       const fileRef = ref(storage, `profile-pictures/${user.uid}/${Date.now()}-${file.name}`);
       
       const snapshot = await uploadBytes(fileRef, file);
@@ -222,11 +248,16 @@ export default function Settings() {
         photoURL: downloadURL
       });
 
-      // Update user document in Firestore
-      await updateDocument("users", user.uid, {
-        photoURL: downloadURL,
-        updatedAt: new Date()
-      });
+      // Update user document in Firestore (optional - skip if it fails)
+      try {
+        await updateDocument("users", user.uid, {
+          photoURL: downloadURL,
+          updatedAt: new Date()
+        });
+      } catch (firestoreError) {
+        console.log("Firestore update skipped:", firestoreError);
+        // Continue anyway as the auth profile was updated
+      }
 
       // Update local state
       dispatch({

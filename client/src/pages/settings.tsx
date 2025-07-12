@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { createNotification } from "@/lib/notifications";
 import { NotificationService } from "@/lib/notification-service";
 import BottomNav from "@/components/layout/bottom-nav";
-import { updatePassword, updateProfile, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+import { updatePassword, updateProfile, reauthenticateWithCredential, EmailAuthProvider, signInWithEmailAndPassword } from "firebase/auth";
 import { auth, updateDocument } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "@/lib/firebase";
@@ -196,21 +196,13 @@ export default function Settings() {
       console.log("User email:", user?.email);
       console.log("Store user:", state.user?.email);
       
-      // If Firebase auth user is null but we have store user, there's a sync issue
-      // This often happens when the Firebase auth state isn't properly restored
-      if (!user && state.user) {
-        toast({
-          title: "Authentication sync issue",
-          description: "Please refresh the page or log out and log back in to continue.",
-          variant: "destructive",
-        });
-        console.error("Auth sync issue: Store has user but Firebase auth doesn't");
-        return;
-      }
+      // Use store user email if Firebase auth user is null but we have store user
+      const userEmail = user?.email || state.user?.email;
+      const userUid = user?.uid || state.user?.uid;
       
-      if (!user) {
+      if (!userEmail || !userUid) {
         toast({
-          title: "Authentication expired",
+          title: "Authentication required",
           description: "Please log out and log back in to continue.",
           variant: "destructive",
         });
@@ -218,14 +210,10 @@ export default function Settings() {
         return;
       }
 
-      if (!user.email) {
-        throw new Error("User email not found");
-      }
-
-      // Check if user signed in with Google (password change not allowed)
-      const isGoogleUser = user.providerData.some(
+      // Check if user signed in with Google by checking store user data or Firebase provider
+      const isGoogleUser = user?.providerData?.some(
         provider => provider.providerId === 'google.com'
-      );
+      ) || userEmail.includes('@gmail.com'); // Simple fallback check
 
       if (isGoogleUser) {
         toast({
@@ -236,11 +224,37 @@ export default function Settings() {
         return;
       }
 
-      console.log("Attempting password change for user:", user.email);
+      console.log("Attempting password change for user:", userEmail);
 
-      // Re-authenticate user with current password
-      const credential = EmailAuthProvider.credential(user.email, passwordData.currentPassword);
-      await reauthenticateWithCredential(user, credential);
+      // If we don't have Firebase user object, we need to create credential and sign in first
+      if (!user) {
+        try {
+          // Re-authenticate using email and current password to get Firebase user object
+          const userCredential = await signInWithEmailAndPassword(auth, userEmail, passwordData.currentPassword);
+          user = userCredential.user;
+          console.log("Re-authenticated user successfully");
+        } catch (error: any) {
+          console.error("Re-authentication failed:", error);
+          if (error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
+            toast({
+              title: "Current password incorrect",
+              description: "Please check your current password and try again.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Authentication failed",
+              description: "Unable to verify current password. Please try again.",
+              variant: "destructive",
+            });
+          }
+          return;
+        }
+      } else {
+        // Re-authenticate user with current password for security
+        const credential = EmailAuthProvider.credential(userEmail, passwordData.currentPassword);
+        await reauthenticateWithCredential(user, credential);
+      }
 
       // Update password
       await updatePassword(user, passwordData.newPassword);
@@ -373,25 +387,36 @@ export default function Settings() {
       console.log("Profile picture - Current user:", user ? "Found" : "Not found");
       console.log("Store user:", state.user?.email);
       
-      // If Firebase auth user is null but we have store user, there's a sync issue
-      if (!user && state.user) {
-        toast({
-          title: "Authentication sync issue",
-          description: "Please refresh the page or log out and log back in to continue.",
-          variant: "destructive",
-        });
-        console.error("Auth sync issue: Store has user but Firebase auth doesn't");
-        return;
-      }
+      // Use store user data if Firebase auth user is null but we have store user
+      const userEmail = user?.email || state.user?.email;
+      const userUid = user?.uid || state.user?.uid;
       
-      if (!user) {
+      if (!userEmail || !userUid) {
         toast({
-          title: "Authentication expired",
+          title: "Authentication required",
           description: "Please log out and log back in to continue.",
           variant: "destructive",
         });
         setLocation("/login");
         return;
+      }
+
+      // If we don't have Firebase user object, we need to get it properly
+      if (!user) {
+        console.log("Firebase user not found, but store user exists. Continuing with store data.");
+        // For profile picture upload, we need the Firebase user object
+        // Let's try to wait a bit more for Firebase auth to sync
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        user = auth.currentUser;
+        
+        if (!user) {
+          toast({
+            title: "Authentication sync issue",
+            description: "Please refresh the page to sync your authentication state.",
+            variant: "destructive",
+          });
+          return;
+        }
       }
 
       // Upload to Cloudinary using signed upload

@@ -159,22 +159,19 @@ export default function Settings() {
         return;
       }
       
-      // Wait for auth state to be ready with a timeout
+      // Force wait for Firebase auth to be ready
+      await auth.authStateReady();
       let user = auth.currentUser;
       
       if (!user) {
-        user = await new Promise((resolve) => {
-          const timeout = setTimeout(() => {
-            console.log("Auth state timeout for password change");
-            resolve(null);
-          }, 5000);
-          
-          const unsubscribe = auth.onAuthStateChanged((authUser) => {
-            clearTimeout(timeout);
-            unsubscribe();
-            resolve(authUser);
-          });
+        // Force re-authentication if user is not found
+        toast({
+          title: "Authentication expired",
+          description: "Please log out and log back in to continue.",
+          variant: "destructive",
         });
+        setLocation("/login");
+        return;
       }
       
       console.log("Password change - Current user:", user ? "Found" : "Not found");
@@ -309,22 +306,19 @@ export default function Settings() {
         return;
       }
       
-      // Wait for auth state to be ready with a timeout
+      // Force wait for Firebase auth to be ready
+      await auth.authStateReady();
       let user = auth.currentUser;
       
       if (!user) {
-        user = await new Promise((resolve) => {
-          const timeout = setTimeout(() => {
-            console.log("Auth state timeout for profile picture");
-            resolve(null);
-          }, 5000);
-          
-          const unsubscribe = auth.onAuthStateChanged((authUser) => {
-            clearTimeout(timeout);
-            unsubscribe();
-            resolve(authUser);
-          });
+        // Force re-authentication if user is not found
+        toast({
+          title: "Authentication expired",
+          description: "Please log out and log back in to continue.",
+          variant: "destructive",
         });
+        setLocation("/login");
+        return;
       }
       
       console.log("Profile picture - Current user:", user ? "Found" : "Not found");

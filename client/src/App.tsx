@@ -112,6 +112,9 @@ function AuthProvider({ children }) {
     const unsubscribe = onAuthStateChange(async (firebaseUser) => {
       try {
         if (firebaseUser) {
+          // Ensure Firebase auth is ready before proceeding
+          await auth.authStateReady();
+          
           // Get user document from Firestore
           const userDoc = await getDocument("users", firebaseUser.uid);
           
@@ -133,6 +136,9 @@ function AuthProvider({ children }) {
                 createdAt: userData.createdAt,
               }
             });
+            
+            // Force sync with Firebase auth
+            console.log("Firebase auth synced for user:", firebaseUser.email);
           } else {
             console.warn("User document not found in Firestore");
           }

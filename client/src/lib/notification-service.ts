@@ -187,26 +187,44 @@ class NotificationService {
       // Wait for service worker to be ready
       await navigator.serviceWorker.ready;
       
-      if (this.serviceWorkerRegistration && this.serviceWorkerRegistration.active) {
-        // Use service worker for better mobile support
-        await this.serviceWorkerRegistration.showNotification(data.title, options);
-        console.log('Notification sent via service worker');
-      } else {
-        // Fallback to regular notification
-        new Notification(data.title, options);
-        console.log('Notification sent via regular method');
+      // Desktop/Browser compatibility - try regular notification first
+      try {
+        const notification = new Notification(data.title, options);
+        console.log('Notification sent via regular browser method');
+        
+        // Auto-close after 5 seconds for desktop
+        setTimeout(() => {
+          notification.close();
+        }, 5000);
+      } catch (regularError) {
+        console.log('Regular notification failed, trying service worker:', regularError);
+        
+        // Fallback to service worker
+        if (this.serviceWorkerRegistration && this.serviceWorkerRegistration.active) {
+          await this.serviceWorkerRegistration.showNotification(data.title, options);
+          console.log('Notification sent via service worker');
+        } else {
+          throw new Error('Both notification methods failed');
+        }
       }
 
       // Store notification in local storage for history
       this.storeNotificationHistory(data);
     } catch (error) {
       console.error('Error sending notification:', error);
-      // Try fallback method
+      // Last resort fallback
       try {
-        new Notification(data.title, options);
-        console.log('Notification sent via fallback method');
+        const fallbackNotification = new Notification(data.title, {
+          body: data.body,
+          icon: '/logo.png'
+        });
+        console.log('Notification sent via last resort fallback method');
+        
+        setTimeout(() => {
+          fallbackNotification.close();
+        }, 5000);
       } catch (fallbackError) {
-        console.error('Fallback notification also failed:', fallbackError);
+        console.error('All notification methods failed:', fallbackError);
       }
     }
   }

@@ -9,6 +9,7 @@ import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { createNotification } from "@/lib/notifications";
+import NotificationService from "@/lib/notification-service";
 import BottomNav from "@/components/layout/bottom-nav";
 
 export default function Settings() {

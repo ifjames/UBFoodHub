@@ -1,7 +1,7 @@
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { useStore } from "@/lib/store";
 import { useLocation } from "wouter";
-import { useEffect } from "react";
+import ProfileCompletionModal from "./profile-completion-modal";
 
 interface AuthGuardProps {
   children: ReactNode;
@@ -10,10 +10,24 @@ interface AuthGuardProps {
 export default function AuthGuard({ children }: AuthGuardProps) {
   const { state } = useStore();
   const [, setLocation] = useLocation();
+  const [showProfileCompletion, setShowProfileCompletion] = useState(false);
 
   useEffect(() => {
     if (!state.user) {
       setLocation("/login");
+      return;
+    }
+
+    // Check if user needs to complete their profile (missing student ID or phone number)
+    const needsProfileCompletion = state.user && (
+      !state.user.studentId || 
+      !state.user.phoneNumber ||
+      state.user.studentId.trim() === "" ||
+      state.user.phoneNumber.trim() === ""
+    );
+
+    if (needsProfileCompletion) {
+      setShowProfileCompletion(true);
     }
   }, [state.user, setLocation]);
 
@@ -30,5 +44,13 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <ProfileCompletionModal
+        isOpen={showProfileCompletion}
+        onComplete={() => setShowProfileCompletion(false)}
+      />
+    </>
+  );
 }

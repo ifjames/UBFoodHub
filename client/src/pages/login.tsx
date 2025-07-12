@@ -50,7 +50,7 @@ export default function Login() {
         try {
           const userDoc = await getDocument("users", firebaseUser.uid);
           if (userDoc.exists()) {
-            const userData = { id: firebaseUser.uid, ...userDoc.data() } as any;
+            const userData = { id: firebaseUser.uid, uid: firebaseUser.uid, ...userDoc.data() } as any;
             dispatch({ type: "SET_USER", payload: userData });
             
             const role = userData.role;
@@ -114,7 +114,7 @@ export default function Login() {
       
       const userDoc = await getDocument("users", firebaseUser.uid);
       if (userDoc.exists()) {
-        const userData = { id: firebaseUser.uid, ...userDoc.data() } as any;
+        const userData = { id: firebaseUser.uid, uid: firebaseUser.uid, ...userDoc.data() } as any;
         dispatch({ type: "SET_USER", payload: userData });
         
         toast({
@@ -291,7 +291,7 @@ export default function Login() {
           };
           
           await updateDocument("users", user.uid, userData);
-          dispatch({ type: "SET_USER", payload: { id: user.uid, ...userData } });
+          dispatch({ type: "SET_USER", payload: { id: user.uid, uid: user.uid, ...userData } });
           
           toast({
             title: "Email Verified!",
@@ -384,7 +384,7 @@ export default function Login() {
       
       if (userDoc.exists()) {
         // Existing user - login
-        const userData = { id: firebaseUser.uid, ...userDoc.data() } as any;
+        const userData = { id: firebaseUser.uid, uid: firebaseUser.uid, ...userDoc.data() } as any;
         dispatch({ type: "SET_USER", payload: userData });
         
         toast({
@@ -417,7 +417,7 @@ export default function Login() {
         
         await createDocument("users", firebaseUser.uid, userData);
         
-        dispatch({ type: "SET_USER", payload: { id: firebaseUser.uid, ...userData } });
+        dispatch({ type: "SET_USER", payload: { id: firebaseUser.uid, uid: firebaseUser.uid, ...userData } });
         
         toast({
           title: "Account created!",

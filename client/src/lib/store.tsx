@@ -2,9 +2,11 @@ import { createContext, useContext, useReducer, ReactNode } from "react";
 
 interface User {
   id: string;
+  uid: string;
   email: string;
   fullName: string;
   studentId?: string | null;
+  phoneNumber?: string | null;
   role: string;
   loyaltyPoints?: number;
   createdAt?: any;

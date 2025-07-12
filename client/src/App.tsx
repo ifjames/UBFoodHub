@@ -151,12 +151,27 @@ function AuthProvider({ children }) {
 
   if (isAuthLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#6d031e] via-[#8b0020] to-[#a50025] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 bg-maroon-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <div className="text-maroon-600 text-xl font-bold">UB</div>
+          <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm border border-white/20">
+            <img 
+              src="/logo.png" 
+              alt="UB FoodHub" 
+              className="w-12 h-12 object-contain"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                target.nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+            <div className="text-white text-xl font-bold hidden">UB</div>
           </div>
-          <p className="text-gray-600">Loading...</p>
+          <div className="space-y-3">
+            <div className="flex justify-center">
+              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            </div>
+            <p className="text-white/90 text-sm">Loading your account...</p>
+          </div>
         </div>
       </div>
     );

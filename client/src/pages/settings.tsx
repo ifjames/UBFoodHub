@@ -18,7 +18,7 @@ import { storage } from "@/lib/firebase";
 
 export default function Settings() {
   const [, setLocation] = useLocation();
-  const { state } = useStore();
+  const { state, dispatch } = useStore();
   const { toast } = useToast();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -37,7 +37,37 @@ export default function Settings() {
 
   const notificationService = NotificationService.getInstance();
 
+  // Show loading state while user data is being loaded
+  if (!state.user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#6d031e] via-[#8b0020] to-[#a50025] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm border border-white/20">
+            <img 
+              src="/logo.png" 
+              alt="UB FoodHub" 
+              className="w-12 h-12 object-contain"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                target.nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+            <div className="text-white text-xl font-bold hidden">UB</div>
+          </div>
+          <div className="space-y-3">
+            <div className="flex justify-center">
+              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            </div>
+            <p className="text-white/90 text-sm">Loading settings...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   useEffect(() => {
+
     // Check notification permission status on component mount
     const currentPermission = notificationService.getPermissionStatus();
     const isGranted = notificationService.isPermissionGranted();
@@ -60,7 +90,7 @@ export default function Settings() {
     const interval = setInterval(checkPermission, 3000);
     
     return () => clearInterval(interval);
-  }, [notificationPermission]);
+  }, [notificationPermission, state.user, toast, setLocation]);
 
   const handleNotificationToggle = async (enabled: boolean) => {
     if (enabled) {

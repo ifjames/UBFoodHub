@@ -175,15 +175,21 @@ export default function Settings() {
       
       let user = auth.currentUser;
       
+      // If user is still null, wait for auth state change
       if (!user) {
-        // Force re-authentication if user is not found
-        toast({
-          title: "Authentication expired",
-          description: "Please log out and log back in to continue.",
-          variant: "destructive",
+        console.log("Waiting for auth state change...");
+        user = await new Promise((resolve) => {
+          const unsubscribe = auth.onAuthStateChanged((authUser) => {
+            unsubscribe();
+            resolve(authUser);
+          });
+          
+          // Timeout after 3 seconds
+          setTimeout(() => {
+            unsubscribe();
+            resolve(null);
+          }, 3000);
         });
-        setLocation("/login");
-        return;
       }
       
       console.log("Password change - Current user:", user ? "Found" : "Not found");
@@ -192,10 +198,11 @@ export default function Settings() {
       
       if (!user) {
         toast({
-          title: "Authentication required",
-          description: "Please log out and log back in to change your password.",
+          title: "Authentication expired",
+          description: "Please log out and log back in to continue.",
           variant: "destructive",
         });
+        setLocation("/login");
         return;
       }
 
@@ -318,19 +325,37 @@ export default function Settings() {
         return;
       }
       
-      // Force wait for Firebase auth to be ready
-      await auth.authStateReady();
+      // Force wait for Firebase auth to be ready with timeout
+      const authPromise = auth.authStateReady();
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Auth timeout')), 5000);
+      });
+      
+      try {
+        await Promise.race([authPromise, timeoutPromise]);
+      } catch (error) {
+        if (error.message === 'Auth timeout') {
+          console.warn("Firebase auth taking too long, continuing anyway");
+        }
+      }
+      
       let user = auth.currentUser;
       
+      // If user is still null, wait for auth state change
       if (!user) {
-        // Force re-authentication if user is not found
-        toast({
-          title: "Authentication expired",
-          description: "Please log out and log back in to continue.",
-          variant: "destructive",
+        console.log("Waiting for auth state change...");
+        user = await new Promise((resolve) => {
+          const unsubscribe = auth.onAuthStateChanged((authUser) => {
+            unsubscribe();
+            resolve(authUser);
+          });
+          
+          // Timeout after 3 seconds
+          setTimeout(() => {
+            unsubscribe();
+            resolve(null);
+          }, 3000);
         });
-        setLocation("/login");
-        return;
       }
       
       console.log("Profile picture - Current user:", user ? "Found" : "Not found");
@@ -338,10 +363,11 @@ export default function Settings() {
       
       if (!user) {
         toast({
-          title: "Authentication required",
-          description: "Please log out and log back in to upload a profile picture.",
+          title: "Authentication expired",
+          description: "Please log out and log back in to continue.",
           variant: "destructive",
         });
+        setLocation("/login");
         return;
       }
 
@@ -364,10 +390,14 @@ export default function Settings() {
         reader.readAsDataURL(file);
       });
 
+      console.log("About to update profile with photoURL, user:", user?.email);
+
       // Update Firebase Auth profile
       await updateProfile(user, {
         photoURL: photoURL
       });
+
+      console.log("Firebase profile updated successfully");
 
       // Update user document in Firestore (optional - skip if it fails)
       try {

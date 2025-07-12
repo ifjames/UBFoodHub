@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -22,6 +22,8 @@ import StallDashboard from "@/pages/stall-dashboard";
 import Settings from "@/pages/settings";
 import HelpCenter from "@/pages/help-center";
 import TermsPolicies from "@/pages/terms-policies";
+import { onAuthStateChange, getDocument } from "@/lib/firebase";
+import { useStore } from "@/lib/store";
 
 function Router() {
   return (
@@ -102,6 +104,67 @@ function Router() {
   );
 }
 
+function AuthProvider({ children }) {
+  const { dispatch } = useStore();
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChange(async (firebaseUser) => {
+      try {
+        if (firebaseUser) {
+          // Get user document from Firestore
+          const userDoc = await getDocument("users", firebaseUser.uid);
+          
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            dispatch({
+              type: "SET_USER",
+              payload: {
+                id: firebaseUser.uid,
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                fullName: userData.fullName,
+                studentId: userData.studentId,
+                phoneNumber: userData.phoneNumber,
+                role: userData.role,
+                loyaltyPoints: userData.loyaltyPoints || 0,
+                photoURL: userData.photoURL || firebaseUser.photoURL,
+                emailVerified: userData.emailVerified || firebaseUser.emailVerified,
+                createdAt: userData.createdAt,
+              }
+            });
+          } else {
+            console.warn("User document not found in Firestore");
+          }
+        } else {
+          dispatch({ type: "SET_USER", payload: null });
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setIsAuthLoading(false);
+      }
+    });
+
+    return unsubscribe;
+  }, [dispatch]);
+
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-maroon-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="text-maroon-600 text-xl font-bold">UB</div>
+          </div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return children;
+}
+
 function App() {
   const [showSplash, setShowSplash] = useState(true);
 
@@ -112,12 +175,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <StoreProvider>
-        <TooltipProvider>
-          <div className="w-full bg-white min-h-screen relative md:max-w-none max-w-md mx-auto md:shadow-none shadow-xl">
-            <Toaster />
-            <Router />
-          </div>
-        </TooltipProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <div className="w-full bg-white min-h-screen relative md:max-w-none max-w-md mx-auto md:shadow-none shadow-xl">
+              <Toaster />
+              <Router />
+            </div>
+          </TooltipProvider>
+        </AuthProvider>
       </StoreProvider>
     </QueryClientProvider>
   );

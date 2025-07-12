@@ -13,6 +13,8 @@ import NotificationService from "@/lib/notification-service";
 import BottomNav from "@/components/layout/bottom-nav";
 import { updatePassword, updateProfile, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { auth, updateDocument } from "@/lib/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "@/lib/firebase";
 
 export default function Settings() {
   const [, setLocation] = useLocation();
@@ -117,7 +119,16 @@ export default function Settings() {
 
     setIsUpdatingPassword(true);
     try {
-      // Check store user first, then Firebase auth
+      // Check both store user and Firebase auth
+      if (!state.user) {
+        toast({
+          title: "Not logged in",
+          description: "Please log in to change your password.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       let user = auth.currentUser;
       
       if (!user) {
@@ -253,7 +264,16 @@ export default function Settings() {
 
     setIsUpdatingProfile(true);
     try {
-      // Check store user first, then Firebase auth
+      // Check both store user and Firebase auth
+      if (!state.user) {
+        toast({
+          title: "Not logged in",
+          description: "Please log in to upload a profile picture.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       let user = auth.currentUser;
       
       if (!user) {
@@ -342,7 +362,16 @@ export default function Settings() {
   const syncGoogleProfilePicture = async () => {
     setIsUpdatingProfile(true);
     try {
-      // Check store user first, then Firebase auth
+      // Check both store user and Firebase auth
+      if (!state.user) {
+        toast({
+          title: "Not logged in",
+          description: "Please log in to sync your Google photo.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       let user = auth.currentUser;
       
       if (!user) {

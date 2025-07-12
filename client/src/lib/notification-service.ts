@@ -24,7 +24,15 @@ class NotificationService {
   private async initializeServiceWorker() {
     if ('serviceWorker' in navigator) {
       try {
-        this.serviceWorkerRegistration = await navigator.serviceWorker.register('/sw.js');
+        // Wait for the service worker to be ready
+        this.serviceWorkerRegistration = await navigator.serviceWorker.register('/sw.js', {
+          scope: '/',
+          updateViaCache: 'none'
+        });
+        
+        // Wait for the service worker to be activated
+        await navigator.serviceWorker.ready;
+        
         console.log('ServiceWorker registration successful');
       } catch (error) {
         console.error('ServiceWorker registration failed:', error);
@@ -59,6 +67,11 @@ class NotificationService {
     }
 
     try {
+      // Ensure service worker is ready first
+      if (!this.serviceWorkerRegistration) {
+        await this.initializeServiceWorker();
+      }
+      
       const permission = await Notification.requestPermission();
       
       // Store permission preference
@@ -158,7 +171,12 @@ class NotificationService {
     }
 
     try {
-      if (this.serviceWorkerRegistration) {
+      // Ensure service worker is ready
+      if (!this.serviceWorkerRegistration) {
+        await this.initializeServiceWorker();
+      }
+      
+      if (this.serviceWorkerRegistration && this.serviceWorkerRegistration.active) {
         // Use service worker for better mobile support
         await this.serviceWorkerRegistration.showNotification(data.title, options);
       } else {
@@ -170,6 +188,12 @@ class NotificationService {
       this.storeNotificationHistory(data);
     } catch (error) {
       console.error('Error sending notification:', error);
+      // Try fallback method
+      try {
+        new Notification(data.title, options);
+      } catch (fallbackError) {
+        console.error('Fallback notification also failed:', fallbackError);
+      }
     }
   }
 

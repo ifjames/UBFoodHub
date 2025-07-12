@@ -103,6 +103,15 @@ UB FoodHub is a comprehensive mobile web application designed for the University
 
 ## Recent Changes
 
+### Replit Agent Migration & Admin Enhancement (July 12, 2025)
+- **Successful Migration**: Migrated project from Replit Agent to standard Replit environment with enhanced stability
+- **Admin Food Stall Creation**: Admins can now create complete food stall accounts with email addresses like chowking@foodhub.com
+- **Admin User Verification**: Admins can manually verify user accounts without requiring email verification
+- **Fixed Push Notifications**: Resolved notification service worker issues and improved mobile compatibility 
+- **Fixed Authentication State**: Resolved "not logged in" errors when changing profile pictures and passwords
+- **Enhanced User Management**: Added verification badges and stall owner creation workflow
+- **Improved Error Handling**: Better authentication state management and error messages
+
 ### Functional Password Change and Profile Picture Features (July 12, 2025)
 - **Password Change Implementation**: Full Firebase authentication integration with current password verification
 - **Profile Picture Upload**: Users can upload custom profile pictures with Firebase Storage integration

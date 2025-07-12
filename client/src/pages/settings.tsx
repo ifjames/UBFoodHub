@@ -196,6 +196,18 @@ export default function Settings() {
       console.log("User email:", user?.email);
       console.log("Store user:", state.user?.email);
       
+      // If Firebase auth user is null but we have store user, there's a sync issue
+      // This often happens when the Firebase auth state isn't properly restored
+      if (!user && state.user) {
+        toast({
+          title: "Authentication sync issue",
+          description: "Please refresh the page or log out and log back in to continue.",
+          variant: "destructive",
+        });
+        console.error("Auth sync issue: Store has user but Firebase auth doesn't");
+        return;
+      }
+      
       if (!user) {
         toast({
           title: "Authentication expired",
@@ -360,6 +372,17 @@ export default function Settings() {
       
       console.log("Profile picture - Current user:", user ? "Found" : "Not found");
       console.log("Store user:", state.user?.email);
+      
+      // If Firebase auth user is null but we have store user, there's a sync issue
+      if (!user && state.user) {
+        toast({
+          title: "Authentication sync issue",
+          description: "Please refresh the page or log out and log back in to continue.",
+          variant: "destructive",
+        });
+        console.error("Auth sync issue: Store has user but Firebase auth doesn't");
+        return;
+      }
       
       if (!user) {
         toast({

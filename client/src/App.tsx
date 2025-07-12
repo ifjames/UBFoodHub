@@ -146,11 +146,13 @@ function AuthProvider({ children }) {
             });
             
             console.log("Firebase auth synced for user:", firebaseUser.email);
+            console.log("Firebase current user after sync:", auth.currentUser?.email);
           } else {
             console.warn("User document not found in Firestore");
           }
         } else {
           dispatch({ type: "SET_USER", payload: null });
+          console.log("No Firebase user found, clearing store");
         }
       } catch (error) {
         console.error("Error fetching user data:", error);

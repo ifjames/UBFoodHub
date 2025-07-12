@@ -110,14 +110,7 @@ export default function Profile() {
               </p>
             </div>
           </div>
-          {/* Settings button for large screens */}
-          <button 
-            onClick={() => setLocation("/settings")}
-            className="hidden md:flex items-center space-x-2 text-[#820d2a] hover:bg-red-50 px-4 py-2 rounded-lg transition-colors"
-          >
-            <Settings className="h-5 w-5" />
-            <span className="font-medium">Settings</span>
-          </button>
+          
         </div>
 
         {/* Perks Section */}

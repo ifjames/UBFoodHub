@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { ArrowLeft, Camera, Eye, EyeOff, Bell, BellOff } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ArrowLeft, Camera, Eye, EyeOff, Bell, BellOff, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,9 @@ import { useToast } from "@/hooks/use-toast";
 import { createNotification } from "@/lib/notifications";
 import NotificationService from "@/lib/notification-service";
 import BottomNav from "@/components/layout/bottom-nav";
+import { updatePassword, updateProfile, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+import { auth, updateDocument } from "@/lib/firebase";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default function Settings() {
   const [, setLocation] = useLocation();
@@ -20,8 +23,10 @@ export default function Settings() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>("default");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
@@ -84,6 +89,15 @@ export default function Settings() {
   };
 
   const handlePasswordUpdate = async () => {
+    if (!passwordData.currentPassword) {
+      toast({
+        title: "Current password required",
+        description: "Please enter your current password.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast({
         title: "Password mismatch",
@@ -104,22 +118,49 @@ export default function Settings() {
 
     setIsUpdatingPassword(true);
     try {
-      // TODO: Implement password update with Firebase
-      
-      // Send notification when password changes (for when this feature is implemented)
+      const user = auth.currentUser;
+      if (!user || !user.email) {
+        throw new Error("No authenticated user found");
+      }
+
+      // Re-authenticate user with current password
+      const credential = EmailAuthProvider.credential(user.email, passwordData.currentPassword);
+      await reauthenticateWithCredential(user, credential);
+
+      // Update password
+      await updatePassword(user, passwordData.newPassword);
+
+      // Send notification when password changes
       const notificationService = NotificationService.getInstance();
       if (notificationService.isPermissionGranted()) {
         await notificationService.sendPasswordChangeNotification();
       }
-      
-      toast({
-        title: "Coming Soon",
-        description: "Password update functionality will be available soon.",
+
+      // Clear form
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
       });
-    } catch (error) {
+
+      toast({
+        title: "Password updated",
+        description: "Your password has been successfully changed.",
+      });
+    } catch (error: any) {
+      let errorMessage = "Failed to update password. Please try again.";
+      
+      if (error.code === "auth/wrong-password") {
+        errorMessage = "Current password is incorrect.";
+      } else if (error.code === "auth/weak-password") {
+        errorMessage = "New password is too weak.";
+      } else if (error.code === "auth/requires-recent-login") {
+        errorMessage = "Please log out and log back in, then try again.";
+      }
+
       toast({
         title: "Update failed",
-        description: "Failed to update password. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -128,10 +169,139 @@ export default function Settings() {
   };
 
   const handleProfilePictureUpdate = () => {
-    toast({
-      title: "Coming Soon",
-      description: "Profile picture update will be available soon.",
-    });
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select an image smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUpdatingProfile(true);
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("No authenticated user found");
+      }
+
+      // Upload to Firebase Storage
+      const storage = getStorage();
+      const fileRef = ref(storage, `profile-pictures/${user.uid}/${Date.now()}-${file.name}`);
+      
+      const snapshot = await uploadBytes(fileRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+
+      // Update Firebase Auth profile
+      await updateProfile(user, {
+        photoURL: downloadURL
+      });
+
+      // Update user document in Firestore
+      await updateDocument("users", user.uid, {
+        photoURL: downloadURL,
+        updatedAt: new Date()
+      });
+
+      // Update local state
+      dispatch({
+        type: "SET_USER",
+        payload: {
+          ...state.user!,
+          photoURL: downloadURL
+        }
+      });
+
+      toast({
+        title: "Profile picture updated",
+        description: "Your profile picture has been successfully changed.",
+      });
+    } catch (error) {
+      console.error("Error updating profile picture:", error);
+      toast({
+        title: "Update failed",
+        description: "Failed to update profile picture. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
+
+  const syncGoogleProfilePicture = async () => {
+    setIsUpdatingProfile(true);
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("No authenticated user found");
+      }
+
+      // Check if user has a Google photo URL
+      const googlePhotoURL = user.providerData.find(
+        provider => provider.providerId === 'google.com'
+      )?.photoURL;
+
+      if (!googlePhotoURL) {
+        toast({
+          title: "No Google photo found",
+          description: "No Google profile picture found to sync.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update Firebase Auth profile
+      await updateProfile(user, {
+        photoURL: googlePhotoURL
+      });
+
+      // Update user document in Firestore
+      await updateDocument("users", user.uid, {
+        photoURL: googlePhotoURL,
+        updatedAt: new Date()
+      });
+
+      // Update local state
+      dispatch({
+        type: "SET_USER",
+        payload: {
+          ...state.user!,
+          photoURL: googlePhotoURL
+        }
+      });
+
+      toast({
+        title: "Profile picture synced",
+        description: "Your Google profile picture has been synced successfully.",
+      });
+    } catch (error) {
+      console.error("Error syncing Google profile picture:", error);
+      toast({
+        title: "Sync failed",
+        description: "Failed to sync Google profile picture. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingProfile(false);
+    }
   };
 
   return (
@@ -245,24 +415,63 @@ export default function Settings() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center space-x-4">
-              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center relative">
-                <span className="text-[#6d031e] text-2xl font-semibold">
-                  {state.user?.fullName?.charAt(0) || "U"}
-                </span>
+              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center relative overflow-hidden">
+                {state.user?.photoURL ? (
+                  <img 
+                    src={state.user.photoURL} 
+                    alt={state.user.fullName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-[#6d031e] text-2xl font-semibold">
+                    {state.user?.fullName?.charAt(0) || "U"}
+                  </span>
+                )}
                 <button
                   onClick={handleProfilePictureUpdate}
-                  className="absolute -bottom-1 -right-1 w-8 h-8 bg-[#6d031e] text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors"
+                  disabled={isUpdatingProfile}
+                  className="absolute -bottom-1 -right-1 w-8 h-8 bg-[#6d031e] text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors disabled:opacity-50"
                 >
-                  <Camera className="h-4 w-4" />
+                  {isUpdatingProfile ? (
+                    <div className="animate-spin rounded-full h-3 w-3 border border-white border-t-transparent"></div>
+                  ) : (
+                    <Camera className="h-4 w-4" />
+                  )}
                 </button>
               </div>
-              <div>
+              <div className="flex-1">
                 <h3 className="font-medium text-gray-800">
                   {state.user?.fullName || "Student Name"}
                 </h3>
                 <p className="text-sm text-gray-600">Tap the camera icon to update</p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={syncGoogleProfilePicture}
+                  disabled={isUpdatingProfile}
+                  className="mt-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+                >
+                  {isUpdatingProfile ? (
+                    <>
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
+                      Syncing...
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="h-3 w-3 mr-2" />
+                      Sync Google Photo
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
           </CardContent>
         </Card>
 

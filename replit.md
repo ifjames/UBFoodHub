@@ -103,6 +103,16 @@ UB FoodHub is a comprehensive mobile web application designed for the University
 
 ## Recent Changes
 
+### Functional Password Change and Profile Picture Features (July 12, 2025)
+- **Password Change Implementation**: Full Firebase authentication integration with current password verification
+- **Profile Picture Upload**: Users can upload custom profile pictures with Firebase Storage integration
+- **Google Account Sync**: Automatic synchronization of Google profile pictures for Google Auth users
+- **Enhanced User Interface**: Profile pictures display throughout the app (profile page, settings)
+- **File Validation**: Image type and size validation (max 5MB) with user-friendly error messages
+- **Real-time Updates**: Profile changes update immediately across all app components
+- **Security Features**: Password change requires current password verification and sends security notifications
+- **Loading States**: Proper loading indicators for all profile update operations
+
 ### Enhanced Responsive Design for Profile Settings (July 12, 2025)
 - Fixed settings button accessibility issue on desktop/tablet screens
 - Added desktop-friendly settings button in profile header (hidden md:flex)
@@ -271,6 +281,7 @@ Changelog:
 - July 11, 2025. Successful Firebase hosting deployment at https://ubianfoodhub.web.app
 - July 11, 2025. Migration from Replit Agent to standard Replit environment with enhanced stability
 - July 12, 2025. Comprehensive push notification system with mobile app compatibility and desktop responsive fixes
+- July 12, 2025. Functional password changing and profile picture features with Google account sync
 ```
 
 ## User Preferences

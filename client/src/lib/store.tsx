@@ -9,6 +9,8 @@ interface User {
   phoneNumber?: string | null;
   role: string;
   loyaltyPoints?: number;
+  photoURL?: string | null;
+  emailVerified?: boolean;
   createdAt?: any;
 }
 

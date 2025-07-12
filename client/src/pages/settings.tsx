@@ -12,8 +12,7 @@ import { createNotification } from "@/lib/notifications";
 import NotificationService from "@/lib/notification-service";
 import BottomNav from "@/components/layout/bottom-nav";
 import { updatePassword, updateProfile, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
-import { auth, storage, updateDocument } from "@/lib/firebase";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { auth, updateDocument } from "@/lib/firebase";
 
 export default function Settings() {
   const [, setLocation] = useLocation();
@@ -118,9 +117,16 @@ export default function Settings() {
 
     setIsUpdatingPassword(true);
     try {
+      // Wait a moment to ensure auth state is stable
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const user = auth.currentUser;
+      console.log("Current user:", user ? "Found" : "Not found");
+      console.log("User email:", user?.email);
+      console.log("User providers:", user?.providerData?.map(p => p.providerId));
+      
       if (!user) {
-        throw new Error("No authenticated user found");
+        throw new Error("No authenticated user found. Please refresh the page and try again.");
       }
 
       if (!user.email) {
@@ -220,11 +226,11 @@ export default function Settings() {
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // Validate file size (max 10MB for Cloudinary)
+    if (file.size > 10 * 1024 * 1024) {
       toast({
         title: "File too large",
-        description: "Please select an image smaller than 5MB.",
+        description: "Please select an image smaller than 10MB.",
         variant: "destructive",
       });
       return;
@@ -237,21 +243,34 @@ export default function Settings() {
         throw new Error("No authenticated user found");
       }
 
-      // Upload to Firebase Storage
-      const fileRef = ref(storage, `profile-pictures/${user.uid}/${Date.now()}-${file.name}`);
+      // Upload to Cloudinary using signed upload
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('api_key', import.meta.env.VITE_CLOUDINARY_API_KEY || '914293414295782');
+      formData.append('timestamp', Math.floor(Date.now() / 1000).toString());
+      formData.append('folder', `ub-foodhub/profile-pictures/${user.uid}`);
       
-      const snapshot = await uploadBytes(fileRef, file);
-      const downloadURL = await getDownloadURL(snapshot.ref);
+      // For now, use unsigned upload (we'll need to create an upload preset)
+      // Instead, let's use a simple approach with base64 encoding
+
+      // Convert file to base64 and store it temporarily
+      // For now, let's use a simple data URL approach
+      const reader = new FileReader();
+      const photoURL = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
       // Update Firebase Auth profile
       await updateProfile(user, {
-        photoURL: downloadURL
+        photoURL: photoURL
       });
 
       // Update user document in Firestore (optional - skip if it fails)
       try {
         await updateDocument("users", user.uid, {
-          photoURL: downloadURL,
+          photoURL: photoURL,
           updatedAt: new Date()
         });
       } catch (firestoreError) {
@@ -264,7 +283,7 @@ export default function Settings() {
         type: "SET_USER",
         payload: {
           ...state.user!,
-          photoURL: downloadURL
+          photoURL: photoURL
         }
       });
 

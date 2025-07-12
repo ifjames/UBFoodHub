@@ -9,7 +9,7 @@ import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { createNotification } from "@/lib/notifications";
-import NotificationService from "@/lib/notification-service";
+import { NotificationService } from "@/lib/notification-service";
 import BottomNav from "@/components/layout/bottom-nav";
 import { updatePassword, updateProfile, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { auth, updateDocument } from "@/lib/firebase";
@@ -159,8 +159,20 @@ export default function Settings() {
         return;
       }
       
-      // Force wait for Firebase auth to be ready
-      await auth.authStateReady();
+      // Force wait for Firebase auth to be ready with timeout
+      const authPromise = auth.authStateReady();
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Auth timeout')), 5000);
+      });
+      
+      try {
+        await Promise.race([authPromise, timeoutPromise]);
+      } catch (error) {
+        if (error.message === 'Auth timeout') {
+          console.warn("Firebase auth taking too long, continuing anyway");
+        }
+      }
+      
       let user = auth.currentUser;
       
       if (!user) {

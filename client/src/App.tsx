@@ -22,7 +22,7 @@ import StallDashboard from "@/pages/stall-dashboard";
 import Settings from "@/pages/settings";
 import HelpCenter from "@/pages/help-center";
 import TermsPolicies from "@/pages/terms-policies";
-import { onAuthStateChange, getDocument } from "@/lib/firebase";
+import { onAuthStateChange, getDocument, auth } from "@/lib/firebase";
 import { useStore } from "@/lib/store";
 
 function Router() {
@@ -109,11 +109,19 @@ function AuthProvider({ children }) {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
     const unsubscribe = onAuthStateChange(async (firebaseUser) => {
       try {
         if (firebaseUser) {
-          // Ensure Firebase auth is ready before proceeding
-          await auth.authStateReady();
+          // Ensure Firebase auth is ready before proceeding with timeout
+          const authPromise = auth.authStateReady();
+          const timeoutPromise = new Promise((_, reject) => {
+            timeoutId = setTimeout(() => reject(new Error('Auth timeout')), 10000);
+          });
+          
+          await Promise.race([authPromise, timeoutPromise]);
+          clearTimeout(timeoutId);
           
           // Get user document from Firestore
           const userDoc = await getDocument("users", firebaseUser.uid);
@@ -137,7 +145,6 @@ function AuthProvider({ children }) {
               }
             });
             
-            // Force sync with Firebase auth
             console.log("Firebase auth synced for user:", firebaseUser.email);
           } else {
             console.warn("User document not found in Firestore");
@@ -147,12 +154,19 @@ function AuthProvider({ children }) {
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
+        if (error.message === 'Auth timeout') {
+          console.warn("Firebase auth took too long, continuing with fallback");
+        }
       } finally {
+        clearTimeout(timeoutId);
         setIsAuthLoading(false);
       }
     });
 
-    return unsubscribe;
+    return () => {
+      clearTimeout(timeoutId);
+      unsubscribe();
+    };
   }, [dispatch]);
 
   if (isAuthLoading) {

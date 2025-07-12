@@ -40,6 +40,7 @@ import {
 import { useLocation } from "wouter";
 import NotificationBell from "@/components/notifications/notification-bell";
 import CancellationRequestManagement from "@/components/orders/cancellation-request-management";
+import NotificationService from "@/lib/notification-service";
 
 export default function StallDashboard() {
   const { state, dispatch } = useStore();
@@ -282,10 +283,24 @@ export default function StallDashboard() {
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
+      // Find the order to get customer info
+      const order = orders.find(o => o.id === orderId);
+      
       await updateDocument("orders", orderId, { 
         status: newStatus,
         updatedAt: new Date()
       });
+      
+      // Send notification to customer
+      if (order) {
+        const notificationService = NotificationService.getInstance();
+        await notificationService.sendOrderNotification(
+          orderId, 
+          newStatus, 
+          order.customerName
+        );
+      }
+      
       toast({
         title: "Success",
         description: `Order status updated to ${newStatus}`,
@@ -301,10 +316,24 @@ export default function StallDashboard() {
 
   const cancelOrder = async (orderId: string) => {
     try {
+      // Find the order to get customer info
+      const order = orders.find(o => o.id === orderId);
+      
       await updateDocument("orders", orderId, { 
         status: "cancelled",
         updatedAt: new Date()
       });
+      
+      // Send notification to customer
+      if (order) {
+        const notificationService = NotificationService.getInstance();
+        await notificationService.sendOrderNotification(
+          orderId, 
+          "cancelled", 
+          order.customerName
+        );
+      }
+      
       toast({
         title: "Order Cancelled",
         description: "Order has been cancelled successfully",

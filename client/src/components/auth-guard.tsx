@@ -2,6 +2,7 @@ import { ReactNode, useState, useEffect } from "react";
 import { useStore } from "@/lib/store";
 import { useLocation } from "wouter";
 import ProfileCompletionModal from "./profile-completion-modal";
+import NotificationService from "@/lib/notification-service";
 
 interface AuthGuardProps {
   children: ReactNode;
@@ -28,6 +29,14 @@ export default function AuthGuard({ children }: AuthGuardProps) {
 
     if (needsProfileCompletion) {
       setShowProfileCompletion(true);
+    }
+
+    // Check for email verification and send notification if needed
+    if (state.user && !state.user.emailVerified) {
+      const notificationService = NotificationService.getInstance();
+      if (notificationService.isPermissionGranted()) {
+        notificationService.sendVerificationNotification();
+      }
     }
   }, [state.user, setLocation]);
 

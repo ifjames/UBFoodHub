@@ -33,9 +33,28 @@ export default function Settings() {
 
   useEffect(() => {
     // Check notification permission status on component mount
-    setNotificationPermission(notificationService.getPermissionStatus());
-    setNotificationsEnabled(notificationService.isPermissionGranted());
-  }, []);
+    const currentPermission = notificationService.getPermissionStatus();
+    const isGranted = notificationService.isPermissionGranted();
+    
+    setNotificationPermission(currentPermission);
+    setNotificationsEnabled(isGranted);
+    
+    // Listen for permission changes
+    const checkPermission = () => {
+      const newPermission = notificationService.getPermissionStatus();
+      const newGranted = notificationService.isPermissionGranted();
+      
+      if (newPermission !== notificationPermission) {
+        setNotificationPermission(newPermission);
+        setNotificationsEnabled(newGranted);
+      }
+    };
+    
+    // Check permission every few seconds to detect manual browser changes
+    const interval = setInterval(checkPermission, 3000);
+    
+    return () => clearInterval(interval);
+  }, [notificationPermission]);
 
   const handleNotificationToggle = async (enabled: boolean) => {
     if (enabled) {
@@ -86,6 +105,13 @@ export default function Settings() {
     setIsUpdatingPassword(true);
     try {
       // TODO: Implement password update with Firebase
+      
+      // Send notification when password changes (for when this feature is implemented)
+      const notificationService = NotificationService.getInstance();
+      if (notificationService.isPermissionGranted()) {
+        await notificationService.sendPasswordChangeNotification();
+      }
+      
       toast({
         title: "Coming Soon",
         description: "Password update functionality will be available soon.",
@@ -155,8 +181,42 @@ export default function Settings() {
             {notificationPermission === "denied" && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-sm text-red-700">
-                  Notifications are blocked in your browser. Please enable them in your browser settings to receive updates.
+                  Notifications are blocked in your browser. To enable them:
                 </p>
+                <ul className="text-sm text-red-700 mt-2 list-disc list-inside">
+                  <li>Click the lock icon in your address bar</li>
+                  <li>Set "Notifications" to "Allow"</li>
+                  <li>Refresh this page</li>
+                </ul>
+              </div>
+            )}
+            
+            {notificationPermission === "default" && !notificationsEnabled && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  Turn on notifications to receive updates about your orders, penalties, and important announcements.
+                </p>
+              </div>
+            )}
+            
+            {notificationPermission === "granted" && notificationsEnabled && (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-sm text-green-700">
+                  ✓ You'll receive notifications for: Order updates, Penalties, Email verification reminders, Admin announcements, and Security changes.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2 text-green-700 border-green-300 hover:bg-green-100"
+                  onClick={() => {
+                    notificationService.sendAnnouncementNotification(
+                      "Test Notification", 
+                      "This is a test to make sure your notifications are working!"
+                    );
+                  }}
+                >
+                  Send Test Notification
+                </Button>
               </div>
             )}
             

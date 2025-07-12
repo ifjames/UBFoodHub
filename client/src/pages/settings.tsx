@@ -148,14 +148,21 @@ export default function Settings() {
         description: "Your password has been successfully changed.",
       });
     } catch (error: any) {
+      console.error("Password update error:", error);
       let errorMessage = "Failed to update password. Please try again.";
       
-      if (error.code === "auth/wrong-password") {
+      if (error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
         errorMessage = "Current password is incorrect.";
       } else if (error.code === "auth/weak-password") {
-        errorMessage = "New password is too weak.";
+        errorMessage = "New password is too weak. Use at least 6 characters.";
       } else if (error.code === "auth/requires-recent-login") {
         errorMessage = "Please log out and log back in, then try again.";
+      } else if (error.code === "auth/too-many-requests") {
+        errorMessage = "Too many failed attempts. Please wait a moment and try again.";
+      } else if (error.code === "auth/user-disabled") {
+        errorMessage = "Your account has been disabled. Contact support.";
+      } else if (error.code === "auth/operation-not-allowed") {
+        errorMessage = "Password changes are not allowed for this account type.";
       }
 
       toast({
@@ -254,15 +261,24 @@ export default function Settings() {
         throw new Error("No authenticated user found");
       }
 
-      // Check if user has a Google photo URL
-      const googlePhotoURL = user.providerData.find(
-        provider => provider.providerId === 'google.com'
-      )?.photoURL;
+      // Check if user has a Google photo URL from their current photoURL or provider data
+      let googlePhotoURL = null;
+      
+      // First check if current photoURL is from Google
+      if (user.photoURL && user.photoURL.includes('googleusercontent.com')) {
+        googlePhotoURL = user.photoURL;
+      } else {
+        // Check provider data for Google photo
+        const googleProvider = user.providerData.find(
+          provider => provider.providerId === 'google.com'
+        );
+        googlePhotoURL = googleProvider?.photoURL;
+      }
 
       if (!googlePhotoURL) {
         toast({
           title: "No Google photo found",
-          description: "No Google profile picture found to sync.",
+          description: "This account doesn't have a Google profile picture to sync. Try uploading a custom image instead.",
           variant: "destructive",
         });
         return;
@@ -274,10 +290,15 @@ export default function Settings() {
       });
 
       // Update user document in Firestore
-      await updateDocument("users", user.uid, {
-        photoURL: googlePhotoURL,
-        updatedAt: new Date()
-      });
+      try {
+        await updateDocument("users", user.uid, {
+          photoURL: googlePhotoURL,
+          updatedAt: new Date()
+        });
+      } catch (firestoreError) {
+        console.log("Firestore update skipped:", firestoreError);
+        // Continue anyway as the auth profile was updated
+      }
 
       // Update local state
       dispatch({
@@ -296,7 +317,7 @@ export default function Settings() {
       console.error("Error syncing Google profile picture:", error);
       toast({
         title: "Sync failed",
-        description: "Failed to sync Google profile picture. Please try again.",
+        description: "Failed to sync Google profile picture. Make sure you signed in with Google.",
         variant: "destructive",
       });
     } finally {
@@ -430,12 +451,12 @@ export default function Settings() {
                 <button
                   onClick={handleProfilePictureUpdate}
                   disabled={isUpdatingProfile}
-                  className="absolute -bottom-1 -right-1 w-8 h-8 bg-[#6d031e] text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors disabled:opacity-50"
+                  className="absolute bottom-0 right-0 w-7 h-7 bg-[#6d031e] text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors disabled:opacity-50 border-2 border-white shadow-sm"
                 >
                   {isUpdatingProfile ? (
                     <div className="animate-spin rounded-full h-3 w-3 border border-white border-t-transparent"></div>
                   ) : (
-                    <Camera className="h-4 w-4" />
+                    <Camera className="h-3 w-3" />
                   )}
                 </button>
               </div>

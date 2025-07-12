@@ -140,6 +140,14 @@ class NotificationService {
     });
   }
 
+  public async sendTestNotification(): Promise<void> {
+    await this.sendNotification({
+      title: 'Test Notification',
+      body: 'This is a test notification from UB FoodHub! 🔔',
+      type: 'general'
+    });
+  }
+
   private async sendNotification(data: NotificationData): Promise<void> {
     if (!this.isPermissionGranted()) {
       console.warn('Notification permission not granted');
@@ -176,12 +184,17 @@ class NotificationService {
         await this.initializeServiceWorker();
       }
       
+      // Wait for service worker to be ready
+      await navigator.serviceWorker.ready;
+      
       if (this.serviceWorkerRegistration && this.serviceWorkerRegistration.active) {
         // Use service worker for better mobile support
         await this.serviceWorkerRegistration.showNotification(data.title, options);
+        console.log('Notification sent via service worker');
       } else {
         // Fallback to regular notification
         new Notification(data.title, options);
+        console.log('Notification sent via regular method');
       }
 
       // Store notification in local storage for history
@@ -191,6 +204,7 @@ class NotificationService {
       // Try fallback method
       try {
         new Notification(data.title, options);
+        console.log('Notification sent via fallback method');
       } catch (fallbackError) {
         console.error('Fallback notification also failed:', fallbackError);
       }

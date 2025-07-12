@@ -159,13 +159,18 @@ export default function Settings() {
         return;
       }
       
+      // Wait for auth state to be ready with a timeout
       let user = auth.currentUser;
       
       if (!user) {
-        // Wait for auth state to be ready
-        await new Promise((resolve) => {
+        user = await new Promise((resolve) => {
+          const timeout = setTimeout(() => {
+            console.log("Auth state timeout for password change");
+            resolve(null);
+          }, 5000);
+          
           const unsubscribe = auth.onAuthStateChanged((authUser) => {
-            user = authUser;
+            clearTimeout(timeout);
             unsubscribe();
             resolve(authUser);
           });
@@ -304,13 +309,18 @@ export default function Settings() {
         return;
       }
       
+      // Wait for auth state to be ready with a timeout
       let user = auth.currentUser;
       
       if (!user) {
-        // Wait for auth state to be ready
-        await new Promise((resolve) => {
+        user = await new Promise((resolve) => {
+          const timeout = setTimeout(() => {
+            console.log("Auth state timeout for profile picture");
+            resolve(null);
+          }, 5000);
+          
           const unsubscribe = auth.onAuthStateChanged((authUser) => {
-            user = authUser;
+            clearTimeout(timeout);
             unsubscribe();
             resolve(authUser);
           });
@@ -562,11 +572,21 @@ export default function Settings() {
                   variant="outline"
                   size="sm"
                   className="mt-2 text-green-700 border-green-300 hover:bg-green-100"
-                  onClick={() => {
-                    notificationService.sendAnnouncementNotification(
-                      "Test Notification", 
-                      "This is a test to make sure your notifications are working!"
-                    );
+                  onClick={async () => {
+                    try {
+                      await notificationService.sendTestNotification();
+                      toast({
+                        title: "Test notification sent",
+                        description: "Check if you received the notification!",
+                      });
+                    } catch (error) {
+                      console.error("Error sending test notification:", error);
+                      toast({
+                        title: "Test failed",
+                        description: "Could not send test notification. Please check your permission settings.",
+                        variant: "destructive",
+                      });
+                    }
                   }}
                 >
                   Send Test Notification

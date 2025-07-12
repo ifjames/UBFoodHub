@@ -20,12 +20,14 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     }
 
     // Check if user needs to complete their profile (missing student ID or phone number)
-    const needsProfileCompletion = state.user && (
-      !state.user.studentId || 
-      !state.user.phoneNumber ||
-      state.user.studentId.trim() === "" ||
-      state.user.phoneNumber.trim() === ""
-    );
+    // Only show profile completion modal for students, not admins or stall owners
+    const needsProfileCompletion = state.user && 
+      state.user.role === "student" && (
+        !state.user.studentId || 
+        !state.user.phoneNumber ||
+        state.user.studentId.trim() === "" ||
+        state.user.phoneNumber.trim() === ""
+      );
 
     if (needsProfileCompletion) {
       setShowProfileCompletion(true);

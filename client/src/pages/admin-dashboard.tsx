@@ -73,6 +73,21 @@ export default function AdminDashboard() {
   });
   const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
 
+  // Create account form
+  const [showCreateAccountModal, setShowCreateAccountModal] = useState(false);
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+  const [createAccountForm, setCreateAccountForm] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    role: "student",
+    studentId: "",
+    phoneNumber: "",
+    stallName: "",
+    stallDescription: "",
+    stallCategory: "",
+  });
+
   useEffect(() => {
     // Subscribe to real-time data
     const unsubscribeUsers = subscribeToCollection("users", setUsers);
@@ -373,6 +388,89 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleCreateAccount = async () => {
+    if (!createAccountForm.fullName || !createAccountForm.email || !createAccountForm.password) {
+      toast({
+        title: "Missing required fields",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsCreatingAccount(true);
+    try {
+      // Create Firebase auth account
+      const userCredential = await signUp(createAccountForm.email, createAccountForm.password);
+      const user = userCredential.user;
+
+      // Create user document in Firestore
+      const userData = {
+        fullName: createAccountForm.fullName,
+        email: createAccountForm.email,
+        role: createAccountForm.role,
+        studentId: createAccountForm.studentId || "",
+        phoneNumber: createAccountForm.phoneNumber || "",
+        loyaltyPoints: 0,
+        emailVerified: true, // Admin-created accounts are automatically verified
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      await createDocument("users", user.uid, userData);
+
+      // If creating a stall owner, also create the stall
+      if (createAccountForm.role === "stall_owner" && createAccountForm.stallName) {
+        const stallData = {
+          name: createAccountForm.stallName,
+          description: createAccountForm.stallDescription || "",
+          category: createAccountForm.stallCategory || "Filipino",
+          ownerId: user.uid,
+          ownerEmail: createAccountForm.email,
+          image: "",
+          isActive: true,
+          rating: "0.0",
+          reviewCount: 0,
+          deliveryTime: "15-30 min",
+          priceRange: "₱50-200",
+          deliveryFee: "₱10",
+          createdAt: new Date(),
+        };
+
+        await addDocument("restaurants", stallData);
+      }
+
+      // Reset form
+      setCreateAccountForm({
+        fullName: "",
+        email: "",
+        password: "",
+        role: "student",
+        studentId: "",
+        phoneNumber: "",
+        stallName: "",
+        stallDescription: "",
+        stallCategory: "",
+      });
+
+      setShowCreateAccountModal(false);
+
+      toast({
+        title: "Account created successfully",
+        description: `${createAccountForm.role === "stall_owner" ? "Stall owner" : "User"} account has been created and verified.`,
+      });
+    } catch (error: any) {
+      console.error("Error creating account:", error);
+      toast({
+        title: "Error creating account",
+        description: error.message || "Failed to create account. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingAccount(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -461,17 +559,26 @@ export default function AdminDashboard() {
               <CardHeader>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <CardTitle>User Accounts</CardTitle>
-                  <Select value={userFilter} onValueChange={setUserFilter}>
-                    <SelectTrigger className="w-full sm:w-48">
-                      <SelectValue placeholder="Filter by role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Users</SelectItem>
-                      <SelectItem value="student">Students Only</SelectItem>
-                      <SelectItem value="stall_owner">Stall Owners Only</SelectItem>
-                      <SelectItem value="admin">Admins Only</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <Select value={userFilter} onValueChange={setUserFilter}>
+                      <SelectTrigger className="w-full sm:w-48">
+                        <SelectValue placeholder="Filter by role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Users</SelectItem>
+                        <SelectItem value="student">Students Only</SelectItem>
+                        <SelectItem value="stall_owner">Stall Owners Only</SelectItem>
+                        <SelectItem value="admin">Admins Only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button 
+                      onClick={() => setShowCreateAccountModal(true)}
+                      className="bg-[#6d031e] hover:bg-red-700 w-full sm:w-auto"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Account
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -1038,6 +1145,139 @@ export default function AdminDashboard() {
                 type="button"
                 variant="outline"
                 onClick={() => setIsEditUserDialogOpen(false)}
+                className="border-red-300 text-red-700 hover:bg-red-100"
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Account Dialog */}
+      <Dialog open={showCreateAccountModal} onOpenChange={setShowCreateAccountModal}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Account</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={(e) => { e.preventDefault(); handleCreateAccount(); }} className="space-y-4">
+            <div>
+              <Label htmlFor="createFullName">Full Name *</Label>
+              <Input
+                id="createFullName"
+                value={createAccountForm.fullName}
+                onChange={(e) => setCreateAccountForm({ ...createAccountForm, fullName: e.target.value })}
+                placeholder="Enter full name"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="createEmail">Email *</Label>
+              <Input
+                id="createEmail"
+                type="email"
+                value={createAccountForm.email}
+                onChange={(e) => setCreateAccountForm({ ...createAccountForm, email: e.target.value })}
+                placeholder="Enter email address"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="createPassword">Password *</Label>
+              <Input
+                id="createPassword"
+                type="password"
+                value={createAccountForm.password}
+                onChange={(e) => setCreateAccountForm({ ...createAccountForm, password: e.target.value })}
+                placeholder="Enter password"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="createRole">Role *</Label>
+              <Select value={createAccountForm.role} onValueChange={(value) => setCreateAccountForm({ ...createAccountForm, role: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="student">Student</SelectItem>
+                  <SelectItem value="stall_owner">Stall Owner</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="createStudentId">Student ID</Label>
+              <Input
+                id="createStudentId"
+                value={createAccountForm.studentId}
+                onChange={(e) => setCreateAccountForm({ ...createAccountForm, studentId: e.target.value })}
+                placeholder="Enter student ID (optional)"
+              />
+            </div>
+            <div>
+              <Label htmlFor="createPhoneNumber">Phone Number</Label>
+              <Input
+                id="createPhoneNumber"
+                value={createAccountForm.phoneNumber}
+                onChange={(e) => setCreateAccountForm({ ...createAccountForm, phoneNumber: e.target.value })}
+                placeholder="Enter phone number (optional)"
+              />
+            </div>
+            
+            {/* Stall Owner specific fields */}
+            {createAccountForm.role === "stall_owner" && (
+              <>
+                <div className="border-t pt-4">
+                  <h4 className="font-medium text-sm text-gray-700 mb-3">Stall Information</h4>
+                </div>
+                <div>
+                  <Label htmlFor="createStallName">Stall Name *</Label>
+                  <Input
+                    id="createStallName"
+                    value={createAccountForm.stallName}
+                    onChange={(e) => setCreateAccountForm({ ...createAccountForm, stallName: e.target.value })}
+                    placeholder="Enter stall name (e.g., Chowking)"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="createStallDescription">Stall Description</Label>
+                  <Input
+                    id="createStallDescription"
+                    value={createAccountForm.stallDescription}
+                    onChange={(e) => setCreateAccountForm({ ...createAccountForm, stallDescription: e.target.value })}
+                    placeholder="Enter stall description"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="createStallCategory">Stall Category</Label>
+                  <Select value={createAccountForm.stallCategory} onValueChange={(value) => setCreateAccountForm({ ...createAccountForm, stallCategory: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category} value={category}>{category}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+            
+            <div className="flex gap-2 pt-4">
+              <Button
+                type="submit"
+                disabled={isCreatingAccount}
+                className="flex-1 bg-[#6d031e] hover:bg-red-700"
+              >
+                {isCreatingAccount ? "Creating..." : "Create Account"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowCreateAccountModal(false)}
                 className="border-red-300 text-red-700 hover:bg-red-100"
               >
                 Cancel

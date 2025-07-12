@@ -111,6 +111,7 @@ UB FoodHub is a comprehensive mobile web application designed for the University
 - **Fixed Authentication State**: Resolved "not logged in" errors when changing profile pictures and passwords
 - **Enhanced User Management**: Added verification badges and stall owner creation workflow
 - **Improved Error Handling**: Better authentication state management and error messages
+- **Complete Account Creation System**: Added "Create Account" button and modal in admin dashboard for creating student, stall owner, and admin accounts
 
 ### Functional Password Change and Profile Picture Features (July 12, 2025)
 - **Password Change Implementation**: Full Firebase authentication integration with current password verification

@@ -93,24 +93,29 @@ export default function Profile() {
       </header>
       <div className="p-4 space-y-6 pb-20 md:pb-8 max-w-4xl mx-auto">
         {/* Profile Header */}
-        <div className="flex items-center justify-between bg-white rounded-lg p-6 shadow-sm">
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+        <div className="flex items-center space-x-4 bg-white rounded-lg p-6 shadow-sm">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center overflow-hidden">
+            {state.user?.photoURL ? (
+              <img 
+                src={state.user.photoURL} 
+                alt={state.user.fullName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
               <span className="text-[#6d031e] text-xl font-semibold">
                 {state.user?.fullName?.charAt(0) || "U"}
               </span>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-800">
-                {state.user?.fullName || "Student Name"}
-              </h3>
-              <p className="text-sm text-gray-600">{state.user?.email || "student@ub.edu.ph"}</p>
-              <p className="text-sm text-gray-600">
-                {state.user?.studentId || "UB-2024-001234"}
-              </p>
-            </div>
+            )}
           </div>
-          
+          <div>
+            <h3 className="font-semibold text-gray-800">
+              {state.user?.fullName || "Student Name"}
+            </h3>
+            <p className="text-sm text-gray-600">{state.user?.email || "student@ub.edu.ph"}</p>
+            <p className="text-sm text-gray-600">
+              {state.user?.studentId || "UB-2024-001234"}
+            </p>
+          </div>
         </div>
 
         {/* Perks Section */}

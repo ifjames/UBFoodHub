@@ -103,6 +103,16 @@ UB FoodHub is a comprehensive mobile web application designed for the University
 
 ## Recent Changes
 
+### Enhanced Responsive Design for Profile Settings (July 12, 2025)
+- Fixed settings button accessibility issue on desktop/tablet screens
+- Added desktop-friendly settings button in profile header (hidden md:flex)
+- Created additional settings card in desktop layout for better UX
+- Improved responsive grid layout for profile sections (2-column on md+ screens)
+- Enhanced profile header with better card styling and spacing
+- Maintained mobile-first design while ensuring desktop compatibility
+
+## Previous Changes
+
 ### Firebase Hosting Deployment (July 11, 2025)
 - Successfully deployed UB FoodHub to Firebase hosting at https://ubianfoodhub.web.app
 - Connected to user's existing Firebase project (ubianfoodhub) with proper authentication

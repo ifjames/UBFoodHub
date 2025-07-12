@@ -73,11 +73,11 @@ export default function Profile() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="text-white p-4 bg-[#820d2a]">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between max-w-4xl mx-auto">
           <div className="flex items-center">
             <button
               onClick={() => setLocation("/")}
-              className="mr-4 p-2 hover:bg-red-700 rounded-full"
+              className="mr-4 p-2 hover:bg-red-700 rounded-full transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
@@ -85,35 +85,45 @@ export default function Profile() {
           </div>
           <button 
             onClick={() => setLocation("/settings")}
-            className="text-red-200 hover:text-white"
+            className="text-red-200 hover:text-white p-2 hover:bg-red-700 rounded-full transition-colors"
           >
             <Settings className="h-5 w-5" />
           </button>
         </div>
       </header>
-      <div className="p-4 space-y-6 pb-20">
+      <div className="p-4 space-y-6 pb-20 md:pb-8 max-w-4xl mx-auto">
         {/* Profile Header */}
-        <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-            <span className="text-[#6d031e] text-xl font-semibold">
-              {state.user?.fullName?.charAt(0) || "U"}
-            </span>
+        <div className="flex items-center justify-between bg-white rounded-lg p-6 shadow-sm">
+          <div className="flex items-center space-x-4">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+              <span className="text-[#6d031e] text-xl font-semibold">
+                {state.user?.fullName?.charAt(0) || "U"}
+              </span>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-800">
+                {state.user?.fullName || "Student Name"}
+              </h3>
+              <p className="text-sm text-gray-600">{state.user?.email || "student@ub.edu.ph"}</p>
+              <p className="text-sm text-gray-600">
+                {state.user?.studentId || "UB-2024-001234"}
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-semibold text-gray-800">
-              {state.user?.fullName || "Student Name"}
-            </h3>
-            <p className="text-sm text-gray-600">{state.user?.email || "student@ub.edu.ph"}</p>
-            <p className="text-sm text-gray-600">
-              {state.user?.studentId || "UB-2024-001234"}
-            </p>
-          </div>
+          {/* Settings button for large screens */}
+          <button 
+            onClick={() => setLocation("/settings")}
+            className="hidden md:flex items-center space-x-2 text-[#820d2a] hover:bg-red-50 px-4 py-2 rounded-lg transition-colors"
+          >
+            <Settings className="h-5 w-5" />
+            <span className="font-medium">Settings</span>
+          </button>
         </div>
 
         {/* Perks Section */}
         <div>
           <h4 className="font-medium text-gray-800 mb-3">Perks for you</h4>
-          <div className="space-y-3">
+          <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
             {menuItems.map((item, index) => (
               <Card key={index} className={`${item.locked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-md'} transition-shadow`}>
                 <CardContent className="pt-6">
@@ -142,7 +152,7 @@ export default function Profile() {
         {/* General Section */}
         <div>
           <h4 className="font-medium text-gray-800 mb-3">General</h4>
-          <div className="space-y-3">
+          <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
             {generalItems.map((item, index) => (
               <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow" onClick={item.action}>
                 <CardContent className="pt-6">
@@ -164,26 +174,49 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Order History */}
-        <Card 
-          className="cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => setLocation("/orders")}
-        >
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg bg-red-50">
-                  <FileText className="h-5 w-5 text-[#6d031e]" />
+        {/* Order History and Settings for larger screens */}
+        <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => setLocation("/orders")}
+          >
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 rounded-lg bg-red-50">
+                    <FileText className="h-5 w-5 text-[#6d031e]" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800">Order History</p>
+                    <p className="text-sm text-gray-600">View all your past orders</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-medium text-gray-800">Order History</p>
-                  <p className="text-sm text-gray-600">View all your past orders</p>
-                </div>
+                <ArrowLeft className="h-4 w-4 text-gray-400 rotate-180" />
               </div>
-              <ArrowLeft className="h-4 w-4 text-gray-400 rotate-180" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+          
+          {/* Additional Settings card for desktop */}
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-shadow md:block hidden"
+            onClick={() => setLocation("/settings")}
+          >
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 rounded-lg bg-blue-50">
+                    <Settings className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800">Settings</p>
+                    <p className="text-sm text-gray-600">Manage your account preferences</p>
+                  </div>
+                </div>
+                <ArrowLeft className="h-4 w-4 text-gray-400 rotate-180" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Logout Button */}
         <Button

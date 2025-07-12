@@ -117,16 +117,31 @@ export default function Settings() {
 
     setIsUpdatingPassword(true);
     try {
-      // Wait a moment to ensure auth state is stable
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const user = auth.currentUser;
-      console.log("Current user:", user ? "Found" : "Not found");
-      console.log("User email:", user?.email);
-      console.log("User providers:", user?.providerData?.map(p => p.providerId));
+      // Check store user first, then Firebase auth
+      let user = auth.currentUser;
       
       if (!user) {
-        throw new Error("No authenticated user found. Please refresh the page and try again.");
+        // Wait for auth state to be ready
+        await new Promise((resolve) => {
+          const unsubscribe = auth.onAuthStateChanged((authUser) => {
+            user = authUser;
+            unsubscribe();
+            resolve(authUser);
+          });
+        });
+      }
+      
+      console.log("Password change - Current user:", user ? "Found" : "Not found");
+      console.log("User email:", user?.email);
+      console.log("Store user:", state.user?.email);
+      
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please log out and log back in to change your password.",
+          variant: "destructive",
+        });
+        return;
       }
 
       if (!user.email) {
@@ -238,9 +253,30 @@ export default function Settings() {
 
     setIsUpdatingProfile(true);
     try {
-      const user = auth.currentUser;
+      // Check store user first, then Firebase auth
+      let user = auth.currentUser;
+      
       if (!user) {
-        throw new Error("No authenticated user found");
+        // Wait for auth state to be ready
+        await new Promise((resolve) => {
+          const unsubscribe = auth.onAuthStateChanged((authUser) => {
+            user = authUser;
+            unsubscribe();
+            resolve(authUser);
+          });
+        });
+      }
+      
+      console.log("Profile picture - Current user:", user ? "Found" : "Not found");
+      console.log("Store user:", state.user?.email);
+      
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please log out and log back in to upload a profile picture.",
+          variant: "destructive",
+        });
+        return;
       }
 
       // Upload to Cloudinary using signed upload
@@ -306,9 +342,27 @@ export default function Settings() {
   const syncGoogleProfilePicture = async () => {
     setIsUpdatingProfile(true);
     try {
-      const user = auth.currentUser;
+      // Check store user first, then Firebase auth
+      let user = auth.currentUser;
+      
       if (!user) {
-        throw new Error("No authenticated user found");
+        // Wait for auth state to be ready
+        await new Promise((resolve) => {
+          const unsubscribe = auth.onAuthStateChanged((authUser) => {
+            user = authUser;
+            unsubscribe();
+            resolve(authUser);
+          });
+        });
+      }
+      
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please log out and log back in to sync your Google photo.",
+          variant: "destructive",
+        });
+        return;
       }
 
       // Check if user has a Google photo URL from their current photoURL or provider data

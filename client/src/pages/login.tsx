@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,7 +39,7 @@ export default function LoginPage() {
     studentId: "",
   });
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleEmailLogin = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -59,9 +59,9 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [loginData.email, loginData.password, signIn, toast, setLocation]);
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleSignUp = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -117,7 +117,7 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [agreedToTerms, signUpData, signUp, toast, setIsSignUp]);
 
   // Mobile Layout (screens smaller than lg)
   const MobileLayout = () => (
@@ -497,6 +497,16 @@ function SocialLoginForm({ onEmailLogin }: { onEmailLogin: () => void }) {
       transition={{ delay: 0.6, duration: 0.4 }}
       className="space-y-4"
     >
+      {/* Header Text */}
+      <div className="text-center mb-6">
+        <h3 className="text-lg font-semibold text-[#6d031e] mb-2 lg:text-gray-800">
+          Sign up or log in
+        </h3>
+        <p className="text-sm text-[#6d031e]/80 lg:text-gray-600">
+          Select your preferred method to continue
+        </p>
+      </div>
+
       <Button
         onClick={handleGoogleLogin}
         className="w-full text-[#6d031e] py-4 rounded-xl shadow-sm transition-all lg:py-3 lg:text-base bg-white border-2 border-[#6d031e]/20 hover:border-[#6d031e] hover:bg-[#6d031e]/5"
@@ -516,6 +526,11 @@ function SocialLoginForm({ onEmailLogin }: { onEmailLogin: () => void }) {
         <Mail className="w-5 h-5 mr-3" />
         Continue with email
       </Button>
+
+      {/* Terms Text for Social Login */}
+      <p className="text-xs text-center text-[#6d031e]/80 mt-6 lg:text-gray-600">
+        By signing up you agree to our Terms and Conditions and Privacy Policy.
+      </p>
 
     </motion.div>
   );

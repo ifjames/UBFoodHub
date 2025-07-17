@@ -487,13 +487,12 @@ function SocialLoginForm({ onEmailLogin }: { onEmailLogin: () => void }) {
         className="w-full text-[#6d031e] py-4 rounded-xl shadow-sm transition-all lg:py-3 lg:text-base bg-white border-2 border-[#6d031e]/20 hover:border-[#6d031e] hover:bg-[#6d031e]/5"
       >
         <img 
-          src={ubLogo} 
+          src="https://ubianfoodhub.web.app/UBlogo.png" 
           alt="UB Logo" 
           className="w-5 h-5 mr-3 object-contain"
         />
         Continue with UB Mail
       </Button>
-      
       <Button
         onClick={handleEmailLogin}
         className="w-full text-white py-4 rounded-xl shadow-sm transition-all lg:py-3 lg:text-base border-2 border-transparent hover:border-[#6d031e]/20"
@@ -502,7 +501,6 @@ function SocialLoginForm({ onEmailLogin }: { onEmailLogin: () => void }) {
         <Mail className="w-5 h-5 mr-3" />
         Continue with email
       </Button>
-      
       <div className="flex items-start space-x-2 mt-6">
         <input
           type="checkbox"

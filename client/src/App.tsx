@@ -151,8 +151,11 @@ function AuthProvider({ children }) {
             console.warn("User document not found in Firestore");
           }
         } else {
-          dispatch({ type: "SET_USER", payload: null });
-          console.log("No Firebase user found, clearing store");
+          // Add a small delay before clearing to prevent race conditions
+          setTimeout(() => {
+            dispatch({ type: "SET_USER", payload: null });
+            console.log("No Firebase user found, clearing store");
+          }, 1000);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);

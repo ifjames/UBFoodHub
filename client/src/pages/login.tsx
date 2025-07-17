@@ -576,41 +576,43 @@ export default function Login() {
             <p className="text-[#ae0a33] font-normal">Select your preferred method to continue</p>
           </motion.div>
 
-          <div className="space-y-4">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1, duration: 0.5 }}
-            >
-              <Button
-                onClick={handleGoogleSignIn}
-                className="w-full bg-white/90 border border-red-300/50 text-gray-800 hover:bg-white py-4 rounded-xl shadow-sm transition-all"
-                disabled={isLoading}
+          <div className="flex flex-col items-center">
+            <div className="w-full max-w-sm space-y-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1, duration: 0.5 }}
               >
-                <img 
-                  src="/UBlogo.png" 
-                  alt="UB Logo" 
-                  className="w-5 h-5 mr-3 object-contain"
-                />
-                Continue with UB Mail
-              </Button>
-            </motion.div>
+                <Button
+                  onClick={handleGoogleSignIn}
+                  className="w-full bg-white/90 border border-red-300/50 text-gray-800 hover:bg-white py-4 rounded-xl shadow-sm transition-all"
+                  disabled={isLoading}
+                >
+                  <img 
+                    src="/UBlogo.png" 
+                    alt="UB Logo" 
+                    className="w-5 h-5 mr-3 object-contain"
+                  />
+                  Continue with UB Mail
+                </Button>
+              </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2, duration: 0.5 }}
-            >
-              <Button
-                onClick={() => setAuthMode("email")}
-                className="w-full text-white py-4 rounded-xl shadow-sm transition-all"
-                style={{ backgroundColor: '#6d031e' }}
-                disabled={isLoading}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.2, duration: 0.5 }}
               >
-                <Mail className="w-5 h-5 mr-3" />
-                Continue with email
-              </Button>
-            </motion.div>
+                <Button
+                  onClick={() => setAuthMode("email")}
+                  className="w-full text-white py-4 rounded-xl shadow-sm transition-all"
+                  style={{ backgroundColor: '#6d031e' }}
+                  disabled={isLoading}
+                >
+                  <Mail className="w-5 h-5 mr-3" />
+                  Continue with email
+                </Button>
+              </motion.div>
+            </div>
           </div>
 
           <motion.p
@@ -750,17 +752,19 @@ export default function Login() {
         transition={{ delay: 0.4, duration: 0.6 }}
         className="bg-maroon-900/50 backdrop-blur-sm border-t border-red-700/30 rounded-t-3xl px-6 py-6 shadow-2xl max-h-[65vh] overflow-y-auto"
       >
-        <AnimatePresence mode="wait">
-          {!isSignUp ? (
-            <motion.form
-              key="signin"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              onSubmit={handleEmailLogin}
-              className="space-y-4"
-            >
-              <div className="space-y-3">
+        <div className="flex flex-col items-center">
+          <div className="w-full max-w-sm">
+            <AnimatePresence mode="wait">
+              {!isSignUp ? (
+                <motion.form
+                  key="signin"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  onSubmit={handleEmailLogin}
+                  className="space-y-4"
+                >
+                  <div className="space-y-3">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-[#6d031e] font-medium">Email</Label>
                   <div className="relative">
@@ -806,7 +810,7 @@ export default function Login() {
               
               <Button 
                 type="submit" 
-                className="w-full text-white h-12 rounded-xl font-medium"
+                className="w-full max-w-sm mx-auto text-white h-12 rounded-xl font-medium"
                 style={{ backgroundColor: '#6d031e' }}
                 disabled={isLoading}
               >
@@ -1046,7 +1050,7 @@ export default function Login() {
               
               <Button 
                 type="submit" 
-                className="w-full bg-[#6d031e] hover:bg-red-700 text-white py-4 rounded-xl text-lg font-medium"
+                className="w-full max-w-sm mx-auto bg-[#6d031e] hover:bg-red-700 text-white py-4 rounded-xl text-lg font-medium"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -1073,8 +1077,10 @@ export default function Login() {
                 </p>
               </div>
             </motion.form>
-          )}
-        </AnimatePresence>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
       </motion.div>
     </div>
   );

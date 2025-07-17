@@ -111,6 +111,8 @@ UB FoodHub is a comprehensive mobile web application designed for the University
 - **Improved UX**: Terms checkbox now properly disables the "Create Account" button until checked, improving user experience
 - **Legal Compliance**: Added detailed Terms of Service and Privacy Policy content specific to UB FoodHub's university context
 - **Migration Completion**: Successfully completed migration from Replit Agent to standard Replit environment with all security practices intact
+- **Role-Based Routing**: Implemented proper role-based redirection after login (admin→/admin, stall_owner→/stall-dashboard, student→/)
+- **Authentication Issues**: Fixed authentication guard and login routing, but form refresh issue persists during development due to hot module replacement
 
 ### Responsive Desktop Login Design Implementation (July 17, 2025)
 - **Split-Screen Desktop Layout**: Successfully implemented responsive design with campus background on left and login form on right for desktop/PC screens

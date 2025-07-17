@@ -39,18 +39,7 @@ export default function LoginPage() {
     studentId: "",
   });
 
-  // Stable input handlers to prevent re-renders
-  const handleLoginEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setLoginData(prev => ({ ...prev, email: e.target.value }));
-  }, []);
 
-  const handleLoginPasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setLoginData(prev => ({ ...prev, password: e.target.value }));
-  }, []);
-
-  const handleSignUpChange = useCallback((field: keyof typeof signUpData) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSignUpData(prev => ({ ...prev, [field]: e.target.value }));
-  }, []);
 
   const handleEmailLogin = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -614,7 +603,7 @@ function EmailLoginForm({
                     placeholder="Enter your email"
                     className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                     value={loginData.email}
-                    onChange={handleLoginEmailChange}
+                    onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
                     required
                     disabled={isLoading}
                   />

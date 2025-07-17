@@ -25,19 +25,19 @@ export default function LoginPage() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
 
-  const [loginData, setLoginData] = useState(() => ({
+  const [loginData, setLoginData] = useState({
     email: "",
     password: "",
-  }));
+  });
 
-  const [signUpData, setSignUpData] = useState(() => ({
+  const [signUpData, setSignUpData] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
     phoneNumber: "",
     studentId: "",
-  }));
+  });
 
   const handleEmailLogin = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -593,7 +593,7 @@ function EmailLoginForm({
                     placeholder="Enter your email"
                     className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                     value={loginData.email}
-                    onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                    onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
                     required
                     disabled={isLoading}
                   />

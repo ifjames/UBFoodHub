@@ -261,21 +261,102 @@ export default function LoginPage() {
   // Desktop Layout (screens lg and above)
   const DesktopLayout = () => (
     <div className="min-h-screen hidden lg:flex">
-      {/* Left Side - Campus Image */}
-      <div className="flex-1 relative overflow-hidden">
+      {/* Left Side - Campus Image with effects */}
+      <div className="flex-1 relative overflow-hidden bg-[#6d031e]">
         <img 
           src={campusImage} 
           alt="University of Batangas Campus" 
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover opacity-40"
         />
-        <div className="absolute inset-0 bg-[#6d031e]/20"></div>
+        <div className="absolute inset-0 bg-[#6d031e]/60"></div>
         
-        {/* Overlay Content */}
+        {/* Liquid glass background effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/3 backdrop-blur-sm"></div>
+          <motion.div
+            animate={{
+              scale: [1, 1.1, 1],
+              rotate: [0, 360],
+              opacity: [0.1, 0.25, 0.1],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+            className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-pink-500/8 via-purple-500/8 to-blue-500/8 rounded-full blur-3xl"
+          />
+          <motion.div
+            animate={{
+              scale: [1.1, 1, 1.1],
+              rotate: [360, 0],
+              opacity: [0.15, 0.05, 0.15],
+            }}
+            transition={{
+              duration: 7,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+            className="absolute bottom-0 right-0 w-3/4 h-3/4 bg-gradient-to-tl from-red-500/8 via-orange-500/8 to-yellow-500/8 rounded-full blur-2xl"
+          />
+        </div>
+
+        {/* Floating particles */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(30)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-1.5 h-1.5 bg-white/20 rounded-full"
+              initial={{
+                x: Math.random() * (typeof window !== "undefined" ? window.innerWidth / 2 : 400),
+                y: typeof window !== "undefined" ? window.innerHeight + 50 : 700,
+                scale: 0,
+              }}
+              animate={{
+                y: -100,
+                scale: [0, 1, 0.5, 0],
+                opacity: [0, 0.7, 0.3, 0],
+              }}
+              transition={{
+                duration: 3.5 + Math.random() * 2.5,
+                repeat: Infinity,
+                delay: Math.random() * 2.5,
+                ease: "easeOut",
+              }}
+            />
+          ))}
+        </div>
+        
+        {/* Overlay Content with logo */}
         <div className="absolute inset-0 flex flex-col justify-center items-center text-white p-12">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ 
+              scale: 1,
+              y: [0, -8, 0],
+            }}
+            transition={{ 
+              delay: 0.2, 
+              duration: 0.3,
+              y: {
+                duration: 1.2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }
+            }}
+            className="w-32 h-32 mb-8 flex items-center justify-center"
+          >
+            <img 
+              src={ubLogo} 
+              alt="UB FoodHub Logo" 
+              className="w-28 h-28 object-contain drop-shadow-2xl"
+            />
+          </motion.div>
+          
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
             className="text-center"
           >
             <h1 className="text-5xl font-bold mb-4">Welcome to</h1>
@@ -351,6 +432,26 @@ export default function LoginPage() {
 }
 
 function SocialLoginForm({ onEmailLogin }: { onEmailLogin: () => void }) {
+  const { toast } = useToast();
+  
+  const handleGoogleLogin = async () => {
+    try {
+      // Import Google sign-in function
+      const { signInWithGoogle } = await import("../lib/firebase");
+      await signInWithGoogle();
+      toast({
+        title: "Welcome!",
+        description: "You've successfully signed in with Google.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Google Sign-In Failed",
+        description: error.message || "Failed to sign in with Google",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -358,6 +459,19 @@ function SocialLoginForm({ onEmailLogin }: { onEmailLogin: () => void }) {
       transition={{ delay: 0.6, duration: 0.4 }}
       className="space-y-4"
     >
+      <Button
+        onClick={handleGoogleLogin}
+        className="w-full text-white py-4 rounded-xl shadow-sm transition-all lg:py-3 lg:text-base bg-blue-600 hover:bg-blue-700"
+      >
+        <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+          <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        Continue with UB Mail
+      </Button>
+      
       <Button
         onClick={onEmailLogin}
         className="w-full text-white py-4 rounded-xl shadow-sm transition-all lg:py-3 lg:text-base"

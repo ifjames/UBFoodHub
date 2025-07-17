@@ -207,7 +207,7 @@ export default function LoginPage() {
           className="w-28 h-28 mx-auto mb-4 flex items-center justify-center relative z-10"
         >
           <img 
-            src={ubLogo} 
+            src="https://ubianfoodhub.web.app/logo.png" 
             alt="UB FoodHub Logo" 
             className="w-24 h-24 object-contain"
           />

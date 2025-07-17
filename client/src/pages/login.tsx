@@ -502,7 +502,7 @@ function SocialLoginForm({ onEmailLogin }: { onEmailLogin: () => void }) {
         <h3 className="text-lg font-semibold text-[#6d031e] mb-2 lg:text-gray-800 text-left">
           Sign up or log in
         </h3>
-        <p className="text-sm text-[#6d031e]/80 lg:text-gray-600">
+        <p className="text-sm text-[#6d031e]/80 lg:text-gray-600 text-left">
           Select your preferred method to continue
         </p>
       </div>

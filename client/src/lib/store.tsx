@@ -70,7 +70,15 @@ export function useAuth() {
   const signIn = async (email: string, password: string) => {
     try {
       const userCredential = await firebaseSignIn(email, password);
-      return userCredential;
+      
+      // Get user data from Firestore to determine role
+      const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        return { userCredential, role: userData.role };
+      }
+      
+      return { userCredential, role: "student" }; // Default role
     } catch (error) {
       throw error;
     }

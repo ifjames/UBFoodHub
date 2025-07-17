@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,12 +44,20 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      await signIn(loginData.email, loginData.password);
+      const result = await signIn(loginData.email, loginData.password);
       toast({
         title: "Welcome back!",
         description: "You've successfully signed in.",
       });
-      setLocation("/");
+      
+      // Redirect based on user role
+      if (result.role === "admin") {
+        setLocation("/admin");
+      } else if (result.role === "stall_owner") {
+        setLocation("/stall-dashboard");
+      } else {
+        setLocation("/");
+      }
     } catch (error: any) {
       toast({
         title: "Login Failed",

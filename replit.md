@@ -103,6 +103,16 @@ UB FoodHub is a comprehensive mobile web application designed for the University
 
 ## Recent Changes
 
+### Responsive Desktop Login Design Implementation (July 17, 2025)
+- **Split-Screen Desktop Layout**: Successfully implemented responsive design with campus background on left and login form on right for desktop/PC screens
+- **Preserved Mobile Design**: Maintained original mobile layout which works flawlessly on small screens
+- **Enhanced Visual Effects**: Added liquid glass effects, floating particles, and animated UB FoodHub logo to desktop left panel
+- **Proper Button Styling**: Restored "Continue with UB Mail" button with UB logo and site color theme, made email button white with outline
+- **Terms & Conditions Checkbox**: Restored required checkbox for terms agreement before login/signup
+- **Domain Restrictions**: Ensured Google authentication and email signup only allows @ub.edu.ph domain
+- **Authentication Functions**: Fixed missing useAuth export and proper Firebase authentication integration
+- **Responsive Navigation**: Fixed router navigation using wouter's useLocation hook properly
+
 ### Replit Agent Migration & Authentication Enhancement (July 12, 2025)
 - **Successful Migration**: Completed migration from Replit Agent to standard Replit environment with enhanced stability
 - **Authentication State Synchronization**: Added timeout protection and enhanced error handling for Firebase auth state management

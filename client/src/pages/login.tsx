@@ -499,14 +499,13 @@ function SocialLoginForm({ onEmailLogin }: { onEmailLogin: () => void }) {
     >
       {/* Header Text */}
       <div className="text-center mb-6">
-        <h3 className="text-lg font-semibold text-[#6d031e] mb-2 lg:text-gray-800">
+        <h3 className="text-lg font-semibold text-[#6d031e] mb-2 lg:text-gray-800 text-left">
           Sign up or log in
         </h3>
         <p className="text-sm text-[#6d031e]/80 lg:text-gray-600">
           Select your preferred method to continue
         </p>
       </div>
-
       <Button
         onClick={handleGoogleLogin}
         className="w-full text-[#6d031e] py-4 rounded-xl shadow-sm transition-all lg:py-3 lg:text-base bg-white border-2 border-[#6d031e]/20 hover:border-[#6d031e] hover:bg-[#6d031e]/5"
@@ -526,12 +525,10 @@ function SocialLoginForm({ onEmailLogin }: { onEmailLogin: () => void }) {
         <Mail className="w-5 h-5 mr-3" />
         Continue with email
       </Button>
-
       {/* Terms Text for Social Login */}
       <p className="text-xs text-center text-[#6d031e]/80 mt-6 lg:text-gray-600">
         By signing up you agree to our Terms and Conditions and Privacy Policy.
       </p>
-
     </motion.div>
   );
 }

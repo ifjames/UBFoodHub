@@ -25,19 +25,19 @@ export default function LoginPage() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
 
-  const [loginData, setLoginData] = useState({
+  const [loginData, setLoginData] = useState(() => ({
     email: "",
     password: "",
-  });
+  }));
 
-  const [signUpData, setSignUpData] = useState({
+  const [signUpData, setSignUpData] = useState(() => ({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
     phoneNumber: "",
     studentId: "",
-  });
+  }));
 
   const handleEmailLogin = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -593,7 +593,7 @@ function EmailLoginForm({
                     placeholder="Enter your email"
                     className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                     value={loginData.email}
-                    onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                     required
                     disabled={isLoading}
                   />
@@ -610,7 +610,7 @@ function EmailLoginForm({
                     placeholder="Enter your password"
                     className="pl-10 pr-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                     value={loginData.password}
-                    onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
+                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                     required
                     disabled={isLoading}
                   />
@@ -676,7 +676,7 @@ function EmailLoginForm({
                     placeholder="Enter your full name"
                     className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                     value={signUpData.name}
-                    onChange={(e) => setSignUpData(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) => setSignUpData({ ...signUpData, name: e.target.value })}
                     required
                     disabled={isLoading}
                   />
@@ -693,7 +693,7 @@ function EmailLoginForm({
                     placeholder="Enter your @ub.edu.ph email"
                     className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                     value={signUpData.email}
-                    onChange={(e) => setSignUpData(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) => setSignUpData({ ...signUpData, email: e.target.value })}
                     required
                     disabled={isLoading}
                   />
@@ -710,7 +710,7 @@ function EmailLoginForm({
                     placeholder="Enter your student ID"
                     className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                     value={signUpData.studentId}
-                    onChange={(e) => setSignUpData(prev => ({ ...prev, studentId: e.target.value }))}
+                    onChange={(e) => setSignUpData({ ...signUpData, studentId: e.target.value })}
                     required
                     disabled={isLoading}
                   />
@@ -727,7 +727,7 @@ function EmailLoginForm({
                     placeholder="Enter your phone number"
                     className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                     value={signUpData.phoneNumber}
-                    onChange={(e) => setSignUpData(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                    onChange={(e) => setSignUpData({ ...signUpData, phoneNumber: e.target.value })}
                     required
                     disabled={isLoading}
                   />
@@ -744,7 +744,7 @@ function EmailLoginForm({
                     placeholder="Create a password"
                     className="pl-10 pr-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                     value={signUpData.password}
-                    onChange={(e) => setSignUpData(prev => ({ ...prev, password: e.target.value }))}
+                    onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
                     required
                     disabled={isLoading}
                   />
@@ -769,7 +769,7 @@ function EmailLoginForm({
                     placeholder="Confirm your password"
                     className="pl-10 pr-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                     value={signUpData.confirmPassword}
-                    onChange={(e) => setSignUpData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    onChange={(e) => setSignUpData({ ...signUpData, confirmPassword: e.target.value })}
                     required
                     disabled={isLoading}
                   />

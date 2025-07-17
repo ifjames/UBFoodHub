@@ -103,6 +103,15 @@ UB FoodHub is a comprehensive mobile web application designed for the University
 
 ## Recent Changes
 
+### Terms of Service Enhancement & Migration Completion (July 17, 2025)
+- **Terms of Service Placement**: Moved Terms of Service checkbox to only appear during signup, not login, matching user requirements
+- **Interactive Terms & Privacy Policy**: Created comprehensive Terms of Service and Privacy Policy dialogs with full legal content
+- **Clickable Links**: Added clickable links in the terms checkbox that open dedicated dialogs for Terms of Service and Privacy Policy
+- **Enhanced Validation**: Added proper validation to ensure users must agree to terms before creating an account
+- **Improved UX**: Terms checkbox now properly disables the "Create Account" button until checked, improving user experience
+- **Legal Compliance**: Added detailed Terms of Service and Privacy Policy content specific to UB FoodHub's university context
+- **Migration Completion**: Successfully completed migration from Replit Agent to standard Replit environment with all security practices intact
+
 ### Responsive Desktop Login Design Implementation (July 17, 2025)
 - **Split-Screen Desktop Layout**: Successfully implemented responsive design with campus background on left and login form on right for desktop/PC screens
 - **Preserved Mobile Design**: Maintained original mobile layout which works flawlessly on small screens

@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/store";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Spinner } from "@/components/ui/spinner";
+import { TermsDialog } from "@/components/TermsDialog";
 import campusImage from "@assets/campus.png";
 import ubLogo from "@assets/ub foodhub logo2_1751778236646.png";
 
@@ -18,6 +19,8 @@ export default function LoginPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [showTermsDialog, setShowTermsDialog] = useState(false);
+  const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
   const { signIn, signUp } = useAuth();
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
@@ -61,6 +64,16 @@ export default function LoginPage() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
+    if (!agreedToTerms) {
+      toast({
+        title: "Terms Agreement Required",
+        description: "You must agree to the Terms of Service and Privacy Policy to create an account",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
 
     if (signUpData.password !== signUpData.confirmPassword) {
       toast({
@@ -253,6 +266,10 @@ export default function LoginPage() {
             isLoading={isLoading}
             onEmailLogin={handleEmailLogin}
             onSignUp={handleSignUp}
+            agreedToTerms={agreedToTerms}
+            setAgreedToTerms={setAgreedToTerms}
+            setShowTermsDialog={setShowTermsDialog}
+            setShowPrivacyDialog={setShowPrivacyDialog}
           />
         )}
       </motion.div>
@@ -416,6 +433,10 @@ export default function LoginPage() {
                 isLoading={isLoading}
                 onEmailLogin={handleEmailLogin}
                 onSignUp={handleSignUp}
+                agreedToTerms={agreedToTerms}
+                setAgreedToTerms={setAgreedToTerms}
+                setShowTermsDialog={setShowTermsDialog}
+                setShowPrivacyDialog={setShowPrivacyDialog}
               />
             </div>
           )}
@@ -428,24 +449,26 @@ export default function LoginPage() {
     <>
       <MobileLayout />
       <DesktopLayout />
+      
+      {/* Terms of Service and Privacy Policy Dialogs */}
+      <TermsDialog 
+        isOpen={showTermsDialog} 
+        onClose={() => setShowTermsDialog(false)} 
+        type="terms" 
+      />
+      <TermsDialog 
+        isOpen={showPrivacyDialog} 
+        onClose={() => setShowPrivacyDialog(false)} 
+        type="privacy" 
+      />
     </>
   );
 }
 
 function SocialLoginForm({ onEmailLogin }: { onEmailLogin: () => void }) {
   const { toast } = useToast();
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
   
   const handleGoogleLogin = async () => {
-    if (!agreedToTerms) {
-      toast({
-        title: "Terms Required",
-        description: "Please agree to the Terms and Conditions to continue.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       // Import Google sign-in function
       const { signInWithGoogle } = await import("../lib/firebase");
@@ -464,14 +487,6 @@ function SocialLoginForm({ onEmailLogin }: { onEmailLogin: () => void }) {
   };
 
   const handleEmailLogin = () => {
-    if (!agreedToTerms) {
-      toast({
-        title: "Terms Required",
-        description: "Please agree to the Terms and Conditions to continue.",
-        variant: "destructive",
-      });
-      return;
-    }
     onEmailLogin();
   };
 
@@ -501,21 +516,7 @@ function SocialLoginForm({ onEmailLogin }: { onEmailLogin: () => void }) {
         <Mail className="w-5 h-5 mr-3" />
         Continue with email
       </Button>
-      <div className="flex items-start space-x-2 mt-6">
-        <input
-          type="checkbox"
-          id="terms"
-          checked={agreedToTerms}
-          onChange={(e) => setAgreedToTerms(e.target.checked)}
-          className="mt-1 w-4 h-4 accent-[#6d031e]"
-        />
-        <label 
-          htmlFor="terms" 
-          className="text-xs text-[#6d031e] font-medium lg:text-gray-700 cursor-pointer"
-        >
-          I agree to the Terms and Conditions and Privacy Policy
-        </label>
-      </div>
+
     </motion.div>
   );
 }
@@ -533,7 +534,11 @@ function EmailLoginForm({
   setShowConfirmPassword,
   isLoading,
   onEmailLogin,
-  onSignUp
+  onSignUp,
+  agreedToTerms,
+  setAgreedToTerms,
+  setShowTermsDialog,
+  setShowPrivacyDialog
 }: {
   isSignUp: boolean;
   setIsSignUp: (value: boolean) => void;
@@ -548,6 +553,10 @@ function EmailLoginForm({
   isLoading: boolean;
   onEmailLogin: (e: React.FormEvent) => void;
   onSignUp: (e: React.FormEvent) => void;
+  agreedToTerms: boolean;
+  setAgreedToTerms: (value: boolean) => void;
+  setShowTermsDialog: (value: boolean) => void;
+  setShowPrivacyDialog: (value: boolean) => void;
 }) {
   return (
     <div className="w-full max-w-sm mx-auto">
@@ -764,11 +773,46 @@ function EmailLoginForm({
               </div>
             </div>
             
+            {/* Terms of Service Checkbox - Only shown during signup */}
+            <div className="flex items-start space-x-2 mt-4">
+              <input
+                type="checkbox"
+                id="terms-signup"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                className="mt-1 w-4 h-4 accent-[#6d031e]"
+                disabled={isLoading}
+              />
+              <label 
+                htmlFor="terms-signup" 
+                className="text-xs text-[#6d031e] font-medium lg:text-gray-700 cursor-pointer"
+              >
+                I agree to the{" "}
+                <button
+                  type="button"
+                  onClick={() => setShowTermsDialog(true)}
+                  className="text-[#6d031e] hover:text-red-700 underline font-semibold"
+                  disabled={isLoading}
+                >
+                  Terms of Service
+                </button>
+                {" "}and{" "}
+                <button
+                  type="button"
+                  onClick={() => setShowPrivacyDialog(true)}
+                  className="text-[#6d031e] hover:text-red-700 underline font-semibold"
+                  disabled={isLoading}
+                >
+                  Privacy Policy
+                </button>
+              </label>
+            </div>
+            
             <Button 
               type="submit" 
               className="w-full text-white h-12 rounded-xl font-medium"
               style={{ backgroundColor: '#6d031e' }}
-              disabled={isLoading}
+              disabled={isLoading || !agreedToTerms}
             >
               {isLoading ? (
                 <div className="flex items-center space-x-2">

@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -18,6 +18,9 @@ export function TermsDialog({ isOpen, onClose, type }: TermsDialogProps) {
           <DialogTitle className="text-[#6d031e] text-2xl font-bold">
             {isTerms ? 'Terms of Service' : 'Privacy Policy'}
           </DialogTitle>
+          <DialogDescription className="text-gray-600">
+            {isTerms ? 'Please review our Terms of Service for using UB FoodHub.' : 'Please review our Privacy Policy to understand how we handle your data.'}
+          </DialogDescription>
         </DialogHeader>
         
         <ScrollArea className="h-[60vh] pr-4">

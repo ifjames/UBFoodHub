@@ -39,6 +39,16 @@ export default function LoginPage() {
     studentId: "",
   });
 
+  // Use refs to always access current values without causing re-renders
+  const loginDataRef = useRef(loginData);
+  const signUpDataRef = useRef(signUpData);
+  const agreedToTermsRef = useRef(agreedToTerms);
+
+  // Update refs when state changes
+  loginDataRef.current = loginData;
+  signUpDataRef.current = signUpData;
+  agreedToTermsRef.current = agreedToTerms;
+
   // Stable update functions to prevent re-renders
   const updateLoginData = useCallback((field: keyof typeof loginData, value: string) => {
     setLoginData(prev => ({ ...prev, [field]: value }));
@@ -80,7 +90,8 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const result = await signIn(loginData.email, loginData.password);
+      // Use ref to access current values without causing re-renders
+      const result = await signIn(loginDataRef.current.email, loginDataRef.current.password);
       toast({
         title: "Welcome back!",
         description: "You've successfully signed in.",
@@ -103,13 +114,14 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [loginData.email, loginData.password, signIn, toast, setLocation]);
+  }, [signIn, toast, setLocation]);
 
   const handleSignUp = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    if (!agreedToTerms) {
+    // Use refs to access current values without causing re-renders
+    if (!agreedToTermsRef.current) {
       toast({
         title: "Terms Agreement Required",
         description: "You must agree to the Terms of Service and Privacy Policy to create an account",
@@ -119,7 +131,7 @@ export default function LoginPage() {
       return;
     }
 
-    if (signUpData.password !== signUpData.confirmPassword) {
+    if (signUpDataRef.current.password !== signUpDataRef.current.confirmPassword) {
       toast({
         title: "Error",
         description: "Passwords do not match",
@@ -129,7 +141,7 @@ export default function LoginPage() {
       return;
     }
 
-    if (!signUpData.email.endsWith("@ub.edu.ph")) {
+    if (!signUpDataRef.current.email.endsWith("@ub.edu.ph")) {
       toast({
         title: "Email Restriction",
         description: "Only @ub.edu.ph email addresses are allowed",
@@ -140,10 +152,10 @@ export default function LoginPage() {
     }
 
     try {
-      await signUp(signUpData.email, signUpData.password, {
-        name: signUpData.name,
-        phoneNumber: signUpData.phoneNumber,
-        studentId: signUpData.studentId,
+      await signUp(signUpDataRef.current.email, signUpDataRef.current.password, {
+        name: signUpDataRef.current.name,
+        phoneNumber: signUpDataRef.current.phoneNumber,
+        studentId: signUpDataRef.current.studentId,
       });
       
       toast({
@@ -161,7 +173,7 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [agreedToTerms, signUpData, signUp, toast, setIsSignUp]);
+  }, [signUp, toast]);
 
   // Mobile Layout (screens smaller than lg)
   const MobileLayout = () => (

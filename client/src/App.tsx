@@ -9,7 +9,7 @@ import AuthGuard from "@/components/auth-guard";
 import SplashScreen from "@/components/splash-screen";
 import DesktopNav from "@/components/layout/desktop-nav";
 import NotFound from "@/pages/not-found";
-import Login from "@/pages/login";
+import LoginNew from "@/pages/login-new";
 import Home from "@/pages/home";
 import Restaurant from "@/pages/restaurant";
 import Cart from "@/pages/cart";
@@ -28,7 +28,7 @@ import { useStore } from "@/lib/store";
 function Router() {
   return (
     <Switch>
-      <Route path="/login" component={Login} />
+      <Route path="/login" component={LoginNew} />
       <Route path="/">
         <AuthGuard>
           <DesktopNav />

@@ -188,8 +188,8 @@ export default function Home() {
               onClick={() => setActiveFilter(category)}
               className={`flex-shrink-0 md:flex-shrink md:px-6 md:py-3 ${
                 activeFilter === category
-                  ? "bg-maroon-600 hover:bg-maroon-700"
-                  : "border-maroon-200 text-maroon-700 hover:bg-maroon-50"
+                  ? "bg-[#6d031e] hover:bg-[#8b0426] text-white"
+                  : "border-[#6d031e]/20 text-[#6d031e] hover:bg-[#6d031e]/10 hover:text-[#6d031e]"
               }`}
             >
               {category === "all" ? "All" : category}

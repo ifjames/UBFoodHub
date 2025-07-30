@@ -334,10 +334,20 @@ function AuthProvider({ children }) {
 }
 
 function App() {
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => {
+    // Check if splash has been shown in this session
+    const splashShown = sessionStorage.getItem('splashShown');
+    return !splashShown;
+  });
+
+  const handleSplashComplete = () => {
+    // Mark splash as shown for this session
+    sessionStorage.setItem('splashShown', 'true');
+    setShowSplash(false);
+  };
 
   if (showSplash) {
-    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+    return <SplashScreen onComplete={handleSplashComplete} />;
   }
 
   return (

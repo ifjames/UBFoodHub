@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/lib/store";
 import { subscribeToCollection, addDocument, updateDocument, deleteDocument, getCollection, signUp, createDocument } from "@/lib/firebase";
@@ -41,16 +41,7 @@ export default function AdminDashboard() {
     isActive: true,
   });
 
-  // New stall owner form
-  const [newStallOwner, setNewStallOwner] = useState({
-    fullName: "",
-    email: "",
-    password: "",
-    stallName: "",
-    stallDescription: "",
-    stallCategory: "",
-    stallImage: "",
-  });
+
 
   // Edit stall form
   const [editingStall, setEditingStall] = useState<any>(null);
@@ -307,68 +298,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // Create stall owner account with stall
-  const handleCreateStallOwner = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
 
-    try {
-      // Create Firebase auth account
-      const userCredential = await signUp(newStallOwner.email, newStallOwner.password);
-      
-      // Create user document in Firestore
-      await createDocument("users", userCredential.user.uid, {
-        uid: userCredential.user.uid,
-        fullName: newStallOwner.fullName,
-        email: newStallOwner.email,
-        role: "stall_owner",
-        emailVerified: true, // Admin verified
-        phoneNumber: "",
-        studentId: "",
-        loyaltyPoints: 0,
-        photoURL: null,
-      });
-
-      // Create stall document
-      await addDocument("stalls", {
-        name: newStallOwner.stallName,
-        description: newStallOwner.stallDescription,
-        category: newStallOwner.stallCategory,
-        image: newStallOwner.stallImage,
-        ownerId: userCredential.user.uid,
-        rating: 0,
-        reviewCount: 0,
-        deliveryTime: "15-30 min",
-        priceRange: "₱50-200",
-        isActive: true,
-      });
-
-      toast({
-        title: "Stall owner created successfully",
-        description: `${newStallOwner.fullName} can now login and manage their stall.`,
-      });
-
-      // Reset form
-      setNewStallOwner({
-        fullName: "",
-        email: "",
-        password: "",
-        stallName: "",
-        stallDescription: "",
-        stallCategory: "",
-        stallImage: "",
-      });
-
-    } catch (error: any) {
-      toast({
-        title: "Error creating stall owner",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // Verify user account
   const handleVerifyUser = async (userId: string) => {
@@ -739,9 +669,19 @@ export default function AdminDashboard() {
           <TabsContent value="stalls" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Create New Stall</CardTitle>
-              </CardHeader>
-              <CardContent>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Stalls Management</CardTitle>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="bg-[#6d031e] hover:bg-red-700">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Stall
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Create New Stall</DialogTitle>
+                      </DialogHeader>
                 <form onSubmit={handleCreateStall} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -808,113 +748,16 @@ export default function AdminDashboard() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button type="submit" disabled={isLoading} className="bg-[#6d031e] hover:bg-red-700">
-                    <Plus className="w-4 h-4 mr-2" />
-                    {isLoading ? "Creating..." : "Create Stall"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-
-            {/* Create Stall Owner Form */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Create New Stall Owner Account</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleCreateStallOwner} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="ownerName">Full Name</Label>
-                      <Input
-                        id="ownerName"
-                        value={newStallOwner.fullName}
-                        onChange={(e) => setNewStallOwner({ ...newStallOwner, fullName: e.target.value })}
-                        placeholder="John Dela Cruz"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="ownerEmail">Email</Label>
-                      <Input
-                        id="ownerEmail"
-                        type="email"
-                        value={newStallOwner.email}
-                        onChange={(e) => setNewStallOwner({ ...newStallOwner, email: e.target.value })}
-                        placeholder="chowking@foodhub.com"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="ownerPassword">Password</Label>
-                    <Input
-                      id="ownerPassword"
-                      type="password"
-                      value={newStallOwner.password}
-                      onChange={(e) => setNewStallOwner({ ...newStallOwner, password: e.target.value })}
-                      placeholder="Enter secure password"
-                      required
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="ownerStallName">Stall Name</Label>
-                      <Input
-                        id="ownerStallName"
-                        value={newStallOwner.stallName}
-                        onChange={(e) => setNewStallOwner({ ...newStallOwner, stallName: e.target.value })}
-                        placeholder="Chowking Express"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="ownerStallCategory">Category</Label>
-                      <Select
-                        value={newStallOwner.stallCategory}
-                        onValueChange={(value) => setNewStallOwner({ ...newStallOwner, stallCategory: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map((category) => (
-                            <SelectItem key={category} value={category}>{category}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="ownerStallDescription">Stall Description</Label>
-                    <Input
-                      id="ownerStallDescription"
-                      value={newStallOwner.stallDescription}
-                      onChange={(e) => setNewStallOwner({ ...newStallOwner, stallDescription: e.target.value })}
-                      placeholder="Fast food chain serving Asian cuisine"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="ownerStallImage">Stall Image URL</Label>
-                    <Input
-                      id="ownerStallImage"
-                      value={newStallOwner.stallImage}
-                      onChange={(e) => setNewStallOwner({ ...newStallOwner, stallImage: e.target.value })}
-                      placeholder="https://example.com/stall-image.jpg"
-                    />
-                  </div>
-                  <Button type="submit" disabled={isLoading} className="bg-[#6d031e] hover:bg-red-700">
-                    <Plus className="w-4 h-4 mr-2" />
-                    {isLoading ? "Creating..." : "Create Stall Owner & Stall"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Existing Stalls</CardTitle>
+                        <div className="flex gap-2 pt-4">
+                          <Button type="submit" disabled={isLoading} className="flex-1 bg-[#6d031e] hover:bg-red-700">
+                            <Plus className="w-4 h-4 mr-2" />
+                            {isLoading ? "Creating..." : "Create Stall"}
+                          </Button>
+                        </div>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">

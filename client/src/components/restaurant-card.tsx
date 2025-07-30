@@ -63,16 +63,6 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
         <p className="text-sm text-gray-600 mb-3">
           {restaurant.deliveryTime} • {restaurant.priceRange} • {restaurant.category}
         </p>
-        
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-500">
-            ₱{restaurant.deliveryFee} from ₱29 with Saver
-          </span>
-          <Badge className="bg-maroon-50 text-maroon-800 border-maroon-200">
-            <Percent className="h-3 w-3 mr-1" />
-            10% cashback
-          </Badge>
-        </div>
       </CardContent>
     </Card>
   );

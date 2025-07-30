@@ -128,7 +128,6 @@ export default function AdminDashboard() {
         reviewCount: 0,
         deliveryTime: "15-30 min",
         priceRange: "₱50-200",
-        deliveryFee: "₱10",
       });
 
       toast({
@@ -341,7 +340,6 @@ export default function AdminDashboard() {
         reviewCount: 0,
         deliveryTime: "15-30 min",
         priceRange: "₱50-200",
-        deliveryFee: "₱10",
         isActive: true,
       });
 
@@ -434,7 +432,6 @@ export default function AdminDashboard() {
           reviewCount: 0,
           deliveryTime: "15-30 min",
           priceRange: "₱50-200",
-          deliveryFee: "₱10",
           createdAt: new Date(),
         };
 

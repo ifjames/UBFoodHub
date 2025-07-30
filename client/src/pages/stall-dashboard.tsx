@@ -93,28 +93,7 @@ export default function StallDashboard() {
               console.log("Found stall by ownerId:", stall);
             } else {
               console.log("No stall found for user:", state.user.id);
-              // Create a stall for this user using their Auth UID as the document ID
-              const newStall = {
-                name: 'Sulit Chicken - Batangas',
-                description: 'Authentic Korean-style fried chicken with Filipino twist',
-                category: 'Filipino',
-                image: 'https://images.unsplash.com/photo-1562967914-608f82629710?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=300',
-                rating: 0,
-                reviewCount: 0,
-                deliveryTime: '15-40 min',
-                priceRange: '₱109-299',
-                isActive: true,
-                deliveryFee: '₱59.00',
-                ownerId: state.user.id,
-              };
-              addDocument('stalls', newStall).then((docRef) => {
-                const stallWithId = { id: docRef.id, ...newStall };
-                setStallInfo(stallWithId);
-                setStallId(docRef.id);
-                console.log("Created new stall for user:", state.user.id);
-              }).catch((error) => {
-                console.error("Error creating stall:", error);
-              });
+              // No stall found - user needs to wait for admin to create their stall
             }
           });
         }

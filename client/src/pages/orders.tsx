@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
-import { subscribeToQuery, updateDocument, deleteDocument, addDocument } from "@/lib/firebase";
+import { subscribeToQuery, updateDocument, deleteDocument, addDocument, getDocuments } from "@/lib/firebase";
 import BottomNav from "@/components/layout/bottom-nav";
 import QRCode from "@/components/qr-code";
 import OrderCancellationRequest from "@/components/orders/order-cancellation-request";
@@ -126,7 +126,7 @@ export default function Orders() {
     try {
       const reviewData = {
         orderId: selectedOrder.id,
-        restaurantId: selectedOrder.stallId,
+        stallId: selectedOrder.stallId,
         userId: state.user?.id,
         userName: state.user?.fullName || "Anonymous",
         rating: reviewRating,
@@ -138,6 +138,26 @@ export default function Orders() {
       
       // Mark order as reviewed
       await updateDocument("orders", selectedOrder.id, { hasReview: true });
+
+      // Update stall rating and review count
+      try {
+        // Get all reviews for this stall to calculate new average
+        const stallReviews = await getDocuments("reviews", "stallId", "==", selectedOrder.stallId);
+        const allReviews = [...stallReviews, reviewData]; // Include the new review
+        
+        const totalRating = allReviews.reduce((sum, review) => sum + review.rating, 0);
+        const averageRating = totalRating / allReviews.length;
+        const reviewCount = allReviews.length;
+
+        // Update stall with new rating and count
+        await updateDocument("stalls", selectedOrder.stallId, {
+          rating: Math.round(averageRating * 10) / 10, // Round to 1 decimal place
+          reviewCount: reviewCount
+        });
+      } catch (error) {
+        console.error("Error updating stall rating:", error);
+        // Don't fail the review submission if rating update fails
+      }
 
       toast({
         title: "Review Submitted!",

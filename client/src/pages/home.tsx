@@ -289,7 +289,6 @@ export default function Home() {
                     deliveryTime: stall.deliveryTime || "15-30 min",
                     priceRange: stall.priceRange || "₱50-200",
                     category: stall.category,
-                    deliveryFee: stall.deliveryFee || "₱10",
                   }}
                 />
               ))}

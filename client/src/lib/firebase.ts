@@ -167,6 +167,17 @@ export const addDocument = (collectionName: string, data: any) =>
 export const getDocument = (collectionName: string, docId: string) =>
   getDoc(doc(db, collectionName, docId));
 
+export const getDocuments = async (
+  collectionName: string,
+  whereField: string,
+  operator: any,
+  value: any,
+) => {
+  const q = query(collection(db, collectionName), where(whereField, operator, value));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+};
+
 export const updateDocument = (
   collectionName: string,
   docId: string,

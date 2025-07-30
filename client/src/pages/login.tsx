@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,13 +39,38 @@ export default function LoginPage() {
     studentId: "",
   });
 
-  // Memoized update functions to prevent re-renders
+  // Stable update functions to prevent re-renders
   const updateLoginData = useCallback((field: keyof typeof loginData, value: string) => {
     setLoginData(prev => ({ ...prev, [field]: value }));
   }, []);
 
   const updateSignUpData = useCallback((field: string, value: string) => {
     setSignUpData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  // Memoized toggle functions to prevent re-renders
+  const toggleShowPassword = useCallback(() => {
+    setShowPassword(prev => !prev);
+  }, []);
+
+  const toggleShowConfirmPassword = useCallback(() => {
+    setShowConfirmPassword(prev => !prev);
+  }, []);
+
+  const toggleAgreedToTerms = useCallback((checked: boolean) => {
+    setAgreedToTerms(checked);
+  }, []);
+
+  const openTermsDialog = useCallback(() => {
+    setShowTermsDialog(true);
+  }, []);
+
+  const openPrivacyDialog = useCallback(() => {
+    setShowPrivacyDialog(true);
+  }, []);
+
+  const toggleSignUp = useCallback((value: boolean) => {
+    setIsSignUp(value);
   }, []);
 
 
@@ -273,22 +298,22 @@ export default function LoginPage() {
         ) : (
           <EmailLoginForm 
             isSignUp={isSignUp}
-            setIsSignUp={setIsSignUp}
+            toggleSignUp={toggleSignUp}
             loginData={loginData}
             updateLoginData={updateLoginData}
             signUpData={signUpData}
             updateSignUpData={updateSignUpData}
             showPassword={showPassword}
-            setShowPassword={setShowPassword}
+            toggleShowPassword={toggleShowPassword}
             showConfirmPassword={showConfirmPassword}
-            setShowConfirmPassword={setShowConfirmPassword}
+            toggleShowConfirmPassword={toggleShowConfirmPassword}
             isLoading={isLoading}
             onEmailLogin={handleEmailLogin}
             onSignUp={handleSignUp}
             agreedToTerms={agreedToTerms}
-            setAgreedToTerms={setAgreedToTerms}
-            setShowTermsDialog={setShowTermsDialog}
-            setShowPrivacyDialog={setShowPrivacyDialog}
+            toggleAgreedToTerms={toggleAgreedToTerms}
+            openTermsDialog={openTermsDialog}
+            openPrivacyDialog={openPrivacyDialog}
           />
         )}
       </motion.div>
@@ -440,22 +465,22 @@ export default function LoginPage() {
               </Button>
               <EmailLoginForm 
                 isSignUp={isSignUp}
-                setIsSignUp={setIsSignUp}
+                toggleSignUp={toggleSignUp}
                 loginData={loginData}
                 updateLoginData={updateLoginData}
                 signUpData={signUpData}
                 updateSignUpData={updateSignUpData}
                 showPassword={showPassword}
-                setShowPassword={setShowPassword}
+                toggleShowPassword={toggleShowPassword}
                 showConfirmPassword={showConfirmPassword}
-                setShowConfirmPassword={setShowConfirmPassword}
+                toggleShowConfirmPassword={toggleShowConfirmPassword}
                 isLoading={isLoading}
                 onEmailLogin={handleEmailLogin}
                 onSignUp={handleSignUp}
                 agreedToTerms={agreedToTerms}
-                setAgreedToTerms={setAgreedToTerms}
-                setShowTermsDialog={setShowTermsDialog}
-                setShowPrivacyDialog={setShowPrivacyDialog}
+                toggleAgreedToTerms={toggleAgreedToTerms}
+                openTermsDialog={openTermsDialog}
+                openPrivacyDialog={openPrivacyDialog}
               />
             </div>
           )}
@@ -552,42 +577,42 @@ function SocialLoginForm({ onEmailLogin }: { onEmailLogin: () => void }) {
   );
 }
 
-function EmailLoginForm({
+const EmailLoginForm = memo(function EmailLoginForm({
   isSignUp,
-  setIsSignUp,
+  toggleSignUp,
   loginData,
   updateLoginData,
   signUpData,
   updateSignUpData,
   showPassword,
-  setShowPassword,
+  toggleShowPassword,
   showConfirmPassword,
-  setShowConfirmPassword,
+  toggleShowConfirmPassword,
   isLoading,
   onEmailLogin,
   onSignUp,
   agreedToTerms,
-  setAgreedToTerms,
-  setShowTermsDialog,
-  setShowPrivacyDialog
+  toggleAgreedToTerms,
+  openTermsDialog,
+  openPrivacyDialog
 }: {
   isSignUp: boolean;
-  setIsSignUp: (value: boolean) => void;
+  toggleSignUp: (value: boolean) => void;
   loginData: { email: string; password: string };
   updateLoginData: (field: keyof { email: string; password: string }, value: string) => void;
   signUpData: any;
   updateSignUpData: (field: string, value: string) => void;
   showPassword: boolean;
-  setShowPassword: (value: boolean) => void;
+  toggleShowPassword: () => void;
   showConfirmPassword: boolean;
-  setShowConfirmPassword: (value: boolean) => void;
+  toggleShowConfirmPassword: () => void;
   isLoading: boolean;
   onEmailLogin: (e: React.FormEvent) => void;
   onSignUp: (e: React.FormEvent) => void;
   agreedToTerms: boolean;
-  setAgreedToTerms: (value: boolean) => void;
-  setShowTermsDialog: (value: boolean) => void;
-  setShowPrivacyDialog: (value: boolean) => void;
+  toggleAgreedToTerms: (checked: boolean) => void;
+  openTermsDialog: () => void;
+  openPrivacyDialog: () => void;
 }) {
   return (
     <div className="w-full max-w-sm mx-auto">
@@ -635,7 +660,7 @@ function EmailLoginForm({
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={toggleShowPassword}
                     className="absolute right-3 top-3 text-[#6d031e]/60 hover:text-[#6d031e] lg:text-gray-400 lg:hover:text-gray-600"
                     disabled={isLoading}
                   >
@@ -666,7 +691,7 @@ function EmailLoginForm({
                 Don't have an account?{" "}
                 <button
                   type="button"
-                  onClick={() => setIsSignUp(true)}
+                  onClick={() => toggleSignUp(true)}
                   className="hover:text-red-700 font-bold text-[#6d031e] transition-colors lg:text-[#6d031e] lg:hover:text-red-700"
                   disabled={isLoading}
                 >
@@ -769,7 +794,7 @@ function EmailLoginForm({
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={toggleShowPassword}
                     className="absolute right-3 top-3 text-[#6d031e]/60 hover:text-[#6d031e] lg:text-gray-400 lg:hover:text-gray-600"
                     disabled={isLoading}
                   >
@@ -794,7 +819,7 @@ function EmailLoginForm({
                   />
                   <button
                     type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    onClick={toggleShowConfirmPassword}
                     className="absolute right-3 top-3 text-[#6d031e]/60 hover:text-[#6d031e] lg:text-gray-400 lg:hover:text-gray-600"
                     disabled={isLoading}
                   >
@@ -810,7 +835,7 @@ function EmailLoginForm({
                 type="checkbox"
                 id="terms-signup"
                 checked={agreedToTerms}
-                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                onChange={(e) => toggleAgreedToTerms(e.target.checked)}
                 className="mt-1 w-4 h-4 accent-[#6d031e]"
                 disabled={isLoading}
               />
@@ -821,7 +846,7 @@ function EmailLoginForm({
                 I agree to the{" "}
                 <button
                   type="button"
-                  onClick={() => setShowTermsDialog(true)}
+                  onClick={openTermsDialog}
                   className="text-[#6d031e] hover:text-red-700 underline font-semibold"
                   disabled={isLoading}
                 >
@@ -830,7 +855,7 @@ function EmailLoginForm({
                 {" "}and{" "}
                 <button
                   type="button"
-                  onClick={() => setShowPrivacyDialog(true)}
+                  onClick={openPrivacyDialog}
                   className="text-[#6d031e] hover:text-red-700 underline font-semibold"
                   disabled={isLoading}
                 >
@@ -860,7 +885,7 @@ function EmailLoginForm({
                 Already have an account?{" "}
                 <button
                   type="button"
-                  onClick={() => setIsSignUp(false)}
+                  onClick={() => toggleSignUp(false)}
                   className="hover:text-red-700 font-bold text-[#6d031e] transition-colors lg:text-[#6d031e] lg:hover:text-red-700"
                   disabled={isLoading}
                 >
@@ -873,4 +898,4 @@ function EmailLoginForm({
       </AnimatePresence>
     </div>
   );
-}
+});

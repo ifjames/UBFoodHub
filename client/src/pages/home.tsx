@@ -12,7 +12,7 @@ import LoadingOverlay from "@/components/loading-overlay";
 import NotificationCenter from "@/components/notifications/notification-center";
 import NotificationBell from "@/components/notifications/notification-bell";
 import { Search, MapPin, Clock, Star, Award, Bell } from "lucide-react";
-import { subscribeToCollection } from "@/lib/firebase";
+import { subscribeToCollection, getDocuments } from "@/lib/firebase";
 import { useStore } from "@/lib/store";
 
 export default function Home() {
@@ -24,6 +24,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
+  const [featuredStall, setFeaturedStall] = useState<any>(null);
+  const [stallRatings, setStallRatings] = useState<{[key: string]: {rating: number, reviewCount: number}}>({});
   const { state } = useStore();
 
   // Redirect admin and stall owners to their dashboards
@@ -52,13 +54,122 @@ export default function Home() {
     }
   };
 
+  // Calculate featured stall based on daily orders
+  const calculateFeaturedStall = async (stallsData: any[]) => {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayStart = today.getTime();
+      const todayEnd = todayStart + (24 * 60 * 60 * 1000);
+
+      // Get today's orders
+      const todayOrders = await getDocuments("orders", "createdAt", ">=", new Date(todayStart));
+      const todayOrdersFiltered = todayOrders.filter(order => {
+        const orderTime = order.createdAt?.toDate?.()?.getTime() || 0;
+        return orderTime >= todayStart && orderTime < todayEnd;
+      });
+
+      // Count orders per stall
+      const stallOrderCounts: {[key: string]: number} = {};
+      todayOrdersFiltered.forEach(order => {
+        order.items?.forEach((item: any) => {
+          if (item.stallId) {
+            stallOrderCounts[item.stallId] = (stallOrderCounts[item.stallId] || 0) + 1;
+          }
+        });
+      });
+
+      // Find stall with most orders today
+      let featuredStallId = "";
+      let maxOrders = 0;
+      Object.entries(stallOrderCounts).forEach(([stallId, count]) => {
+        if (count > maxOrders) {
+          maxOrders = count;
+          featuredStallId = stallId;
+        }
+      });
+
+      // If no orders today, get yesterday's featured
+      if (!featuredStallId) {
+        const yesterday = new Date(todayStart - (24 * 60 * 60 * 1000));
+        const yesterdayOrders = await getDocuments("orders", "createdAt", ">=", yesterday);
+        const yesterdayOrdersFiltered = yesterdayOrders.filter(order => {
+          const orderTime = order.createdAt?.toDate?.()?.getTime() || 0;
+          return orderTime >= yesterday.getTime() && orderTime < todayStart;
+        });
+
+        const yesterdayStallCounts: {[key: string]: number} = {};
+        yesterdayOrdersFiltered.forEach(order => {
+          order.items?.forEach((item: any) => {
+            if (item.stallId) {
+              yesterdayStallCounts[item.stallId] = (yesterdayStallCounts[item.stallId] || 0) + 1;
+            }
+          });
+        });
+
+        let maxYesterdayOrders = 0;
+        Object.entries(yesterdayStallCounts).forEach(([stallId, count]) => {
+          if (count > maxYesterdayOrders) {
+            maxYesterdayOrders = count;
+            featuredStallId = stallId;
+          }
+        });
+      }
+
+      // Set featured stall
+      if (featuredStallId) {
+        const featured = stallsData.find(stall => stall.id === featuredStallId);
+        if (featured) {
+          setFeaturedStall(featured);
+        }
+      }
+    } catch (error) {
+      console.error("Error calculating featured stall:", error);
+    }
+  };
+
+  // Calculate real ratings for all stalls
+  const calculateStallRatings = async (stallsData: any[]) => {
+    try {
+      const ratingsMap: {[key: string]: {rating: number, reviewCount: number}} = {};
+      
+      for (const stall of stallsData) {
+        const reviews = await getDocuments("reviews", "stallId", "==", stall.id);
+        if (reviews.length > 0) {
+          const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+          const averageRating = totalRating / reviews.length;
+          ratingsMap[stall.id] = {
+            rating: Math.round(averageRating * 10) / 10,
+            reviewCount: reviews.length
+          };
+        } else {
+          ratingsMap[stall.id] = {
+            rating: 0,
+            reviewCount: 0
+          };
+        }
+      }
+      
+      setStallRatings(ratingsMap);
+    } catch (error) {
+      console.error("Error calculating stall ratings:", error);
+    }
+  };
+
   useEffect(() => {
     setIsLoading(true);
     // Subscribe to real-time stalls data
-    const unsubscribe = subscribeToCollection("stalls", (stallsData) => {
+    const unsubscribe = subscribeToCollection("stalls", async (stallsData) => {
       // Only show active stalls
       const activeStalls = stallsData.filter((stall) => stall.isActive);
       setStalls(activeStalls);
+      
+      // Calculate featured stall and real ratings
+      await Promise.all([
+        calculateFeaturedStall(activeStalls),
+        calculateStallRatings(activeStalls)
+      ]);
+      
       setIsLoading(false);
     });
 
@@ -198,51 +309,59 @@ export default function Home() {
         </div>
 
         {/* Featured Section */}
-        {activeFilter === "all" && (
+        {activeFilter === "all" && featuredStall && (
           <div>
             <h2 className="text-lg font-semibold text-gray-900 mb-3 md:text-xl">
               Featured Today
             </h2>
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {stalls
-                .filter((stall) => stall.rating > 4.0)
-                .slice(0, 2)
-                .map((stall) => (
-                  <Card
-                    key={stall.id}
-                    className="bg-white border-gray-200 shadow-sm"
-                  >
-                    <CardContent className="p-4 md:p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900 md:text-lg">
-                            {stall.name}
-                          </h3>
-                          <p className="text-sm text-gray-600 mt-1 md:text-base">
-                            {stall.description}
-                          </p>
-                          <div className="flex items-center gap-3 mt-2">
-                            <div className="flex items-center gap-1">
-                              <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                              <span className="text-sm font-medium md:text-base">
-                                {stall.rating || "4.5"}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Clock className="w-4 h-4 text-gray-400" />
-                              <span className="text-sm text-gray-600 md:text-base">
-                                {stall.deliveryTime || "15-30 min"}
-                              </span>
-                            </div>
-                            <Badge variant="outline" className="text-xs md:text-sm">
-                              {stall.category}
-                            </Badge>
-                          </div>
-                        </div>
+              <Card
+                key={featuredStall.id}
+                className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => window.location.href = `/restaurant/${featuredStall.id}`}
+              >
+                <CardContent className="p-4 md:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge className="bg-yellow-500 text-white text-xs">
+                          🏆 Most Ordered Today
+                        </Badge>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      <h3 className="font-medium text-gray-900 md:text-lg">
+                        {featuredStall.name}
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1 md:text-base">
+                        {featuredStall.description}
+                      </p>
+                      <div className="flex items-center gap-3 mt-2">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                          <span className="text-sm font-medium md:text-base">
+                            {stallRatings[featuredStall.id]?.rating > 0 
+                              ? stallRatings[featuredStall.id].rating 
+                              : "No ratings"}
+                          </span>
+                          {stallRatings[featuredStall.id]?.reviewCount > 0 && (
+                            <span className="text-xs text-gray-500">
+                              ({stallRatings[featuredStall.id].reviewCount})
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm text-gray-600 md:text-base">
+                            {featuredStall.deliveryTime || "15-30 min"}
+                          </span>
+                        </div>
+                        <Badge variant="outline" className="text-xs md:text-sm">
+                          {featuredStall.category}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         )}
@@ -284,8 +403,10 @@ export default function Home() {
                     name: stall.name,
                     description: stall.description,
                     image: stall.image,
-                    rating: stall.rating?.toString() || "0",
-                    reviewCount: stall.reviewCount || 0,
+                    rating: stallRatings[stall.id]?.rating > 0 
+                      ? stallRatings[stall.id].rating.toString() 
+                      : "0",
+                    reviewCount: stallRatings[stall.id]?.reviewCount || 0,
                     deliveryTime: stall.deliveryTime || "15-30 min",
                     priceRange: stall.priceRange || "₱50-200",
                     category: stall.category,

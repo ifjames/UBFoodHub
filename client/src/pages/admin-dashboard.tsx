@@ -474,40 +474,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 md:pt-20">
-      {/* Enhanced Header */}
-      <div className="bg-gradient-to-br from-[#6d031e] via-[#8b0426] to-[#6d031e] text-white shadow-lg relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-400 via-red-300 to-red-400"></div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 py-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
-                <Settings className="w-6 h-6 sm:w-7 sm:h-7 text-red-100" />
-              </div>
-              <div>
-                <div className="flex items-center gap-3">
-                  <div>
-                    <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white to-red-100 bg-clip-text text-transparent">
-                      Admin Dashboard
-                    </h1>
-                    <p className="text-red-100/90 text-sm sm:text-base font-medium">
-                      Welcome back, {state.user?.fullName}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span className="text-xs text-red-200">System Active</span>
-                    </div>
-                  </div>
-                  <NotificationBell />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">

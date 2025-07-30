@@ -123,9 +123,43 @@ export function useAuth() {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const { signInWithGoogle: firebaseGoogleSignIn } = await import("./firebase");
+      const userCredential = await firebaseGoogleSignIn();
+      
+      // Get user data from Firestore to determine role
+      const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        return { userCredential, role: userData.role };
+      } else {
+        // Create new user document for Google sign-in
+        const userData = {
+          uid: userCredential.user.uid,
+          email: userCredential.user.email,
+          fullName: userCredential.user.displayName || "",
+          phoneNumber: "",
+          studentId: "",
+          role: "student",
+          emailVerified: userCredential.user.emailVerified,
+          createdAt: new Date(),
+          loyaltyPoints: 0,
+          photoURL: userCredential.user.photoURL,
+        };
+        
+        await setDoc(doc(db, "users", userCredential.user.uid), userData);
+        return { userCredential, role: "student" };
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+
   return {
     signIn,
     signUp,
     signOut,
+    signInWithGoogle,
   };
 }

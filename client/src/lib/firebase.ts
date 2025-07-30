@@ -62,6 +62,9 @@ export const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope('email');
 googleProvider.addScope('profile');
+googleProvider.setCustomParameters({
+  hd: 'ub.edu.ph' // Restrict to UB domain
+});
 
 // Auth functions
 export const signIn = (email: string, password: string) =>

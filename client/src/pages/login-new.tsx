@@ -10,7 +10,7 @@ import { useLocation } from "wouter";
 import { TermsDialog } from "@/components/TermsDialog";
 
 export default function LoginPage() {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInWithGoogle } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -134,8 +134,39 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleAuth = () => {
-    console.log("Google auth clicked");
+  const handleGoogleAuth = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+    
+    try {
+      const result = await signInWithGoogle();
+      console.log("Google sign-in result:", result);
+      
+      toast({
+        title: "Welcome!",
+        description: "Successfully signed in with Google.",
+      });
+      
+      // Role-based redirection
+      setTimeout(() => {
+        if (result.role === "admin") {
+          setLocation("/admin");
+        } else if (result.role === "stall_owner") {
+          setLocation("/stall-dashboard");
+        } else {
+          setLocation("/");
+        }
+      }, 100);
+    } catch (error: any) {
+      console.error("Google auth error:", error);
+      toast({
+        title: "Sign-in Failed",
+        description: error.message || "Failed to sign in with Google. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (authMode === "social") {

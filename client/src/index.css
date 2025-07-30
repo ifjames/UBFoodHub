@@ -300,3 +300,92 @@ html, body {
 .animate-glow {
   animation: glow 2s ease-in-out infinite;
 }
+
+/* Enhanced particles and animations */
+@keyframes particle-float {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translateY(-20px) translateX(10px) rotate(90deg);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(-10px) translateX(-5px) rotate(180deg);
+    opacity: 0.5;
+  }
+  75% {
+    transform: translateY(-30px) translateX(15px) rotate(270deg);
+    opacity: 0.9;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes rotate-glow {
+  0% {
+    transform: rotate(0deg) scale(1);
+    box-shadow: 0 0 20px rgba(109, 3, 30, 0.3);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+    box-shadow: 0 0 40px rgba(109, 3, 30, 0.6), 0 0 60px rgba(109, 3, 30, 0.3);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+    box-shadow: 0 0 20px rgba(109, 3, 30, 0.3);
+  }
+}
+
+@keyframes magic-sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(180deg);
+  }
+}
+
+@keyframes wave-motion {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-15px) rotate(120deg);
+  }
+  66% {
+    transform: translateY(-8px) rotate(240deg);
+  }
+}
+
+.animate-particle-float {
+  animation: particle-float 6s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.animate-rotate-glow {
+  animation: rotate-glow 4s ease-in-out infinite;
+}
+
+.animate-magic-sparkle {
+  animation: magic-sparkle 3s ease-in-out infinite;
+}
+
+.animate-wave-motion {
+  animation: wave-motion 4s ease-in-out infinite;
+}

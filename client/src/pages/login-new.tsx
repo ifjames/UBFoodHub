@@ -145,17 +145,36 @@ export default function LoginPage() {
         <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[#6d031e] via-[#8b0420] to-[#4a0115] items-center justify-center p-8">
           <div className="absolute inset-0 bg-black/20"></div>
           
-          {/* Floating Particles */}
+          {/* Enhanced Floating Particles */}
           <div className="absolute inset-0 overflow-hidden">
-            {[...Array(20)].map((_, i) => (
+            {[...Array(30)].map((_, i) => (
               <div
                 key={i}
-                className="absolute w-2 h-2 bg-white/10 rounded-full animate-float"
+                className={`absolute rounded-full ${
+                  i % 4 === 0 ? 'w-3 h-3 bg-white/20 animate-particle-float' :
+                  i % 4 === 1 ? 'w-2 h-2 bg-red-200/30 animate-wave-motion' :
+                  i % 4 === 2 ? 'w-1 h-1 bg-yellow-200/40 animate-magic-sparkle' :
+                  'w-2 h-2 bg-white/15 animate-float'
+                }`}
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 5}s`,
+                  animationDuration: `${4 + Math.random() * 6}s`,
+                }}
+              ></div>
+            ))}
+            
+            {/* Magic sparkles */}
+            {[...Array(15)].map((_, i) => (
+              <div
+                key={`sparkle-${i}`}
+                className="absolute w-1 h-1 bg-gradient-to-r from-white to-yellow-200 rounded-full animate-magic-sparkle"
                 style={{
                   left: `${Math.random() * 100}%`,
                   top: `${Math.random() * 100}%`,
                   animationDelay: `${Math.random() * 3}s`,
-                  animationDuration: `${3 + Math.random() * 4}s`,
+                  animationDuration: `${2 + Math.random() * 3}s`,
                 }}
               ></div>
             ))}
@@ -163,12 +182,14 @@ export default function LoginPage() {
           
           {/* Content */}
           <div className="relative z-10 text-center text-white">
-            <div className="mb-8">
+            <div className="mb-8 relative">
+              <div className="absolute inset-0 w-32 h-32 mx-auto bg-gradient-to-r from-white/20 to-red-200/20 rounded-full animate-rotate-glow"></div>
               <img
                 src="/logo.png"
                 alt="UB FoodHub"
-                className="w-32 h-32 mx-auto mb-4 animate-bounce-gentle animate-glow"
+                className="w-32 h-32 mx-auto mb-4 animate-bounce-gentle animate-glow relative z-10"
               />
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer rounded-full"></div>
             </div>
             <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white to-red-200 bg-clip-text text-transparent">
               UB FoodHub
@@ -185,21 +206,47 @@ export default function LoginPage() {
         </div>
 
         {/* Mobile/Desktop Right Panel */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-[#6d031e] via-[#8b0420] to-[#4a0115] lg:bg-white lg:bg-gradient-to-br lg:from-gray-50 lg:to-white">
-          <div className="w-full max-w-md space-y-8">
-            {/* Mobile Logo */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-[#6d031e] via-[#8b0420] to-[#4a0115] lg:bg-white lg:bg-gradient-to-br lg:from-gray-50 lg:to-white relative overflow-hidden">
+          {/* Mobile Background Particles */}
+          <div className="absolute inset-0 overflow-hidden lg:hidden">
+            {[...Array(25)].map((_, i) => (
+              <div
+                key={`mobile-${i}`}
+                className={`absolute rounded-full ${
+                  i % 3 === 0 ? 'w-2 h-2 bg-white/15 animate-wave-motion' :
+                  i % 3 === 1 ? 'w-1 h-1 bg-red-200/25 animate-magic-sparkle' :
+                  'w-1.5 h-1.5 bg-white/10 animate-particle-float'
+                }`}
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 4}s`,
+                  animationDuration: `${3 + Math.random() * 5}s`,
+                }}
+              ></div>
+            ))}
+          </div>
+          
+          <div className="w-full max-w-md space-y-8 relative z-10">
+            {/* Enhanced Mobile Logo */}
             <div className="text-center lg:hidden">
-              <img
-                src="/logo.png"
-                alt="UB FoodHub"
-                className="w-24 h-24 mx-auto mb-4"
-              />
-              <h1 className="text-2xl font-bold text-white mb-2">UB FoodHub</h1>
-              <p className="text-red-100 text-sm">Campus Food Ordering</p>
+              <div className="relative">
+                <div className="absolute inset-0 w-24 h-24 mx-auto bg-gradient-to-r from-white/20 to-red-200/20 rounded-full animate-rotate-glow"></div>
+                <img
+                  src="/logo.png"
+                  alt="UB FoodHub"
+                  className="w-24 h-24 mx-auto mb-4 animate-bounce-gentle animate-glow relative z-10"
+                />
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-24 h-24 bg-gradient-to-r from-transparent via-white/15 to-transparent animate-shimmer rounded-full"></div>
+              </div>
+              <h1 className="text-2xl font-bold text-white mb-2 animate-pulse-slow">UB FoodHub</h1>
+              <p className="text-red-100 text-sm animate-float">Campus Food Ordering</p>
             </div>
 
             {/* Login Form Container */}
-            <div className="backdrop-blur-sm bg-white/95 lg:bg-white rounded-2xl p-8 shadow-2xl border border-white/20 lg:border-gray-200">
+            <div className="backdrop-blur-sm bg-white/95 lg:bg-white rounded-2xl p-8 shadow-2xl border border-white/20 lg:border-gray-200 relative overflow-hidden">
+              {/* Form background animation */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer -z-10"></div>
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-bold text-[#6d031e] lg:text-gray-900 mb-2">
                   Welcome to UB FoodHub
@@ -253,17 +300,36 @@ export default function LoginPage() {
       <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[#6d031e] via-[#8b0420] to-[#4a0115] items-center justify-center p-8">
         <div className="absolute inset-0 bg-black/20"></div>
         
-        {/* Floating Particles */}
+        {/* Enhanced Floating Particles */}
         <div className="absolute inset-0 overflow-hidden">
-          {[...Array(20)].map((_, i) => (
+          {[...Array(30)].map((_, i) => (
             <div
               key={i}
-              className="absolute w-2 h-2 bg-white/10 rounded-full animate-float"
+              className={`absolute rounded-full ${
+                i % 4 === 0 ? 'w-3 h-3 bg-white/20 animate-particle-float' :
+                i % 4 === 1 ? 'w-2 h-2 bg-red-200/30 animate-wave-motion' :
+                i % 4 === 2 ? 'w-1 h-1 bg-yellow-200/40 animate-magic-sparkle' :
+                'w-2 h-2 bg-white/15 animate-float'
+              }`}
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 5}s`,
+                animationDuration: `${4 + Math.random() * 6}s`,
+              }}
+            ></div>
+          ))}
+          
+          {/* Magic sparkles */}
+          {[...Array(15)].map((_, i) => (
+            <div
+              key={`sparkle-${i}`}
+              className="absolute w-1 h-1 bg-gradient-to-r from-white to-yellow-200 rounded-full animate-magic-sparkle"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
                 animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${3 + Math.random() * 4}s`,
+                animationDuration: `${2 + Math.random() * 3}s`,
               }}
             ></div>
           ))}
@@ -271,12 +337,14 @@ export default function LoginPage() {
         
         {/* Content */}
         <div className="relative z-10 text-center text-white">
-          <div className="mb-8">
+          <div className="mb-8 relative">
+            <div className="absolute inset-0 w-32 h-32 mx-auto bg-gradient-to-r from-white/20 to-red-200/20 rounded-full animate-rotate-glow"></div>
             <img
               src="/logo.png"
               alt="UB FoodHub"
-              className="w-32 h-32 mx-auto mb-4 animate-bounce-gentle animate-glow"
+              className="w-32 h-32 mx-auto mb-4 animate-bounce-gentle animate-glow relative z-10"
             />
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer rounded-full"></div>
           </div>
           <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white to-red-200 bg-clip-text text-transparent">
             UB FoodHub
@@ -293,21 +361,47 @@ export default function LoginPage() {
       </div>
 
       {/* Mobile/Desktop Right Panel */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-[#6d031e] via-[#8b0420] to-[#4a0115] lg:bg-white lg:bg-gradient-to-br lg:from-gray-50 lg:to-white">
-        <div className="w-full max-w-md space-y-8">
-          {/* Mobile Logo */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-[#6d031e] via-[#8b0420] to-[#4a0115] lg:bg-white lg:bg-gradient-to-br lg:from-gray-50 lg:to-white relative overflow-hidden">
+        {/* Mobile Background Particles */}
+        <div className="absolute inset-0 overflow-hidden lg:hidden">
+          {[...Array(25)].map((_, i) => (
+            <div
+              key={`mobile-${i}`}
+              className={`absolute rounded-full ${
+                i % 3 === 0 ? 'w-2 h-2 bg-white/15 animate-wave-motion' :
+                i % 3 === 1 ? 'w-1 h-1 bg-red-200/25 animate-magic-sparkle' :
+                'w-1.5 h-1.5 bg-white/10 animate-particle-float'
+              }`}
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 4}s`,
+                animationDuration: `${3 + Math.random() * 5}s`,
+              }}
+            ></div>
+          ))}
+        </div>
+        
+        <div className="w-full max-w-md space-y-8 relative z-10">
+          {/* Enhanced Mobile Logo */}
           <div className="text-center lg:hidden">
-            <img
-              src="/logo.png"
-              alt="UB FoodHub"
-              className="w-24 h-24 mx-auto mb-4"
-            />
-            <h1 className="text-2xl font-bold text-white mb-2">UB FoodHub</h1>
-            <p className="text-red-100 text-sm">Campus Food Ordering</p>
+            <div className="relative">
+              <div className="absolute inset-0 w-24 h-24 mx-auto bg-gradient-to-r from-white/20 to-red-200/20 rounded-full animate-rotate-glow"></div>
+              <img
+                src="/logo.png"
+                alt="UB FoodHub"
+                className="w-24 h-24 mx-auto mb-4 animate-bounce-gentle animate-glow relative z-10"
+              />
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-24 h-24 bg-gradient-to-r from-transparent via-white/15 to-transparent animate-shimmer rounded-full"></div>
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2 animate-pulse-slow">UB FoodHub</h1>
+            <p className="text-red-100 text-sm animate-float">Campus Food Ordering</p>
           </div>
 
           {/* Login Form Container */}
-          <div className="backdrop-blur-sm bg-white/95 lg:bg-white rounded-2xl p-8 shadow-2xl border border-white/20 lg:border-gray-200">
+          <div className="backdrop-blur-sm bg-white/95 lg:bg-white rounded-2xl p-8 shadow-2xl border border-white/20 lg:border-gray-200 relative overflow-hidden">
+            {/* Form background animation */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer -z-10"></div>
             <div className="text-center mb-8">
               <button
                 onClick={() => setAuthMode("social")}

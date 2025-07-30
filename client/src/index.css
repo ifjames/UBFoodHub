@@ -223,46 +223,80 @@ html, body {
     position: relative;
     overflow: hidden;
   }
+}
 
-  .liquid-animation::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transform: rotate(-45deg);
-    transition: all 0.6s ease;
-    opacity: 0;
+/* Beautiful animations for login page */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
   }
+  33% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+  66% {
+    transform: translateY(5px) rotate(-1deg);
+  }
+}
 
-  .liquid-animation:hover::before {
+@keyframes pulse-slow {
+  0%, 100% {
     opacity: 1;
-    transform: rotate(-45deg) translate(100%, 100%);
+    transform: scale(1);
   }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
 
-  /* Floating animation */
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
+@keyframes bounce-gentle {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
   }
+  40% {
+    transform: translateY(-8px);
+  }
+  60% {
+    transform: translateY(-4px);
+  }
+}
 
-  .float-animation {
-    animation: float 3s ease-in-out infinite;
+@keyframes liquid-morph {
+  0%, 100% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    transform: scale(1) rotate(0deg);
   }
+  50% {
+    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+    transform: scale(1.1) rotate(180deg);
+  }
+}
 
-  /* Pulse effect */
-  @keyframes pulse-glow {
-    0%, 100% { 
-      box-shadow: 0 0 5px rgba(109, 3, 30, 0.5);
-    }
-    50% { 
-      box-shadow: 0 0 20px rgba(109, 3, 30, 0.8), 0 0 30px rgba(109, 3, 30, 0.6);
-    }
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(109, 3, 30, 0.3);
   }
+  50% {
+    box-shadow: 0 0 40px rgba(109, 3, 30, 0.6);
+  }
+}
 
-  .pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
-  }
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 2s ease-in-out infinite;
+}
+
+.animate-liquid-morph {
+  animation: liquid-morph 8s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
 }

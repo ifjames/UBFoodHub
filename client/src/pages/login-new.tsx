@@ -158,7 +158,7 @@ export default function LoginPage() {
               <img
                 src="/logo.png"
                 alt="UB FoodHub"
-                className="w-32 h-32 mx-auto mb-4 animate-pulse-slow"
+                className="w-32 h-32 mx-auto mb-4 animate-bounce-gentle animate-glow"
               />
             </div>
             <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white to-red-200 bg-clip-text text-transparent">
@@ -266,7 +266,7 @@ export default function LoginPage() {
             <img
               src="/logo.png"
               alt="UB FoodHub"
-              className="w-32 h-32 mx-auto mb-4 animate-pulse-slow"
+              className="w-32 h-32 mx-auto mb-4 animate-bounce-gentle animate-glow"
             />
           </div>
           <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white to-red-200 bg-clip-text text-transparent">

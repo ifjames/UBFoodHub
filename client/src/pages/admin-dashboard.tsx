@@ -474,22 +474,48 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-[#6d031e] text-white">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex items-center gap-3">
-            <Settings className="w-6 h-6 sm:w-8 sm:h-8" />
-            <div>
-              <h1 className="text-lg sm:text-xl font-bold">Admin Dashboard</h1>
-              <p className="text-red-100 text-sm">Welcome, {state.user?.fullName}</p>
+      {/* Enhanced Header */}
+      <div className="bg-gradient-to-br from-[#6d031e] via-[#8b0426] to-[#6d031e] text-white shadow-lg relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-400 via-red-300 to-red-400"></div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 py-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+                <Settings className="w-6 h-6 sm:w-7 sm:h-7 text-red-100" />
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white to-red-100 bg-clip-text text-transparent">
+                  Admin Dashboard
+                </h1>
+                <p className="text-red-100/90 text-sm sm:text-base font-medium">
+                  Welcome back, {state.user?.fullName}
+                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-red-200">System Active</span>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <NotificationBell />
-            <Button onClick={handleLogout} variant="ghost" className="text-white hover:bg-red-700 w-full sm:w-auto">
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
+            
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:block">
+                <NotificationBell />
+              </div>
+              <Button 
+                onClick={handleLogout} 
+                variant="ghost" 
+                className="text-white hover:bg-white/10 backdrop-blur-sm border border-white/20 transition-all duration-200 hover:scale-105 w-full sm:w-auto"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
+              <div className="block sm:hidden">
+                <NotificationBell />
+              </div>
+            </div>
           </div>
         </div>
       </div>

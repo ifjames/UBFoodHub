@@ -284,7 +284,7 @@ export default function Home() {
                     name: stall.name,
                     description: stall.description,
                     image: stall.image,
-                    rating: stall.rating?.toString() || "4.5",
+                    rating: stall.rating?.toString() || "0",
                     reviewCount: stall.reviewCount || 0,
                     deliveryTime: stall.deliveryTime || "15-30 min",
                     priceRange: stall.priceRange || "₱50-200",

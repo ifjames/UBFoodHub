@@ -39,9 +39,7 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
           alt={restaurant.name}
           className="w-full h-40 object-cover"
         />
-        <div className="absolute top-2 left-2 bg-maroon-800 text-white px-2 py-1 rounded text-xs font-medium">
-          Ad
-        </div>
+
         <button
           onClick={handleLike}
           className="absolute top-2 right-2 bg-white/90 rounded-full p-2 hover:bg-white transition-colors"
@@ -55,8 +53,12 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
           <h3 className="font-semibold text-gray-800 line-clamp-1">{restaurant.name}</h3>
           <div className="flex items-center">
             <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-            <span className="ml-1 text-sm font-medium text-gray-600">{restaurant.rating}</span>
-            <span className="text-gray-400 text-sm ml-1">({restaurant.reviewCount}+)</span>
+            <span className="ml-1 text-sm font-medium text-gray-600">
+              {restaurant.rating && restaurant.rating !== "0" ? restaurant.rating : "No ratings"}
+            </span>
+            {restaurant.reviewCount > 0 && (
+              <span className="text-gray-400 text-sm ml-1">({restaurant.reviewCount})</span>
+            )}
           </div>
         </div>
         

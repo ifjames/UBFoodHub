@@ -187,8 +187,12 @@ export default function Restaurant() {
             <h1 className="text-xl font-bold text-gray-900">{stall.name}</h1>
             <div className="flex items-center gap-1 mt-1">
               <Star className="w-4 h-4 text-yellow-400 fill-current" />
-              <span className="text-sm font-medium">{stall.rating || "5.0"}</span>
-              <span className="text-sm text-gray-600">({stall.reviewCount || 2000}+ ratings)</span>
+              <span className="text-sm font-medium">
+                {stall.rating && stall.rating !== 0 && stall.rating !== "0" ? stall.rating : "No ratings"}
+              </span>
+              {stall.reviewCount > 0 && (
+                <span className="text-sm text-gray-600">({stall.reviewCount} ratings)</span>
+              )}
             </div>
           </div>
         </div>

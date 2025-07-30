@@ -39,6 +39,15 @@ export default function LoginPage() {
     studentId: "",
   });
 
+  // Memoized update functions to prevent re-renders
+  const updateLoginData = useCallback((field: keyof typeof loginData, value: string) => {
+    setLoginData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const updateSignUpData = useCallback((field: string, value: string) => {
+    setSignUpData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
 
 
   const handleEmailLogin = useCallback(async (e: React.FormEvent) => {
@@ -266,9 +275,9 @@ export default function LoginPage() {
             isSignUp={isSignUp}
             setIsSignUp={setIsSignUp}
             loginData={loginData}
-            setLoginData={setLoginData}
+            updateLoginData={updateLoginData}
             signUpData={signUpData}
-            setSignUpData={setSignUpData}
+            updateSignUpData={updateSignUpData}
             showPassword={showPassword}
             setShowPassword={setShowPassword}
             showConfirmPassword={showConfirmPassword}
@@ -433,9 +442,9 @@ export default function LoginPage() {
                 isSignUp={isSignUp}
                 setIsSignUp={setIsSignUp}
                 loginData={loginData}
-                setLoginData={setLoginData}
+                updateLoginData={updateLoginData}
                 signUpData={signUpData}
-                setSignUpData={setSignUpData}
+                updateSignUpData={updateSignUpData}
                 showPassword={showPassword}
                 setShowPassword={setShowPassword}
                 showConfirmPassword={showConfirmPassword}
@@ -547,9 +556,9 @@ function EmailLoginForm({
   isSignUp,
   setIsSignUp,
   loginData,
-  setLoginData,
+  updateLoginData,
   signUpData,
-  setSignUpData,
+  updateSignUpData,
   showPassword,
   setShowPassword,
   showConfirmPassword,
@@ -565,9 +574,9 @@ function EmailLoginForm({
   isSignUp: boolean;
   setIsSignUp: (value: boolean) => void;
   loginData: { email: string; password: string };
-  setLoginData: (data: any) => void;
+  updateLoginData: (field: keyof { email: string; password: string }, value: string) => void;
   signUpData: any;
-  setSignUpData: (data: any) => void;
+  updateSignUpData: (field: string, value: string) => void;
   showPassword: boolean;
   setShowPassword: (value: boolean) => void;
   showConfirmPassword: boolean;
@@ -603,7 +612,7 @@ function EmailLoginForm({
                     placeholder="Enter your email"
                     className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                     value={loginData.email}
-                    onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) => updateLoginData("email", e.target.value)}
                     required
                     disabled={isLoading}
                   />
@@ -620,7 +629,7 @@ function EmailLoginForm({
                     placeholder="Enter your password"
                     className="pl-10 pr-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                     value={loginData.password}
-                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                    onChange={(e) => updateLoginData("password", e.target.value)}
                     required
                     disabled={isLoading}
                   />
@@ -686,7 +695,7 @@ function EmailLoginForm({
                     placeholder="Enter your full name"
                     className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                     value={signUpData.name}
-                    onChange={(e) => setSignUpData({ ...signUpData, name: e.target.value })}
+                    onChange={(e) => updateSignUpData("name", e.target.value)}
                     required
                     disabled={isLoading}
                   />
@@ -703,7 +712,7 @@ function EmailLoginForm({
                     placeholder="Enter your @ub.edu.ph email"
                     className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                     value={signUpData.email}
-                    onChange={(e) => setSignUpData({ ...signUpData, email: e.target.value })}
+                    onChange={(e) => updateSignUpData("email", e.target.value)}
                     required
                     disabled={isLoading}
                   />
@@ -720,7 +729,7 @@ function EmailLoginForm({
                     placeholder="Enter your student ID"
                     className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                     value={signUpData.studentId}
-                    onChange={(e) => setSignUpData({ ...signUpData, studentId: e.target.value })}
+                    onChange={(e) => updateSignUpData("studentId", e.target.value)}
                     required
                     disabled={isLoading}
                   />
@@ -737,7 +746,7 @@ function EmailLoginForm({
                     placeholder="Enter your phone number"
                     className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                     value={signUpData.phoneNumber}
-                    onChange={(e) => setSignUpData({ ...signUpData, phoneNumber: e.target.value })}
+                    onChange={(e) => updateSignUpData("phoneNumber", e.target.value)}
                     required
                     disabled={isLoading}
                   />
@@ -754,7 +763,7 @@ function EmailLoginForm({
                     placeholder="Create a password"
                     className="pl-10 pr-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                     value={signUpData.password}
-                    onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
+                    onChange={(e) => updateSignUpData("password", e.target.value)}
                     required
                     disabled={isLoading}
                   />
@@ -779,7 +788,7 @@ function EmailLoginForm({
                     placeholder="Confirm your password"
                     className="pl-10 pr-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                     value={signUpData.confirmPassword}
-                    onChange={(e) => setSignUpData({ ...signUpData, confirmPassword: e.target.value })}
+                    onChange={(e) => updateSignUpData("confirmPassword", e.target.value)}
                     required
                     disabled={isLoading}
                   />

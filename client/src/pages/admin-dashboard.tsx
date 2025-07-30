@@ -478,7 +478,6 @@ export default function AdminDashboard() {
       <div className="bg-gradient-to-br from-[#6d031e] via-[#8b0426] to-[#6d031e] text-white shadow-lg relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-400 via-red-300 to-red-400"></div>
         
         <div className="relative max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -128,25 +128,48 @@ function AuthProvider({ children }) {
           
           if (userDoc.exists()) {
             const userData = userDoc.data();
+            const userPayload = {
+              id: firebaseUser.uid,
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              fullName: userData.fullName,
+              studentId: userData.studentId,
+              phoneNumber: userData.phoneNumber,
+              role: userData.role,
+              loyaltyPoints: userData.loyaltyPoints || 0,
+              photoURL: userData.photoURL || firebaseUser.photoURL,
+              emailVerified: userData.emailVerified || firebaseUser.emailVerified,
+              createdAt: userData.createdAt,
+            };
+
             dispatch({
               type: "SET_USER",
-              payload: {
-                id: firebaseUser.uid,
-                uid: firebaseUser.uid,
-                email: firebaseUser.email,
-                fullName: userData.fullName,
-                studentId: userData.studentId,
-                phoneNumber: userData.phoneNumber,
-                role: userData.role,
-                loyaltyPoints: userData.loyaltyPoints || 0,
-                photoURL: userData.photoURL || firebaseUser.photoURL,
-                emailVerified: userData.emailVerified || firebaseUser.emailVerified,
-                createdAt: userData.createdAt,
-              }
+              payload: userPayload
             });
             
             console.log("Firebase auth synced for user:", firebaseUser.email);
+            console.log("User role detected:", userData.role);
             console.log("Firebase current user after sync:", auth.currentUser?.email);
+            
+            // Handle role-based redirection after successful login
+            const currentPath = window.location.pathname;
+            console.log("Current path:", currentPath);
+            
+            if (currentPath === "/login") {
+              console.log("User on login page, redirecting based on role:", userData.role);
+              setTimeout(() => {
+                if (userData.role === "admin") {
+                  console.log("Redirecting admin to dashboard");
+                  window.location.href = "/admin";
+                } else if (userData.role === "stall_owner") {
+                  console.log("Redirecting stall owner to dashboard");
+                  window.location.href = "/stall-dashboard";
+                } else {
+                  console.log("Redirecting student to home");
+                  window.location.href = "/";
+                }
+              }, 500);
+            }
           } else {
             console.warn("User document not found in Firestore");
           }

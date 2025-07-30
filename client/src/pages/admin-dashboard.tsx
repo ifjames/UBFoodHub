@@ -511,8 +511,8 @@ export default function AdminDashboard() {
                   await logOut();
                   setLocation("/login");
                 }}
-                variant="outline"
-                className="text-white border-white/20 hover:bg-white/10 hover:border-white/30"
+                variant="ghost"
+                className="text-white hover:bg-white/10 hover:text-white border border-white/20 hover:border-white/40"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout

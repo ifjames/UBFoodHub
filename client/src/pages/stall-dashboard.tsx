@@ -458,7 +458,7 @@ export default function StallDashboard() {
     .slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 md:pt-20">
       {/* Enhanced Header */}
       <div className="bg-gradient-to-br from-[#6d031e] via-[#8b0426] to-[#6d031e] text-white shadow-lg relative overflow-hidden">
         {/* Background Pattern */}

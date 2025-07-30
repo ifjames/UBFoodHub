@@ -44,18 +44,27 @@ export default function LoginPage() {
 
     try {
       const result = await signIn(loginEmail, loginPassword);
+      console.log("Login result:", result);
+      console.log("User role:", result.role);
+      
       toast({
         title: "Welcome back!",
         description: "You've successfully signed in.",
       });
       
-      if (result.role === "admin") {
-        setLocation("/admin");
-      } else if (result.role === "stall_owner") {
-        setLocation("/stall-dashboard");
-      } else {
-        setLocation("/");
-      }
+      // Add a small delay to ensure state updates
+      setTimeout(() => {
+        if (result.role === "admin") {
+          console.log("Redirecting to admin dashboard");
+          setLocation("/admin");
+        } else if (result.role === "stall_owner") {
+          console.log("Redirecting to stall dashboard");
+          setLocation("/stall-dashboard");
+        } else {
+          console.log("Redirecting to home");
+          setLocation("/");
+        }
+      }, 100);
     } catch (error: any) {
       toast({
         title: "Login Failed",

@@ -485,38 +485,26 @@ export default function StallDashboard() {
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white to-red-100 bg-clip-text text-transparent">
-                  {stallInfo?.name || 'Stall Dashboard'}
-                </h1>
-                <p className="text-red-100/90 text-sm font-medium">
-                  Welcome back, {state.user?.fullName}
-                </p>
-                {stallInfo && (
-                  <div className="mt-1 flex items-center gap-2">
-                    <div className="px-2 py-1 bg-white/10 rounded-full">
-                      <span className="text-xs text-red-200">{stallInfo.category || 'Food Stall'}</span>
-                    </div>
-                    <div className="w-1 h-1 bg-red-300 rounded-full"></div>
-                    <span className="text-xs text-red-200">Active</span>
+                <div className="flex items-center gap-3">
+                  <div>
+                    <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white to-red-100 bg-clip-text text-transparent">
+                      {stallInfo?.name || 'Stall Dashboard'}
+                    </h1>
+                    <p className="text-red-100/90 text-sm font-medium">
+                      Welcome back, {state.user?.fullName}
+                    </p>
+                    {stallInfo && (
+                      <div className="mt-1 flex items-center gap-2">
+                        <div className="px-2 py-1 bg-white/10 rounded-full">
+                          <span className="text-xs text-red-200">{stallInfo.category || 'Food Stall'}</span>
+                        </div>
+                        <div className="w-1 h-1 bg-red-300 rounded-full"></div>
+                        <span className="text-xs text-red-200">Active</span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:block">
-                <NotificationBell />
-              </div>
-              <Button 
-                onClick={handleLogout} 
-                variant="ghost" 
-                className="text-white hover:bg-white/10 backdrop-blur-sm border border-white/20 transition-all duration-200 hover:scale-105 w-full sm:w-auto"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
-              <div className="block sm:hidden">
-                <NotificationBell />
+                  <NotificationBell />
+                </div>
               </div>
             </div>
           </div>

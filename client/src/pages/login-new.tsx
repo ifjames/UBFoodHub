@@ -213,14 +213,12 @@ export default function LoginPage() {
           
           {/* Content */}
           <div className="relative z-10 text-center text-white">
-            <div className="mb-8 relative">
-              <div className="absolute inset-0 w-32 h-32 mx-auto bg-gradient-to-r from-white/20 to-red-200/20 rounded-full animate-rotate-glow"></div>
+            <div className="mb-8">
               <img
                 src="/logo.png"
                 alt="UB FoodHub"
-                className="w-32 h-32 mx-auto mb-4 animate-bounce-gentle animate-glow relative z-10"
+                className="w-32 h-32 mx-auto mb-4 animate-bounce-gentle"
               />
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer rounded-full"></div>
             </div>
             <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white to-red-200 bg-clip-text text-transparent">
               UB FoodHub
@@ -261,17 +259,13 @@ export default function LoginPage() {
           <div className="w-full max-w-md space-y-8 relative z-10">
             {/* Enhanced Mobile Logo */}
             <div className="text-center lg:hidden">
-              <div className="relative">
-                <div className="absolute inset-0 w-24 h-24 mx-auto bg-gradient-to-r from-white/20 to-red-200/20 rounded-full animate-rotate-glow"></div>
-                <img
-                  src="/logo.png"
-                  alt="UB FoodHub"
-                  className="w-24 h-24 mx-auto mb-4 animate-bounce-gentle animate-glow relative z-10"
-                />
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-24 h-24 bg-gradient-to-r from-transparent via-white/15 to-transparent animate-shimmer rounded-full"></div>
-              </div>
-              <h1 className="text-2xl font-bold text-white mb-2 animate-pulse-slow">UB FoodHub</h1>
-              <p className="text-red-100 text-sm animate-float">Campus Food Ordering</p>
+              <img
+                src="/logo.png"
+                alt="UB FoodHub"
+                className="w-24 h-24 mx-auto mb-4 animate-bounce-gentle"
+              />
+              <h1 className="text-2xl font-bold text-white mb-2">UB FoodHub</h1>
+              <p className="text-red-100 text-sm">Campus Food Ordering</p>
             </div>
 
             {/* Login Form Container */}

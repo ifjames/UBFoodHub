@@ -103,6 +103,13 @@ UB FoodHub is a comprehensive mobile web application designed for the University
 
 ## Recent Changes
 
+### Logo Animation Fix & Project Migration Completion (July 30, 2025)
+- **Logo Animation Enhancement**: Fixed login page logo animation to remove glow effects and implement smooth bounce animation
+- **Consistent Bounce Animation**: Updated both mobile and desktop login pages to use clean 3-second smooth bounce motion
+- **Removed Distracting Effects**: Eliminated glow, shimmer, and rotating background effects around logo for cleaner appearance
+- **Improved Performance**: Streamlined CSS animations to be more efficient and less distracting
+- **Migration Completion**: Successfully completed full migration from Replit Agent to standard Replit environment with all security practices intact
+
 ### Terms of Service Enhancement & Migration Completion (July 17, 2025)
 - **Terms of Service Placement**: Moved Terms of Service checkbox to only appear during signup, not login, matching user requirements
 - **Interactive Terms & Privacy Policy**: Created comprehensive Terms of Service and Privacy Policy dialogs with full legal content

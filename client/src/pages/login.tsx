@@ -269,7 +269,7 @@ export default function LoginPage() {
             delay: 0.2, 
             duration: 0.3,
             y: {
-              duration: 1.2,
+              duration: 3,
               repeat: Infinity,
               ease: "easeInOut",
             }
@@ -413,7 +413,7 @@ export default function LoginPage() {
               delay: 0.2, 
               duration: 0.3,
               y: {
-                duration: 1.2,
+                duration: 3,
                 repeat: Infinity,
                 ease: "easeInOut",
               }

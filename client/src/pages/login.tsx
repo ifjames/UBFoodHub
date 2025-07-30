@@ -423,7 +423,7 @@ export default function LoginPage() {
             <img 
               src="https://ubianfoodhub.web.app/logo.png" 
               alt="UB FoodHub Logo" 
-              className="w-28 h-28 object-contain drop-shadow-2xl"
+              className="w-28 h-28 object-contain"
             />
           </motion.div>
           

@@ -16,7 +16,7 @@ import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/lib/store";
 import { motion, AnimatePresence } from "framer-motion";
-import { getDocument, subscribeToQuery, addDocument } from "@/lib/firebase";
+import { getDocument, subscribeToQuery, addDocument, getDocuments } from "@/lib/firebase";
 
 interface MenuItemType {
   id: string;
@@ -44,6 +44,8 @@ export default function Restaurant() {
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [actualRating, setActualRating] = useState<number>(0);
+  const [actualReviewCount, setActualReviewCount] = useState<number>(0);
 
   const restaurantId = params.id;
 
@@ -54,6 +56,23 @@ export default function Restaurant() {
         if (doc.exists()) {
           setStall({ id: doc.id, ...doc.data() });
         }
+      });
+
+      // Get actual reviews and calculate real rating
+      getDocuments("reviews", "stallId", "==", restaurantId).then((reviews) => {
+        if (reviews.length > 0) {
+          const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+          const averageRating = totalRating / reviews.length;
+          setActualRating(Math.round(averageRating * 10) / 10);
+          setActualReviewCount(reviews.length);
+        } else {
+          setActualRating(0);
+          setActualReviewCount(0);
+        }
+      }).catch((error) => {
+        console.error("Error fetching reviews:", error);
+        setActualRating(0);
+        setActualReviewCount(0);
       });
 
       // Subscribe to menu items
@@ -188,10 +207,10 @@ export default function Restaurant() {
             <div className="flex items-center gap-1 mt-1">
               <Star className="w-4 h-4 text-yellow-400 fill-current" />
               <span className="text-sm font-medium">
-                {stall.rating && stall.rating !== 0 && stall.rating !== "0" ? stall.rating : "No ratings"}
+                {actualRating > 0 ? actualRating.toString() : "No ratings"}
               </span>
-              {stall.reviewCount > 0 && (
-                <span className="text-sm text-gray-600">({stall.reviewCount} ratings)</span>
+              {actualReviewCount > 0 && (
+                <span className="text-sm text-gray-600">({actualReviewCount} ratings)</span>
               )}
             </div>
           </div>

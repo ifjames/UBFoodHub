@@ -1,4 +1,4 @@
-import { Home, Search, ShoppingCart, User, Package } from "lucide-react";
+import { Home, Search, ShoppingCart, User, Package, Settings, BarChart3, Users } from "lucide-react";
 import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
 import { motion } from "framer-motion";
@@ -7,38 +7,101 @@ export default function BottomNav() {
   const [location, setLocation] = useLocation();
   const { state } = useStore();
 
-  const navItems = [
-    {
-      icon: Home,
-      label: "Home",
-      path: "/",
-      active: location === "/"
-    },
-    {
-      icon: Search,
-      label: "Search",
-      path: "/search",
-      active: location === "/search"
-    },
-    {
-      icon: ShoppingCart,
-      label: "Cart",
-      path: "/cart",
-      active: location === "/cart"
-    },
-    {
-      icon: Package,
-      label: "Orders",
-      path: "/orders",
-      active: location === "/orders"
-    },
-    {
-      icon: User,
-      label: "Profile",
-      path: "/profile",
-      active: location === "/profile"
+  // Role-specific navigation items
+  const getNavItems = () => {
+    if (state.user?.role === 'admin') {
+      return [
+        {
+          icon: BarChart3,
+          label: "Dashboard",
+          path: "/admin",
+          active: location === "/admin",
+          key: "admin-dashboard"
+        },
+        {
+          icon: Settings,
+          label: "Settings",
+          path: "/settings",
+          active: location === "/settings",
+          key: "admin-settings"
+        },
+        {
+          icon: User,
+          label: "Profile",
+          path: "/profile",
+          active: location === "/profile",
+          key: "admin-profile"
+        }
+      ];
     }
-  ];
+
+    if (state.user?.role === 'stall_owner') {
+      return [
+        {
+          icon: BarChart3,
+          label: "Dashboard",
+          path: "/stall-dashboard",
+          active: location === "/stall-dashboard",
+          key: "stall-dashboard"
+        },
+        {
+          icon: Settings,
+          label: "Settings",
+          path: "/settings",
+          active: location === "/settings",
+          key: "stall-settings"
+        },
+        {
+          icon: User,
+          label: "Profile",
+          path: "/profile",
+          active: location === "/profile",
+          key: "stall-profile"
+        }
+      ];
+    }
+
+    // Default student navigation
+    return [
+      {
+        icon: Home,
+        label: "Home",
+        path: "/",
+        active: location === "/",
+        key: "student-home"
+      },
+      {
+        icon: Search,
+        label: "Search",
+        path: "/search",
+        active: location === "/search",
+        key: "student-search"
+      },
+      {
+        icon: ShoppingCart,
+        label: "Cart",
+        path: "/cart",
+        active: location === "/cart",
+        key: "student-cart"
+      },
+      {
+        icon: Package,
+        label: "Orders",
+        path: "/orders",
+        active: location === "/orders",
+        key: "student-orders"
+      },
+      {
+        icon: User,
+        label: "Profile",
+        path: "/profile",
+        active: location === "/profile",
+        key: "student-profile"
+      }
+    ];
+  };
+
+  const navItems = getNavItems();
 
   return (
     <motion.div
@@ -52,7 +115,7 @@ export default function BottomNav() {
             const Icon = item.icon;
             return (
               <motion.button
-                key={item.path}
+                key={item.key || item.path}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setLocation(item.path)}
                 className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors ${

@@ -17,6 +17,7 @@ import { Users, Store, Plus, Edit, Trash2, LogOut, Settings, BarChart3 } from "l
 import PenaltyManagement from "@/components/penalties/penalty-management";
 import BroadcastNotification from "@/components/admin/broadcast-notification";
 import NotificationBell from "@/components/notifications/notification-bell";
+import BottomNav from "@/components/layout/bottom-nav";
 
 export default function AdminDashboard() {
   const { state, dispatch } = useStore();
@@ -1286,6 +1287,12 @@ export default function AdminDashboard() {
           </form>
         </DialogContent>
       </Dialog>
+      
+      {/* Mobile Navigation */}
+      <BottomNav />
+      
+      {/* Bottom spacing for mobile navigation */}
+      <div className="h-20 md:h-0"></div>
     </div>
   );
 }

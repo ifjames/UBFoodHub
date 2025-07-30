@@ -74,11 +74,13 @@ function Router() {
       </Route>
       <Route path="/admin">
         <AuthGuard>
+          <DesktopNav />
           <AdminDashboard />
         </AuthGuard>
       </Route>
       <Route path="/stall-dashboard">
         <AuthGuard>
+          <DesktopNav />
           <StallDashboard />
         </AuthGuard>
       </Route>

@@ -41,6 +41,7 @@ import { useLocation } from "wouter";
 import NotificationBell from "@/components/notifications/notification-bell";
 import CancellationRequestManagement from "@/components/orders/cancellation-request-management";
 import NotificationService from "@/lib/notification-service";
+import BottomNav from "@/components/layout/bottom-nav";
 
 export default function StallDashboard() {
   const { state, dispatch } = useStore();
@@ -1680,6 +1681,12 @@ export default function StallDashboard() {
           )}
         </DialogContent>
       </Dialog>
+      
+      {/* Mobile Navigation */}
+      <BottomNav />
+      
+      {/* Bottom spacing for mobile navigation */}
+      <div className="h-20 md:h-0"></div>
     </div>
   );
 }

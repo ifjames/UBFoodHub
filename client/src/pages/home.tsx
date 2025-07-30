@@ -26,6 +26,18 @@ export default function Home() {
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const { state } = useStore();
 
+  // Redirect admin and stall owners to their dashboards
+  useEffect(() => {
+    if (state.user?.role === 'admin') {
+      window.location.href = '/admin';
+      return;
+    }
+    if (state.user?.role === 'stall_owner') {
+      window.location.href = '/stall-dashboard';
+      return;
+    }
+  }, [state.user?.role]);
+
   // Test notification function (for development)
   const sendTestNotification = () => {
     // Only run if notifications are enabled
@@ -289,8 +301,13 @@ export default function Home() {
         <div className="h-20 md:h-8"></div>
       </div>
 
-      <BottomNav />
-      <FloatingCart />
+      {/* Only show bottom nav and floating cart for students */}
+      {state.user?.role === 'student' && (
+        <>
+          <BottomNav />
+          <FloatingCart />
+        </>
+      )}
 
       {/* Loading Overlay */}
       <LoadingOverlay

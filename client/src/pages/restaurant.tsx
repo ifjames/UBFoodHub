@@ -47,6 +47,11 @@ export default function Restaurant() {
   const [actualRating, setActualRating] = useState<number>(0);
   const [actualReviewCount, setActualReviewCount] = useState<number>(0);
   const [reviews, setReviews] = useState<any[]>([]);
+  
+  // Debug effect to track reviews state changes
+  useEffect(() => {
+    console.log("Reviews state changed:", reviews);
+  }, [reviews]);
 
   const restaurantId = params.id;
 
@@ -60,8 +65,10 @@ export default function Restaurant() {
       });
 
       // Subscribe to reviews for real-time updates
+      console.log("Setting up reviews subscription for restaurant:", restaurantId);
       const reviewsUnsubscribe = subscribeToQuery("reviews", "stallId", "==", restaurantId, (reviewsData) => {
-        console.log("Reviews fetched for restaurant:", restaurantId, reviewsData);
+        console.log("Reviews callback triggered for restaurant:", restaurantId, reviewsData);
+        console.log("Setting reviews state to:", reviewsData);
         setReviews(reviewsData); // Store reviews for display
         if (reviewsData.length > 0) {
           const totalRating = reviewsData.reduce((sum, review) => sum + review.rating, 0);
@@ -84,9 +91,16 @@ export default function Restaurant() {
       });
 
       return () => {
+        console.log("Cleaning up subscriptions for restaurant:", restaurantId);
         menuUnsubscribe();
         reviewsUnsubscribe();
       };
+    } else {
+      // Reset state when no restaurant ID
+      console.log("No restaurant ID, resetting state");
+      setReviews([]);
+      setActualRating(0);
+      setActualReviewCount(0);
     }
   }, [restaurantId]);
 
@@ -402,11 +416,18 @@ export default function Restaurant() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
         className="bg-white p-4 md:p-6 mb-2"
+        key="reviews-section"
       >
         <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4">Student Reviews</h2>
-
+        <div className="mb-4 p-2 bg-gray-100 text-xs">
+          <p>Debug Info:</p>
+          <p>reviews.length: {reviews.length}</p>
+          <p>restaurantId: {restaurantId}</p>
+          <p>actualReviewCount: {actualReviewCount}</p>
+          <p>reviews data: {JSON.stringify(reviews)}</p>
+        </div>
         
-        {reviews.length > 0 ? (
+        {reviews && reviews.length > 0 ? (
           <div className="space-y-4">
             {reviews.map((review) => (
               <motion.div

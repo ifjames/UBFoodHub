@@ -19,6 +19,14 @@ export default function QRScanner({ isOpen, onClose, onScan }: QRScannerProps) {
   const streamRef = useRef<MediaStream | null>(null);
 
   const startCamera = async () => {
+    // Show immediate message that QR scanning needs setup
+    setScanResult({
+      success: false,
+      message: 'QR scanning requires additional setup. Please use manual entry for now.'
+    });
+    return;
+    
+    /* Future implementation when QR scanning is fully set up:
     try {
       setIsScanning(true);
       const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -41,6 +49,7 @@ export default function QRScanner({ isOpen, onClose, onScan }: QRScannerProps) {
         message: 'Camera access denied. Please use manual entry or enable camera permissions.'
       });
     }
+    */
   };
 
   const stopCamera = () => {
@@ -114,23 +123,23 @@ export default function QRScanner({ isOpen, onClose, onScan }: QRScannerProps) {
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Manual Entry Section */}
+          {/* Manual Entry Section - Primary Method */}
           <div className="space-y-3">
-            <Label htmlFor="manual-order">Manual Order ID Entry</Label>
+            <Label htmlFor="manual-order" className="text-base font-medium">Order ID Entry (Recommended)</Label>
             <div className="flex gap-2">
               <Input
                 id="manual-order"
                 value={manualOrderId}
                 onChange={(e) => setManualOrderId(e.target.value)}
-                placeholder="Enter Order ID or scan data"
+                placeholder="Enter Order ID (e.g. ORD001)"
                 className="flex-1"
               />
               <Button onClick={handleManualSubmit} disabled={!manualOrderId.trim()}>
-                Verify
+                Verify Order
               </Button>
             </div>
             <p className="text-xs text-gray-600">
-              Enter the Order ID manually or paste QR code data
+              Ask the student for their Order ID from their order confirmation or orders page
             </p>
           </div>
 
@@ -139,12 +148,12 @@ export default function QRScanner({ isOpen, onClose, onScan }: QRScannerProps) {
             <div className="space-y-3">
               {!isScanning ? (
                 <div className="text-center">
-                  <Button onClick={startCamera} variant="outline" className="w-full">
+                  <Button onClick={startCamera} variant="outline" className="w-full" disabled>
                     <Camera className="w-4 h-4 mr-2" />
-                    Use Camera to Scan
+                    Camera Scanning (Coming Soon)
                   </Button>
                   <p className="text-xs text-gray-500 mt-2">
-                    Experimental: Camera scanning may require additional permissions
+                    QR camera scanning requires additional setup. Please use manual entry above.
                   </p>
                 </div>
               ) : (

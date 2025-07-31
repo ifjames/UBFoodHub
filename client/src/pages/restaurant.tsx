@@ -248,46 +248,10 @@ export default function Restaurant() {
           <span>No additional fees for pickup</span>
         </div>
 
-        {/* Quick Actions */}
-        <div className="flex gap-2 mt-4">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={() => {
-              // Navigate to ratings section
-              const ratingsElement = document.getElementById('ratings-section');
-              if (ratingsElement) {
-                ratingsElement.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
-          >
-            <Star className="w-4 h-4 mr-1" />
-            Rate & Review
-          </Button>
-        </div>
+
       </motion.div>
 
-      {/* Ratings Section */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.15 }}
-        id="ratings-section"
-        className="bg-white p-4 mb-2"
-      >
-        <h3 className="font-semibold text-gray-900 mb-3">Student Reviews</h3>
-        <div className="space-y-3">
-          <div className="text-center py-8">
-            <Star className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">No Reviews Yet</h3>
-            <p className="text-sm text-gray-600 mb-4">Only students who have ordered can leave reviews</p>
-            <Button variant="outline" size="sm">
-              Order first to review
-            </Button>
-          </div>
-        </div>
-      </motion.div>
+
 
       {/* Search Bar */}
       <motion.div
@@ -495,36 +459,7 @@ export default function Restaurant() {
         )}
       </div>
 
-      {/* Rate & Review Button */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="bg-white p-4 md:p-6 text-center"
-      >
-        <Button
-          onClick={() => {
-            // This should check if user has ordered and show review modal
-            if (state.user) {
-              toast({
-                title: "Coming Soon",
-                description: "Review functionality will be available after placing an order!",
-              });
-            } else {
-              toast({
-                title: "Login Required",
-                description: "Please log in to leave a review",
-                variant: "destructive",
-              });
-            }
-          }}
-          variant="outline"
-          className="w-full text-[#6d031e] border-[#6d031e] hover:bg-[#6d031e] hover:text-white"
-        >
-          <Star className="w-4 h-4 mr-2" />
-          Rate & Review
-        </Button>
-      </motion.div>
+
 
       {/* Customization Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

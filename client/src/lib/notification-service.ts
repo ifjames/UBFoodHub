@@ -84,16 +84,36 @@ class NotificationService {
     }
   }
 
-  public async sendOrderNotification(orderId: string, status: string, customerName?: string): Promise<void> {
+  public async sendOrderNotification(orderId: string, status: string, customerName?: string, userId?: string): Promise<void> {
     const statusMessages = {
-      'preparing': 'Your order is now being prepared',
-      'ready': 'Your order is ready for pickup!',
-      'cancelled': 'Your order has been cancelled',
-      'completed': 'Order completed. Thank you!'
+      'preparing': 'Your order is now being prepared! 👨‍🍳',
+      'ready': 'Your order is ready for pickup! 🔔',
+      'cancelled': 'Your order has been cancelled 😔',
+      'completed': 'Order completed. Thank you for choosing UB FoodHub! ✅'
     };
 
     const title = `Order Update`;
-    const body = `${statusMessages[status] || status} - Order #${orderId.slice(-6)}`;
+    const body = `${statusMessages[status] || status} - Order #${orderId.slice(-6)}${customerName ? ` for ${customerName}` : ''}`;
+    
+    // Store notification for the specific user in Firestore
+    if (userId) {
+      try {
+        const { addDocument } = await import('@/lib/firebase');
+        await addDocument('userNotifications', {
+          userId: userId,
+          orderId: orderId,
+          title: title,
+          body: body,
+          type: 'order',
+          status: status,
+          read: false,
+          createdAt: new Date()
+        });
+        console.log(`Notification stored for user ${userId} about order ${orderId}`);
+      } catch (error) {
+        console.error('Error storing user notification:', error);
+      }
+    }
     
     await this.sendNotification({
       title,

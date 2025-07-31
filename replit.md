@@ -110,12 +110,15 @@ UB FoodHub is a comprehensive mobile web application designed for the University
 - **Migration Completion**: Successfully completed migration from Replit Agent to standard Replit environment with enhanced security and stability
 - **Full Functionality Verification**: All features including authentication, dashboards, and navigation working correctly in new environment
 
-### Desktop-Friendly UI Enhancement & Migration Completion (July 31, 2025)
+### Desktop-Friendly UI Enhancement & Stall Dashboard Ordering Fixes (July 31, 2025)
 - **Enhanced Checkout Page**: Implemented responsive two-column layout for desktop with order details sidebar, sticky order summary, and improved mobile button positioning
 - **Enhanced Restaurant/Menu Page**: Created responsive grid layout (2-3 columns) for menu items with improved card design, larger images on desktop, and enhanced customization modal
 - **Desktop Order Summary**: Added sticky desktop sidebar in checkout with order totals, special order badges (multi-stall, group, scheduled), and prominent checkout button
 - **Menu Item Cards**: Redesigned for desktop with image-first layout, larger typography, better spacing, and improved add-to-cart buttons
 - **Customization Modal Enhancement**: Enlarged modal for desktop screens with better typography, hover effects, and improved user experience
+- **Chronological Order Sorting**: Fixed stall dashboard to display orders chronologically - first ordered appears first in both overview and orders sections
+- **Enhanced Order Status Notifications**: Improved notification system to properly notify users about order status changes (preparing, ready, cancelled, completed)
+- **User-Targeted Notifications**: Order notifications now store in Firestore with user ID targeting for proper delivery to the customer who placed the order
 - **Desktop Navigation Enhancement**: Added logout functionality to admin and stall dashboards on desktop/larger screens
 - **Consistent Navigation Experience**: Fixed missing DesktopNav component in admin and stall dashboard routes  
 - **Proper Layout Spacing**: Added responsive top padding (md:pt-20) to prevent content overlap with fixed desktop navigation

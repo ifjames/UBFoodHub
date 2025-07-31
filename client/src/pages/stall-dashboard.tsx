@@ -272,13 +272,14 @@ export default function StallDashboard() {
         updatedAt: new Date()
       });
       
-      // Send notification to customer
+      // Send notification to customer with their user ID
       if (order) {
         const notificationService = NotificationService.getInstance();
         await notificationService.sendOrderNotification(
           orderId, 
           newStatus, 
-          order.customerName
+          order.customerName,
+          order.userId // Pass the user ID so they get notified
         );
       }
       
@@ -305,13 +306,14 @@ export default function StallDashboard() {
         updatedAt: new Date()
       });
       
-      // Send notification to customer
+      // Send notification to customer with their user ID
       if (order) {
         const notificationService = NotificationService.getInstance();
         await notificationService.sendOrderNotification(
           orderId, 
           "cancelled", 
-          order.customerName
+          order.customerName,
+          order.userId // Pass the user ID so they get notified
         );
       }
       
@@ -385,10 +387,17 @@ export default function StallDashboard() {
     return matchesCategory && matchesSearch;
   });
 
-  const filteredOrders = orders.filter(order => {
-    if (orderFilter === "all") return true;
-    return order.status === orderFilter;
-  });
+  const filteredOrders = orders
+    .filter(order => {
+      if (orderFilter === "all") return true;
+      return order.status === orderFilter;
+    })
+    .sort((a, b) => {
+      // Sort by createdAt in ascending order (first ordered appears first)
+      const dateA = new Date(a.createdAt?.toDate ? a.createdAt.toDate() : a.createdAt);
+      const dateB = new Date(b.createdAt?.toDate ? b.createdAt.toDate() : b.createdAt);
+      return dateA.getTime() - dateB.getTime();
+    });
 
   // Revenue calculations - only count completed orders
   const completedOrders = orders.filter(order => order.status === 'completed');
@@ -596,7 +605,15 @@ export default function StallDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {orders.slice(0, 10).map((order) => (
+                  {orders
+                    .sort((a, b) => {
+                      // Sort by createdAt in ascending order (first ordered appears first)
+                      const dateA = new Date(a.createdAt?.toDate ? a.createdAt.toDate() : a.createdAt);
+                      const dateB = new Date(b.createdAt?.toDate ? b.createdAt.toDate() : b.createdAt);
+                      return dateA.getTime() - dateB.getTime();
+                    })
+                    .slice(0, 10)
+                    .map((order) => (
                     <div key={order.id} className="border rounded-lg p-4 bg-white">
                       {/* Order Header */}
                       <div className="flex items-center justify-between mb-3">

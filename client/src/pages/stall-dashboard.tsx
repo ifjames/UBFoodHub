@@ -61,6 +61,10 @@ export default function StallDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [ordersPerPage] = useState(20);
+  const [overviewOrdersPerPage] = useState(5);
+  const [orderSearchQuery, setOrderSearchQuery] = useState("");
   const [itemForm, setItemForm] = useState({
     name: "",
     description: "",
@@ -389,8 +393,14 @@ export default function StallDashboard() {
 
   const filteredOrders = orders
     .filter(order => {
-      if (orderFilter === "all") return true;
-      return order.status === orderFilter;
+      const matchesStatus = orderFilter === "all" || order.status === orderFilter;
+      const matchesSearch = !orderSearchQuery || 
+        order.qrCode?.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
+        order.customerName?.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
+        order.items?.some(item => 
+          item.name?.toLowerCase().includes(orderSearchQuery.toLowerCase())
+        );
+      return matchesStatus && matchesSearch;
     })
     .sort((a, b) => {
       // Sort by createdAt in ascending order (first ordered appears first)
@@ -398,6 +408,20 @@ export default function StallDashboard() {
       const dateB = new Date(b.createdAt?.toDate ? b.createdAt.toDate() : b.createdAt);
       return dateA.getTime() - dateB.getTime();
     });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
+  const startIndex = (currentPage - 1) * ordersPerPage;
+  const paginatedOrders = filteredOrders.slice(startIndex, startIndex + ordersPerPage);
+  
+  // Overview orders (limited and recent)
+  const overviewOrders = orders
+    .sort((a, b) => {
+      const dateA = new Date(a.createdAt?.toDate ? a.createdAt.toDate() : a.createdAt);
+      const dateB = new Date(b.createdAt?.toDate ? b.createdAt.toDate() : b.createdAt);
+      return dateA.getTime() - dateB.getTime();
+    })
+    .slice(0, overviewOrdersPerPage);
 
   // Revenue calculations - only count completed orders
   const completedOrders = orders.filter(order => order.status === 'completed');
@@ -605,15 +629,18 @@ export default function StallDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {orders
-                    .sort((a, b) => {
-                      // Sort by createdAt in ascending order (first ordered appears first)
-                      const dateA = new Date(a.createdAt?.toDate ? a.createdAt.toDate() : a.createdAt);
-                      const dateB = new Date(b.createdAt?.toDate ? b.createdAt.toDate() : b.createdAt);
-                      return dateA.getTime() - dateB.getTime();
-                    })
-                    .slice(0, 10)
-                    .map((order) => (
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-sm font-medium text-gray-700">Recent Orders (Showing {overviewOrders.length} of {orders.length})</h3>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setActiveTab("orders")}
+                      className="text-[#6d031e] border-[#6d031e] hover:bg-[#6d031e] hover:text-white"
+                    >
+                      View All Orders
+                    </Button>
+                  </div>
+                  {overviewOrders.map((order) => (
                     <div key={order.id} className="border rounded-lg p-4 bg-white">
                       {/* Order Header */}
                       <div className="flex items-center justify-between mb-3">
@@ -755,6 +782,316 @@ export default function StallDashboard() {
                     </div>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Orders Tab with Pagination */}
+        {activeTab === "orders" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
+          >
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-[#6d031e]">Order Management</h2>
+                <p className="text-sm text-gray-600">Showing {paginatedOrders.length} of {filteredOrders.length} orders</p>
+              </div>
+            </div>
+
+            {/* Enhanced Order Filtering & Search */}
+            <Card className="mb-6">
+              <CardContent className="p-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <Label htmlFor="order-search">Search Orders</Label>
+                    <Input
+                      id="order-search"
+                      placeholder="Search by order ID, customer name, or item..."
+                      value={orderSearchQuery}
+                      onChange={(e) => {
+                        setOrderSearchQuery(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="sm:w-48">
+                    <Label htmlFor="order-status">Filter by Status</Label>
+                    <Select value={orderFilter} onValueChange={(value) => {
+                      setOrderFilter(value);
+                      setCurrentPage(1); // Reset to first page when filtering
+                    }}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="All Orders" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Orders ({orders.length})</SelectItem>
+                        <SelectItem value="pending">Pending ({orders.filter(o => o.status === 'pending').length})</SelectItem>
+                        <SelectItem value="preparing">Preparing ({orders.filter(o => o.status === 'preparing').length})</SelectItem>
+                        <SelectItem value="ready">Ready ({orders.filter(o => o.status === 'ready').length})</SelectItem>
+                        <SelectItem value="completed">Completed ({orders.filter(o => o.status === 'completed').length})</SelectItem>
+                        <SelectItem value="cancelled">Cancelled ({orders.filter(o => o.status === 'cancelled').length})</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 mt-3">
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setOrderFilter("pending");
+                        setCurrentPage(1);
+                      }}
+                      className="text-yellow-700 border-yellow-300 hover:bg-yellow-50"
+                    >
+                      Pending ({orders.filter(o => o.status === 'pending').length})
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setOrderFilter("preparing");
+                        setCurrentPage(1);
+                      }}
+                      className="text-blue-700 border-blue-300 hover:bg-blue-50"
+                    >
+                      Preparing ({orders.filter(o => o.status === 'preparing').length})
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span>Performance: {orders.length < 50 ? 'Optimal ⚡' : orders.length < 200 ? 'Good 👍' : 'High Volume 🚀'}</span>
+                    {(orderFilter !== "all" || orderSearchQuery) && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setOrderFilter("all");
+                          setOrderSearchQuery("");
+                          setCurrentPage(1);
+                        }}
+                        className="text-[#6d031e] hover:bg-red-50"
+                      >
+                        Clear All Filters
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Paginated Orders List */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-[#6d031e] flex items-center justify-between">
+                  <span>Orders List</span>
+                  <div className="text-sm font-normal text-gray-600">
+                    Page {currentPage} of {totalPages}
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {paginatedOrders.map((order) => (
+                    <div key={order.id} className="border rounded-lg p-4 bg-white">
+                      {/* Order Header */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h3 className="font-semibold text-gray-900">Order {order.qrCode}</h3>
+                          <p className="text-sm text-gray-600">
+                            {order.createdAt?.toDate ? new Date(order.createdAt.toDate()).toLocaleString() : 'Just now'}
+                          </p>
+                          {order.customerName && (
+                            <p className="text-sm text-[#6d031e] font-medium">Customer: {order.customerName}</p>
+                          )}
+                          {order.paymentMethod && (
+                            <div className="mt-1">
+                              <span className="text-sm text-gray-600">Payment: {order.paymentMethod}</span>
+                              {order.paymentMethod === 'cash' && order.cashAmount && (
+                                <span className="text-sm text-green-600 ml-2">
+                                  Cash: ₱{order.cashAmount} | Change: ₱{(order.cashAmount - order.totalAmount).toFixed(2)}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <Badge
+                          className={
+                            order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            order.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
+                            order.status === 'ready' ? 'bg-green-100 text-green-800' :
+                            order.status === 'completed' ? 'bg-gray-100 text-gray-800' :
+                            'bg-red-100 text-red-800'
+                          }
+                        >
+                          {order.status?.toUpperCase()}
+                        </Badge>
+                      </div>
+
+                      {/* Order Items Summary */}
+                      <div className="mb-3">
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">Items ({order.items?.length || 0}):</h4>
+                        <div className="text-sm text-gray-600">
+                          {order.items?.slice(0, 2).map((item, index) => (
+                            <span key={index}>
+                              {item.name} x{item.quantity}
+                              {index < Math.min(1, order.items.length - 1) && ', '}
+                            </span>
+                          ))}
+                          {order.items?.length > 2 && (
+                            <span className="text-gray-500"> +{order.items.length - 2} more items</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Order Total */}
+                      <div className="border-t pt-3 flex justify-between items-center">
+                        <span className="font-semibold text-gray-900">Total: ₱{order.totalAmount?.toFixed(2)}</span>
+                        <div className="flex gap-2">
+                          {order.status === 'pending' && (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => updateOrderStatus(order.id, 'preparing')}
+                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                              >
+                                Accept
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => cancelOrder(order.id)}
+                                variant="destructive"
+                                className="bg-red-600 hover:bg-red-700 text-white"
+                              >
+                                Cancel
+                              </Button>
+                            </>
+                          )}
+                          {order.status === 'preparing' && (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => updateOrderStatus(order.id, 'ready')}
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                              >
+                                Mark Ready
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => cancelOrder(order.id)}
+                                variant="destructive"
+                                className="bg-red-600 hover:bg-red-700 text-white"
+                              >
+                                Cancel
+                              </Button>
+                            </>
+                          )}
+                          {order.status === 'ready' && (
+                            <Button
+                              size="sm"
+                              onClick={() => updateOrderStatus(order.id, 'completed')}
+                              className="bg-gray-600 hover:bg-gray-700 text-white"
+                            >
+                              Complete
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => viewOrderDetails(order)}
+                            className="border-[#6d031e] text-[#6d031e] hover:bg-[#6d031e] hover:text-white"
+                          >
+                            Details
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {filteredOrders.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p>No orders found for the selected filter</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setCurrentPage(1)}
+                        disabled={currentPage === 1}
+                      >
+                        First
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setCurrentPage(currentPage - 1)}
+                        disabled={currentPage === 1}
+                      >
+                        Previous
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        const pageNum = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
+                        if (pageNum > totalPages) return null;
+                        return (
+                          <Button
+                            key={pageNum}
+                            size="sm"
+                            variant={currentPage === pageNum ? "default" : "outline"}
+                            onClick={() => setCurrentPage(pageNum)}
+                            className={currentPage === pageNum ? "bg-[#6d031e] text-white" : ""}
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                      {totalPages > 5 && currentPage < totalPages - 2 && (
+                        <>
+                          <span className="px-2 text-gray-500">...</span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setCurrentPage(totalPages)}
+                          >
+                            {totalPages}
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                      >
+                        Next
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={currentPage === totalPages}
+                      >
+                        Last
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>

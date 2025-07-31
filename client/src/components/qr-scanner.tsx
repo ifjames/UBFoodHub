@@ -15,6 +15,7 @@ interface QRScannerProps {
 export default function QRScanner({ isOpen, onClose, onScan }: QRScannerProps) {
   const [manualOrderId, setManualOrderId] = useState('');
   const [isScanning, setIsScanning] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [scanResult, setScanResult] = useState<{ success: boolean; message: string } | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -49,17 +50,24 @@ export default function QRScanner({ isOpen, onClose, onScan }: QRScannerProps) {
     if (qrCode) {
       // QR code detected!
       scanningRef.current = false;
+      setIsProcessing(true);
+      setScanResult({ success: true, message: 'QR Code detected! Processing...' });
+      
       try {
         // Try to parse as JSON first (in case it's a full QR code)
         const parsed = JSON.parse(qrCode.data);
         if (parsed.orderId) {
-          onScan(parsed.orderId);
-          setScanResult({ success: true, message: 'QR Code scanned successfully!' });
+          // Simulate brief processing time for better UX
           setTimeout(() => {
-            stopCamera();
-            onClose();
-            setScanResult(null);
-          }, 1500);
+            onScan(parsed.orderId);
+            setScanResult({ success: true, message: 'Order verified successfully!' });
+            setTimeout(() => {
+              stopCamera();
+              onClose();
+              setScanResult(null);
+              setIsProcessing(false);
+            }, 1200);
+          }, 800);
           return;
         }
       } catch (e) {
@@ -67,13 +75,16 @@ export default function QRScanner({ isOpen, onClose, onScan }: QRScannerProps) {
       }
       
       // Handle plain order ID
-      onScan(qrCode.data.trim());
-      setScanResult({ success: true, message: 'QR Code scanned successfully!' });
       setTimeout(() => {
-        stopCamera();
-        onClose();
-        setScanResult(null);
-      }, 1500);
+        onScan(qrCode.data.trim());
+        setScanResult({ success: true, message: 'Order verified successfully!' });
+        setTimeout(() => {
+          stopCamera();
+          onClose();
+          setScanResult(null);
+          setIsProcessing(false);
+        }, 1200);
+      }, 800);
     } else {
       // Continue scanning
       requestAnimationFrame(scanQRCode);
@@ -123,17 +134,23 @@ export default function QRScanner({ isOpen, onClose, onScan }: QRScannerProps) {
 
   const handleManualSubmit = () => {
     if (manualOrderId.trim()) {
+      setIsProcessing(true);
+      setScanResult({ success: true, message: 'Processing order ID...' });
+      
       try {
         // Try to parse as JSON first (in case it's a full QR code)
         const parsed = JSON.parse(manualOrderId);
         if (parsed.orderId) {
-          onScan(parsed.orderId);
-          setScanResult({ success: true, message: 'Order ID processed successfully!' });
           setTimeout(() => {
-            onClose();
-            setManualOrderId('');
-            setScanResult(null);
-          }, 1500);
+            onScan(parsed.orderId);
+            setScanResult({ success: true, message: 'Order verified successfully!' });
+            setTimeout(() => {
+              onClose();
+              setManualOrderId('');
+              setScanResult(null);
+              setIsProcessing(false);
+            }, 1200);
+          }, 600);
           return;
         }
       } catch (e) {
@@ -141,17 +158,23 @@ export default function QRScanner({ isOpen, onClose, onScan }: QRScannerProps) {
       }
       
       // Handle plain order ID
-      onScan(manualOrderId.trim());
-      setScanResult({ success: true, message: 'Order ID processed successfully!' });
       setTimeout(() => {
-        onClose();
-        setManualOrderId('');
-        setScanResult(null);
-      }, 1500);
+        onScan(manualOrderId.trim());
+        setScanResult({ success: true, message: 'Order verified successfully!' });
+        setTimeout(() => {
+          onClose();
+          setManualOrderId('');
+          setScanResult(null);
+          setIsProcessing(false);
+        }, 1200);
+      }, 600);
     }
   };
 
   const handleClose = () => {
+    // Prevent closing while processing
+    if (isProcessing) return;
+    
     stopCamera();
     onClose();
     setManualOrderId('');
@@ -169,7 +192,7 @@ export default function QRScanner({ isOpen, onClose, onScan }: QRScannerProps) {
   }, []);
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={isProcessing ? undefined : handleClose}>
       <DialogContent className="max-w-md mx-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -190,8 +213,15 @@ export default function QRScanner({ isOpen, onClose, onScan }: QRScannerProps) {
                 placeholder="Enter Order ID (e.g. ORD001)"
                 className="flex-1"
               />
-              <Button onClick={handleManualSubmit} disabled={!manualOrderId.trim()}>
-                Verify Order
+              <Button onClick={handleManualSubmit} disabled={!manualOrderId.trim() || isProcessing}>
+                {isProcessing ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Processing...
+                  </div>
+                ) : (
+                  'Verify Order'
+                )}
               </Button>
             </div>
             <p className="text-xs text-gray-600">
@@ -238,15 +268,16 @@ export default function QRScanner({ isOpen, onClose, onScan }: QRScannerProps) {
                       </div>
                     </div>
                     {/* Scanning indicator */}
-                    <div className="absolute top-4 left-4 bg-green-500 text-white px-2 py-1 rounded-full text-xs">
-                      Scanning...
+                    <div className="absolute top-4 left-4 bg-green-500 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                      {isProcessing ? 'Processing...' : 'Scanning...'}
                     </div>
                   </div>
                   
                   <div className="flex gap-2">
-                    <Button onClick={stopCamera} variant="outline" className="w-full">
+                    <Button onClick={stopCamera} variant="outline" className="w-full" disabled={isProcessing}>
                       <X className="w-4 h-4 mr-2" />
-                      Stop Camera
+                      {isProcessing ? 'Processing...' : 'Stop Camera'}
                     </Button>
                   </div>
                 </div>
@@ -259,7 +290,9 @@ export default function QRScanner({ isOpen, onClose, onScan }: QRScannerProps) {
             <div className={`flex items-center gap-2 p-3 rounded-lg ${
               scanResult.success ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'
             }`}>
-              {scanResult.success ? (
+              {isProcessing ? (
+                <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+              ) : scanResult.success ? (
                 <CheckCircle className="w-4 h-4" />
               ) : (
                 <AlertCircle className="w-4 h-4" />

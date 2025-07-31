@@ -1,63 +1,71 @@
+import { useEffect, useState } from 'react';
+import QRCodeLib from 'qrcode';
+
 interface QRCodeProps {
   value: string;
   size?: number;
 }
 
 export default function QRCode({ value, size = 128 }: QRCodeProps) {
-  // For now, we'll use a placeholder that could be replaced with an actual QR code library
-  // This creates a simple visual representation
-  const generateQRPattern = (text: string) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return '';
+  const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
+  const [error, setError] = useState<string>('');
 
-    canvas.width = size;
-    canvas.height = size;
-    
-    // White background
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, size, size);
-    
-    // Simple pattern based on text
-    ctx.fillStyle = '#000000';
-    const cellSize = size / 20;
-    
-    for (let x = 0; x < 20; x++) {
-      for (let y = 0; y < 20; y++) {
-        const char = text.charCodeAt((x + y) % text.length);
-        if (char % 2 === 0) {
-          ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-        }
+  useEffect(() => {
+    const generateQRCode = async () => {
+      try {
+        // Generate actual QR code with the order information
+        const qrData = JSON.stringify({
+          orderId: value,
+          app: 'UB_FoodHub',
+          timestamp: Date.now()
+        });
+        
+        const qrCodeDataURL = await QRCodeLib.toDataURL(qrData, {
+          width: size,
+          margin: 2,
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+          },
+          errorCorrectionLevel: 'M'
+        });
+        
+        setQrCodeDataURL(qrCodeDataURL);
+        setError('');
+      } catch (err) {
+        console.error('Error generating QR code:', err);
+        setError('Failed to generate QR code');
       }
+    };
+
+    if (value) {
+      generateQRCode();
     }
-    
-    return canvas.toDataURL();
-  };
+  }, [value, size]);
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center p-4 bg-red-50 border-2 border-red-200 rounded-lg">
+        <p className="text-red-600 text-sm">{error}</p>
+      </div>
+    );
+  }
+
+  if (!qrCodeDataURL) {
+    return (
+      <div className="flex items-center justify-center p-4 bg-gray-50 border-2 border-gray-200 rounded-lg">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6d031e]"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center p-4 bg-white rounded-lg border-2 border-gray-200">
-      <div 
-        className="bg-white rounded border"
-        style={{
-          width: size,
-          height: size,
-          backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-              <rect width="${size}" height="${size}" fill="white"/>
-              <g fill="black">
-                ${Array.from({ length: 15 }, (_, i) => 
-                  Array.from({ length: 15 }, (_, j) => {
-                    const shouldFill = (value.charCodeAt((i + j) % value.length) + i + j) % 3 === 0;
-                    return shouldFill ? `<rect x="${j * (size / 15)}" y="${i * (size / 15)}" width="${size / 15}" height="${size / 15}"/>` : '';
-                  }).join('')
-                ).join('')}
-              </g>
-            </svg>
-          `)}")`,
-          backgroundSize: 'contain',
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center'
-        }}
+      <img 
+        src={qrCodeDataURL} 
+        alt={`QR Code for Order ${value}`}
+        className="rounded"
+        style={{ width: size, height: size }}
       />
     </div>
   );

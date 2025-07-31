@@ -1,4 +1,4 @@
-// Service Worker for UB FoodHub Push Notifications
+// UB FoodHub Service Worker for Push Notifications
 const CACHE_NAME = 'ub-foodhub-v1';
 
 // Install event
@@ -10,79 +10,84 @@ self.addEventListener('install', (event) => {
 // Activate event
 self.addEventListener('activate', (event) => {
   console.log('Service Worker activating');
-  event.waitUntil(clients.claim());
+  event.waitUntil(self.clients.claim());
 });
 
-// Handle notification click
-self.addEventListener('notificationclick', (event) => {
-  console.log('Notification clicked:', event.notification);
-  
-  event.notification.close();
-  
-  const notificationData = event.notification.data;
-  let url = '/';
-  
-  // Determine where to navigate based on notification type
-  if (notificationData?.type === 'order' && notificationData?.orderId) {
-    url = `/orders`;
-  } else if (notificationData?.type === 'penalty') {
-    url = `/profile`;
-  } else if (notificationData?.type === 'verification') {
-    url = `/profile`;
-  } else if (notificationData?.type === 'announcement') {
-    url = `/`;
-  }
-  
-  // Handle action button clicks
-  if (event.action === 'view') {
-    url = `/orders`;
-  }
-  
-  event.waitUntil(
-    clients.matchAll({ type: 'window' }).then((clientList) => {
-      // Check if a window is already open
-      for (const client of clientList) {
-        if (client.url.includes(url) && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      
-      // Open new window if none found
-      if (clients.openWindow) {
-        return clients.openWindow(url);
-      }
-    })
-  );
-});
-
-// Handle background sync (for future use)
-self.addEventListener('sync', (event) => {
-  console.log('Background sync triggered:', event.tag);
-});
-
-// Handle push events (for server-sent notifications)
+// Push event - handle incoming push notifications
 self.addEventListener('push', (event) => {
-  console.log('Push message received:', event);
+  console.log('Push event received:', event);
   
-  let data = {};
+  let notificationData = {
+    title: 'UB FoodHub',
+    body: 'You have a new notification',
+    icon: '/logo192.png',
+    badge: '/logo192.png',
+    tag: 'ub-foodhub-notification'
+  };
+
   if (event.data) {
     try {
-      data = event.data.json();
-    } catch (e) {
-      data = { title: 'UB FoodHub', body: event.data.text() };
+      const data = event.data.json();
+      notificationData = {
+        ...notificationData,
+        ...data
+      };
+    } catch (error) {
+      console.error('Error parsing push data:', error);
+      notificationData.body = event.data.text() || notificationData.body;
     }
   }
-  
-  const options = {
-    body: data.body || 'You have a new notification',
-    icon: '/logo.png',
-    badge: '/logo.png',
-    vibrate: [200, 100, 200],
-    data: data.data || {},
-    actions: data.actions || []
-  };
-  
-  event.waitUntil(
-    self.registration.showNotification(data.title || 'UB FoodHub', options)
+
+  const notificationPromise = self.registration.showNotification(
+    notificationData.title,
+    {
+      body: notificationData.body,
+      icon: notificationData.icon,
+      badge: notificationData.badge,
+      tag: notificationData.tag,
+      vibrate: [200, 100, 200],
+      requireInteraction: true,
+      actions: [
+        {
+          action: 'view',
+          title: 'View Order'
+        },
+        {
+          action: 'dismiss',
+          title: 'Dismiss'
+        }
+      ]
+    }
   );
+
+  event.waitUntil(notificationPromise);
+});
+
+// Notification click event
+self.addEventListener('notificationclick', (event) => {
+  console.log('Notification clicked:', event);
+  
+  event.notification.close();
+
+  if (event.action === 'view') {
+    // Open the app or focus existing window
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window' }).then((clientList) => {
+        for (const client of clientList) {
+          if (client.url.includes('/orders') && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        // If no window is open, open a new one
+        if (self.clients.openWindow) {
+          return self.clients.openWindow('/orders');
+        }
+      })
+    );
+  }
+});
+
+// Background sync (optional, for future use)
+self.addEventListener('sync', (event) => {
+  console.log('Background sync:', event.tag);
 });

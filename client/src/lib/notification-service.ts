@@ -85,7 +85,7 @@ class NotificationService {
   }
 
   public async sendOrderNotification(orderId: string, status: string, customerName?: string, userId?: string): Promise<void> {
-    const statusMessages = {
+    const statusMessages: Record<string, string> = {
       'preparing': 'Your order is now being prepared! 👨‍🍳',
       'ready': 'Your order is ready for pickup! 🔔',
       'cancelled': 'Your order has been cancelled 😔',
@@ -178,7 +178,6 @@ class NotificationService {
       body: data.body,
       icon: '/logo.png',
       badge: '/logo.png',
-      timestamp: Date.now(),
       requireInteraction: data.type === 'order' && data.title.includes('ready'),
       tag: data.type === 'order' ? `order-${data.orderId}` : data.type,
       data: {
@@ -187,16 +186,6 @@ class NotificationService {
         timestamp: new Date()
       }
     };
-
-    // Add action buttons for order notifications
-    if (data.type === 'order' && data.title.includes('ready')) {
-      options.actions = [
-        {
-          action: 'view',
-          title: 'View Order'
-        }
-      ];
-    }
 
     try {
       // Ensure service worker is ready
@@ -219,9 +208,18 @@ class NotificationService {
       } catch (regularError) {
         console.log('Regular notification failed, trying service worker:', regularError);
         
-        // Fallback to service worker
+        // Fallback to service worker with proper options
         if (this.serviceWorkerRegistration && this.serviceWorkerRegistration.active) {
-          await this.serviceWorkerRegistration.showNotification(data.title, options);
+          const swOptions = {
+            ...options,
+            actions: data.type === 'order' && data.title.includes('ready') ? [
+              {
+                action: 'view',
+                title: 'View Order'
+              }
+            ] : undefined
+          };
+          await this.serviceWorkerRegistration.showNotification(data.title, swOptions);
           console.log('Notification sent via service worker');
         } else {
           throw new Error('Both notification methods failed');

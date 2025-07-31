@@ -17,7 +17,8 @@ import {
   Store,
   Image as ImageIcon,
   Save,
-  LogOut
+  LogOut,
+  Camera
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,6 +44,7 @@ import NotificationBell from "@/components/notifications/notification-bell";
 import CancellationRequestManagement from "@/components/orders/cancellation-request-management";
 import NotificationService from "@/lib/notification-service";
 import BottomNav from "@/components/layout/bottom-nav";
+import QRScanner from "@/components/qr-scanner";
 
 export default function StallDashboard() {
   const { state, dispatch } = useStore();
@@ -65,6 +67,7 @@ export default function StallDashboard() {
   const [ordersPerPage] = useState(20);
   const [overviewOrdersPerPage] = useState(5);
   const [orderSearchQuery, setOrderSearchQuery] = useState("");
+  const [showQRScanner, setShowQRScanner] = useState(false);
   const [itemForm, setItemForm] = useState({
     name: "",
     description: "",
@@ -339,6 +342,36 @@ export default function StallDashboard() {
     setShowOrderDetails(true);
   };
 
+  const handleQRScan = (orderId: string) => {
+    // Find the order from the scanned ID
+    const order = orders.find(o => o.id === orderId || o.qrCode === orderId);
+    
+    if (order) {
+      if (order.status === 'ready') {
+        // Mark as completed if it's ready for pickup
+        updateOrderStatus(order.id, 'completed');
+        toast({
+          title: "Order Completed",
+          description: `Order #${order.qrCode} has been marked as completed`,
+        });
+      } else {
+        // Show order details
+        viewOrderDetails(order);
+        toast({
+          title: "Order Found",
+          description: `Found order #${order.qrCode} - Status: ${order.status}`,
+        });
+      }
+    } else {
+      toast({
+        title: "Order Not Found",
+        description: "No order found with this QR code. Please check the code and try again.",
+        variant: "destructive",
+      });
+    }
+    setShowQRScanner(false);
+  };
+
   const addCustomization = () => {
     setItemForm(prev => ({
       ...prev,
@@ -514,12 +547,31 @@ export default function StallDashboard() {
                       </div>
                     )}
                   </div>
-                  <NotificationBell />
+                  <div className="flex items-center gap-3">
+                    <Button
+                      onClick={() => setShowQRScanner(true)}
+                      variant="ghost"
+                      size="sm"
+                      className="text-white hover:bg-white/10 hover:text-white border border-white/20 hover:border-white/40"
+                    >
+                      <Camera className="w-4 h-4 mr-2" />
+                      QR Scanner
+                    </Button>
+                    <NotificationBell />
+                  </div>
                 </div>
               </div>
             </div>
             {/* Desktop Logout Button */}
             <div className="hidden md:flex items-center gap-4">
+              <Button
+                onClick={() => setShowQRScanner(true)}
+                variant="ghost"
+                className="text-white hover:bg-white/10 hover:text-white border border-white/20 hover:border-white/40"
+              >
+                <Camera className="w-4 h-4 mr-2" />
+                QR Scanner
+              </Button>
               <Button
                 onClick={async () => {
                   await logOut();
@@ -2042,6 +2094,13 @@ export default function StallDashboard() {
           )}
         </DialogContent>
       </Dialog>
+      
+      {/* QR Scanner Component */}
+      <QRScanner
+        isOpen={showQRScanner}
+        onClose={() => setShowQRScanner(false)}
+        onScan={handleQRScan}
+      />
       
       {/* Mobile Navigation */}
       <BottomNav />

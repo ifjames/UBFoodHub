@@ -95,21 +95,21 @@ class NotificationService {
     const title = `Order Update`;
     const body = `${statusMessages[status] || status} - Order #${orderId.slice(-6)}${customerName ? ` for ${customerName}` : ''}`;
     
-    // Store notification for the specific user in Firestore
+    // Store notification for the specific user in Firestore (using 'notifications' collection)
     if (userId) {
       try {
         const { addDocument } = await import('@/lib/firebase');
-        await addDocument('userNotifications', {
+        await addDocument('notifications', {
           userId: userId,
           orderId: orderId,
           title: title,
-          body: body,
+          message: body, // Use 'message' field to match notification bell component
           type: 'order',
           status: status,
-          read: false,
+          isRead: false, // Use 'isRead' to match notification bell component
           createdAt: new Date()
         });
-        console.log(`Notification stored for user ${userId} about order ${orderId}`);
+        console.log(`Order notification stored for user ${userId} about order ${orderId} with status ${status}`);
       } catch (error) {
         console.error('Error storing user notification:', error);
       }

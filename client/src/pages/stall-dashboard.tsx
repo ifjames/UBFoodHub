@@ -281,6 +281,7 @@ export default function StallDashboard() {
       
       // Send notification to customer with their user ID
       if (order) {
+        console.log('Order data for notification:', { orderId, customerName: order.customerName, userId: order.userId });
         const notificationService = NotificationService.getInstance();
         await notificationService.sendOrderNotification(
           orderId, 
@@ -315,6 +316,7 @@ export default function StallDashboard() {
       
       // Send notification to customer with their user ID
       if (order) {
+        console.log('Order data for cancellation notification:', { orderId, customerName: order.customerName, userId: order.userId });
         const notificationService = NotificationService.getInstance();
         await notificationService.sendOrderNotification(
           orderId, 

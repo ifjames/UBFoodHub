@@ -114,7 +114,7 @@ export default function Cart() {
     const itemPrice = item.price || 0;
     const customizationPrice =
       item.customizations?.reduce(
-        (sum, custom) => sum + (custom.price || 0),
+        (sum: number, custom: any) => sum + (custom.price || 0),
         0,
       ) || 0;
     return sum + (itemPrice + customizationPrice) * item.quantity;
@@ -234,7 +234,7 @@ export default function Cart() {
         animate={{ y: 0 }}
         className="bg-[#820d2a]"
       >
-        <div className="flex items-center p-4">
+        <div className="flex items-center p-4 max-w-7xl mx-auto">
           <Button
             variant="ghost"
             size="icon"
@@ -247,8 +247,8 @@ export default function Cart() {
         </div>
 
         {/* Progress Indicator */}
-        <div className="px-4 pb-3">
-          <div className="flex items-center justify-between">
+        <div className="px-4 pb-3 max-w-7xl mx-auto">
+          <div className="flex items-center justify-between max-w-md mx-auto md:max-w-lg">
             <div className="flex items-center">
               <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center text-xs font-medium text-black">
                 1
@@ -275,7 +275,11 @@ export default function Cart() {
         </div>
       </motion.div>
 
-      <div className="p-4 space-y-4 pb-32">
+      {/* Desktop Layout Container */}
+      <div className="max-w-7xl mx-auto p-4">
+        <div className="md:grid md:grid-cols-3 md:gap-8 md:items-start">
+          {/* Main Cart Content - Left Side on Desktop */}
+          <div className="md:col-span-2 space-y-4 pb-32 md:pb-4">
         {/* Pickup/Delivery Option */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -333,7 +337,7 @@ export default function Cart() {
                   <p className="text-sm text-gray-600">
                     {item.customizations && item.customizations.length > 0
                       ? item.customizations
-                          .map((custom) => `${custom.name} (+₱${custom.price})`)
+                          .map((custom: any) => `${custom.name} (+₱${custom.price})`)
                           .join(", ")
                       : "No customizations"}
                   </p>
@@ -379,7 +383,7 @@ export default function Cart() {
                         {(
                           ((item.price || 0) +
                             (item.customizations?.reduce(
-                              (sum, custom) => sum + (custom.price || 0),
+                              (sum: number, custom: any) => sum + (custom.price || 0),
                               0,
                             ) || 0)) *
                           item.quantity
@@ -584,14 +588,52 @@ export default function Cart() {
             className="mt-2"
           />
         </motion.div>
+          </div>
+
+          {/* Desktop Sidebar - Right Side */}
+          <div className="hidden md:block md:col-span-1 md:sticky md:top-4">
+            {/* Order Summary Card */}
+            <Card className="bg-white">
+              <CardContent className="p-6 space-y-4">
+                <h2 className="text-xl font-semibold text-gray-900">Order Summary</h2>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span>Subtotal</span>
+                    <span>₱{subtotal.toFixed(2)}</span>
+                  </div>
+                  
+                  <div className="border-t pt-3">
+                    <div className="flex justify-between font-semibold text-lg">
+                      <span>Total</span>
+                      <span>₱{subtotal.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={proceedToCheckout}
+                  disabled={isProcessing || cartItems.length === 0}
+                  className="w-full bg-[#6d031e] hover:bg-red-700 text-white py-4 text-lg font-medium"
+                >
+                  {isProcessing ? (
+                    <LoadingIndicator message="Processing..." variant="dots" />
+                  ) : (
+                    "Checkout"
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
 
-      {/* Fixed Bottom Button */}
+      {/* Fixed Bottom Button - Mobile Only */}
       {!showLoadingOverlay && (
         <motion.div
           initial={{ y: 100 }}
           animate={{ y: 0 }}
-          className="fixed bottom-16 left-0 right-0 bg-white border-t p-4 z-[60]"
+          className="md:hidden fixed bottom-16 left-0 right-0 bg-white border-t p-4 z-[60]"
         >
           <div className="max-w-md mx-auto">
             <Button

@@ -145,7 +145,7 @@ export default function Orders() {
         const stallReviews = await getDocuments("reviews", "stallId", "==", selectedOrder.stallId);
         const allReviews = [...stallReviews, reviewData]; // Include the new review
         
-        const totalRating = allReviews.reduce((sum, review) => sum + review.rating, 0);
+        const totalRating = allReviews.reduce((sum, review) => sum + (review as any).rating, 0);
         const averageRating = totalRating / allReviews.length;
         const reviewCount = allReviews.length;
 
@@ -215,7 +215,7 @@ export default function Orders() {
         animate={{ y: 0 }}
         className="bg-white shadow-sm sticky top-0 z-40"
       >
-        <div className="flex items-center p-4 bg-[#820d2a]">
+        <div className="flex items-center p-4 bg-[#820d2a] max-w-7xl mx-auto">
           <Button variant="ghost" size="icon" onClick={() => setLocation("/")} className="mr-3 text-white hover:bg-red-700">
             <ArrowLeft className="w-5 h-5" />
           </Button>
@@ -223,7 +223,10 @@ export default function Orders() {
         </div>
       </motion.div>
 
-      <div className="p-4 space-y-4 pb-24">
+      {/* Desktop Layout Container */}
+      <div className="max-w-7xl mx-auto p-4">
+        {/* Desktop: Grid Layout, Mobile: Single Column */}
+        <div className="md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6 space-y-4 md:space-y-0 pb-24">
         <AnimatePresence>
           {orders.map((order, index) => {
             const statusConfig = orderStatusConfig[order.status as keyof typeof orderStatusConfig] || orderStatusConfig.pending;
@@ -236,7 +239,7 @@ export default function Orders() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-lg p-4 shadow-sm"
+                className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow md:p-6"
               >
                 {/* Condensed Order Header */}
                 <div className="flex items-center justify-between mb-4">
@@ -275,17 +278,17 @@ export default function Orders() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 md:gap-3">
                   {/* Primary action - View Details takes full width */}
                   <Button
                     onClick={() => viewOrderDetails(order)}
-                    className="w-full bg-[#6d031e] hover:bg-red-700 text-white h-12 text-base font-medium"
+                    className="w-full bg-[#6d031e] hover:bg-red-700 text-white h-12 text-base font-medium md:h-14 md:text-lg"
                   >
                     View Details
                   </Button>
                   
                   {/* Secondary actions in a row */}
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 md:gap-3">
                     {order.status === 'completed' && !order.hasReview && (
                       <Button
                         onClick={() => showReviewModal(order)}
@@ -333,22 +336,23 @@ export default function Orders() {
             );
           })}
         </AnimatePresence>
+        </div>
       </div>
 
       {/* Order Details Modal */}
       <Dialog open={showOrderDetails} onOpenChange={setShowOrderDetails}>
-        <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md md:max-w-2xl mx-auto max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Order Details</DialogTitle>
           </DialogHeader>
           {selectedOrder && (
-            <div className="space-y-4">
+            <div className="space-y-4 md:space-y-6">
               {/* Order Header */}
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-4 md:p-6 bg-gray-50 rounded-lg">
                 <div>
-                  <h3 className="font-semibold text-gray-900">Order {selectedOrder.qrCode}</h3>
-                  <p className="text-sm text-[#6d031e] font-medium">{selectedOrder.stallName || "Unknown Stall"}</p>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-semibold text-gray-900 md:text-lg">Order {selectedOrder.qrCode}</h3>
+                  <p className="text-sm md:text-base text-[#6d031e] font-medium">{selectedOrder.stallName || "Unknown Stall"}</p>
+                  <p className="text-sm md:text-base text-gray-600">
                     {selectedOrder.createdAt ? 
                       new Date(selectedOrder.createdAt.seconds * 1000).toLocaleDateString('en-US', {
                         month: 'short',
@@ -360,7 +364,7 @@ export default function Orders() {
                     }
                   </p>
                 </div>
-                <Badge className={`${orderStatusConfig[selectedOrder.status as keyof typeof orderStatusConfig]?.color || orderStatusConfig.pending.color} flex items-center gap-1`}>
+                <Badge className={`${orderStatusConfig[selectedOrder.status as keyof typeof orderStatusConfig]?.color || orderStatusConfig.pending.color} flex items-center gap-1 md:px-3 md:py-2 md:text-sm`}>
                   {orderStatusConfig[selectedOrder.status as keyof typeof orderStatusConfig]?.icon || orderStatusConfig.pending.icon}
                   {orderStatusConfig[selectedOrder.status as keyof typeof orderStatusConfig]?.label || 'Pending'}
                 </Badge>
@@ -368,19 +372,19 @@ export default function Orders() {
 
               {/* Order Items */}
               <div>
-                <h4 className="font-medium text-gray-900 mb-3">Items Ordered:</h4>
-                <div className="space-y-2">
+                <h4 className="font-medium text-gray-900 mb-3 md:text-lg md:mb-4">Items Ordered:</h4>
+                <div className="space-y-2 md:space-y-3">
                   {selectedOrder.items && selectedOrder.items.map((item: any, itemIndex: number) => (
-                    <div key={itemIndex} className="flex justify-between items-start bg-gray-50 rounded-lg p-3">
+                    <div key={itemIndex} className="flex justify-between items-start bg-gray-50 rounded-lg p-3 md:p-4">
                       <div className="flex-1">
-                        <p className="font-medium text-sm">{item.name} x{item.quantity}</p>
+                        <p className="font-medium text-sm md:text-base">{item.name} x{item.quantity}</p>
                         {item.customizations && item.customizations.length > 0 && (
-                          <p className="text-xs text-gray-600">
+                          <p className="text-xs md:text-sm text-gray-600">
                             Add-ons: {item.customizations.map((c: any) => c.name).join(", ")}
                           </p>
                         )}
                       </div>
-                      <span className="font-semibold text-sm">
+                      <span className="font-semibold text-sm md:text-base">
                         ₱{(((item.price || 0) + (item.customizations?.reduce((sum: number, custom: any) => sum + (custom.price || 0), 0) || 0)) * item.quantity).toFixed(2)}
                       </span>
                     </div>

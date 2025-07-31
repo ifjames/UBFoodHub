@@ -60,6 +60,8 @@ export default function Orders() {
   const [isLoading, setIsLoading] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
+  const [qrOrderUnsubscribe, setQrOrderUnsubscribe] = useState<(() => void) | null>(null);
+  const [isOrderCompleted, setIsOrderCompleted] = useState(false);
 
   useEffect(() => {
     if (state.user?.id) {
@@ -103,6 +105,34 @@ export default function Orders() {
   const showQRCode = (order: any) => {
     setSelectedOrder(order);
     setShowQRDialog(true);
+    setIsOrderCompleted(false);
+    
+    // Set up real-time listener for this specific order
+    if (order.id) {
+      const unsubscribe = subscribeToQuery("orders", "id", "==", order.id, (orderUpdates) => {
+        if (orderUpdates.length > 0) {
+          const updatedOrder = orderUpdates[0];
+          setSelectedOrder(updatedOrder);
+          
+          // If order status changed to completed, show success message and close QR dialog
+          if (updatedOrder.status === 'completed' && order.status !== 'completed') {
+            setIsOrderCompleted(true);
+            toast({
+              title: "Order Completed! 🎉",
+              description: "Your order has been successfully picked up. Thank you!",
+            });
+            
+            // Close the QR dialog after a brief delay to show the success message
+            setTimeout(() => {
+              setShowQRDialog(false);
+              setIsOrderCompleted(false);
+            }, 2500);
+          }
+        }
+      });
+      
+      setQrOrderUnsubscribe(() => unsubscribe);
+    }
   };
 
   const showReviewModal = (order: any) => {
@@ -468,7 +498,17 @@ export default function Orders() {
       </Dialog>
 
       {/* QR Code Dialog */}
-      <Dialog open={showQRDialog} onOpenChange={setShowQRDialog}>
+      <Dialog open={showQRDialog} onOpenChange={(open) => {
+        if (!open) {
+          // Clean up the real-time listener when dialog closes
+          if (qrOrderUnsubscribe) {
+            qrOrderUnsubscribe();
+            setQrOrderUnsubscribe(null);
+          }
+          setShowQRDialog(false);
+          setIsOrderCompleted(false);
+        }
+      }}>
         <DialogContent className="max-w-sm mx-auto">
           {selectedOrder && (
             <motion.div
@@ -477,53 +517,97 @@ export default function Orders() {
               className="text-center space-y-4"
             >
               <DialogHeader>
-                <DialogTitle>Order QR Code</DialogTitle>
+                <DialogTitle>
+                  {isOrderCompleted ? "Order Completed!" : "Order QR Code"}
+                </DialogTitle>
               </DialogHeader>
               
-              <div className="space-y-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-semibold text-lg mb-1">Order {selectedOrder.qrCode}</h3>
-                  <p className="text-sm text-gray-600">Show this QR code for pickup</p>
-                </div>
-
-                <div className="flex justify-center bg-white p-6 rounded-lg border">
-                  <QRCode value={selectedOrder.qrCode} size={200} />
-                </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <div className="flex items-center gap-2 text-blue-800">
-                    <AlertCircle className="w-4 h-4" />
-                    <span className="font-medium text-sm">Pickup Instructions</span>
-                  </div>
-                  <p className="text-xs text-blue-700 mt-1">
-                    Present this QR code to the stall owner when collecting your order.
-                  </p>
-                </div>
-
-                <div className="text-xs text-gray-600 space-y-1">
-                  <div className="flex justify-between">
-                    <span>Order Total:</span>
-                    <span className="font-medium">₱{selectedOrder.totalAmount?.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Status:</span>
-                    <span className="font-medium capitalize">{selectedOrder.status}</span>
-                  </div>
-                  {selectedOrder.estimatedTime && (
-                    <div className="flex justify-between">
-                      <span>Est. Time:</span>
-                      <span className="font-medium">{selectedOrder.estimatedTime}</span>
-                    </div>
-                  )}
-                </div>
-
-                <Button
-                  onClick={() => setShowQRDialog(false)}
-                  className="w-full"
+              {/* Order Completed Success Message */}
+              {isOrderCompleted && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-green-50 border border-green-200 rounded-lg p-6"
                 >
-                  Close
-                </Button>
-              </div>
+                  <div className="flex flex-col items-center gap-3">
+                    <CheckCircle className="w-16 h-16 text-green-600" />
+                    <div>
+                      <h3 className="font-semibold text-lg text-green-800 mb-1">
+                        Successfully Picked Up!
+                      </h3>
+                      <p className="text-sm text-green-700">
+                        Your order has been completed. Thank you for using UB FoodHub!
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+              
+              {/* Regular QR Code Display */}
+              {!isOrderCompleted && (
+                <div className="space-y-4">
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="font-semibold text-lg mb-1">Order {selectedOrder.qrCode}</h3>
+                    <p className="text-sm text-gray-600">Show this QR code for pickup</p>
+                  </div>
+
+                  <div className="flex justify-center bg-white p-6 rounded-lg border">
+                    <QRCode value={selectedOrder.qrCode} size={200} />
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-blue-800">
+                      <AlertCircle className="w-4 h-4" />
+                      <span className="font-medium text-sm">Pickup Instructions</span>
+                    </div>
+                    <p className="text-xs text-blue-700 mt-1">
+                      Present this QR code to the stall owner when collecting your order. This will automatically close when scanned.
+                    </p>
+                  </div>
+
+                  {/* Live Status Updates */}
+                  <div className="bg-white border rounded-lg p-3">
+                    <div className="text-xs text-gray-600 space-y-1">
+                      <div className="flex justify-between">
+                        <span>Order Total:</span>
+                        <span className="font-medium">₱{selectedOrder.totalAmount?.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>Status:</span>
+                        <div className="flex items-center gap-2">
+                          <span className={`font-medium capitalize px-2 py-1 rounded-full text-xs ${
+                            orderStatusConfig[selectedOrder.status as keyof typeof orderStatusConfig]?.color || 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {orderStatusConfig[selectedOrder.status as keyof typeof orderStatusConfig]?.label || selectedOrder.status}
+                          </span>
+                          {selectedOrder.status === 'ready' && (
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                          )}
+                        </div>
+                      </div>
+                      {selectedOrder.estimatedTime && (
+                        <div className="flex justify-between">
+                          <span>Est. Time:</span>
+                          <span className="font-medium">{selectedOrder.estimatedTime}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => {
+                      if (qrOrderUnsubscribe) {
+                        qrOrderUnsubscribe();
+                        setQrOrderUnsubscribe(null);
+                      }
+                      setShowQRDialog(false);
+                    }}
+                    className="w-full"
+                  >
+                    Close
+                  </Button>
+                </div>
+              )}
             </motion.div>
           )}
         </DialogContent>

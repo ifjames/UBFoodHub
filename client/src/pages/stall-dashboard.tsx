@@ -567,14 +567,6 @@ export default function StallDashboard() {
             {/* Desktop Logout Button */}
             <div className="hidden md:flex items-center gap-4">
               <Button
-                onClick={() => setShowQRScanner(true)}
-                variant="ghost"
-                className="text-white hover:bg-white/10 hover:text-white border border-white/20 hover:border-white/40"
-              >
-                <Camera className="w-4 h-4 mr-2" />
-                QR Scanner
-              </Button>
-              <Button
                 onClick={async () => {
                   await logOut();
                   setLocation("/login");

@@ -47,6 +47,7 @@ export default function Restaurant() {
   const [actualRating, setActualRating] = useState<number>(0);
   const [actualReviewCount, setActualReviewCount] = useState<number>(0);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Debug effect to track reviews state changes
   useEffect(() => {
@@ -69,7 +70,11 @@ export default function Restaurant() {
       const reviewsUnsubscribe = subscribeToQuery("reviews", "stallId", "==", restaurantId, (reviewsData) => {
         console.log("Reviews callback triggered for restaurant:", restaurantId, reviewsData);
         console.log("Setting reviews state to:", reviewsData);
-        setReviews(reviewsData); // Store reviews for display
+        
+        // Force state update with a new array reference
+        setReviews([...reviewsData]);
+        setIsLoading(false);
+        
         if (reviewsData.length > 0) {
           const totalRating = reviewsData.reduce((sum, review) => sum + review.rating, 0);
           const averageRating = totalRating / reviewsData.length;
@@ -101,6 +106,7 @@ export default function Restaurant() {
       setReviews([]);
       setActualRating(0);
       setActualReviewCount(0);
+      setIsLoading(true);
     }
   }, [restaurantId]);
 
@@ -411,29 +417,18 @@ export default function Restaurant() {
       </div>
 
       {/* Student Reviews Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="bg-white p-4 md:p-6 mb-2"
-        key="reviews-section"
-      >
+      <div className="bg-white p-4 md:p-6 mb-2">
         <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4">Student Reviews</h2>
-        <div className="mb-4 p-2 bg-gray-100 text-xs">
-          <p>Debug Info:</p>
-          <p>reviews.length: {reviews.length}</p>
-          <p>restaurantId: {restaurantId}</p>
-          <p>actualReviewCount: {actualReviewCount}</p>
-          <p>reviews data: {JSON.stringify(reviews)}</p>
-        </div>
         
-        {reviews && reviews.length > 0 ? (
+        {isLoading ? (
+          <div className="text-center py-4">
+            <p className="text-gray-600">Loading reviews...</p>
+          </div>
+        ) : reviews && reviews.length > 0 ? (
           <div className="space-y-4">
             {reviews.map((review) => (
-              <motion.div
+              <div
                 key={review.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
                 className="border-b pb-4 last:border-b-0"
               >
                 <div className="flex items-start justify-between mb-2">
@@ -473,7 +468,7 @@ export default function Restaurant() {
                     Order: {review.orderId}
                   </p>
                 )}
-              </motion.div>
+              </div>
             ))}
           </div>
         ) : (
@@ -498,7 +493,7 @@ export default function Restaurant() {
             </Button>
           </div>
         )}
-      </motion.div>
+      </div>
 
       {/* Rate & Review Button */}
       <motion.div

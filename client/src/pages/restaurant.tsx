@@ -46,6 +46,7 @@ export default function Restaurant() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [actualRating, setActualRating] = useState<number>(0);
   const [actualReviewCount, setActualReviewCount] = useState<number>(0);
+  const [reviews, setReviews] = useState<any[]>([]);
 
   const restaurantId = params.id;
 
@@ -59,12 +60,13 @@ export default function Restaurant() {
       });
 
       // Get actual reviews and calculate real rating
-      getDocuments("reviews", "stallId", "==", restaurantId).then((reviews) => {
-        if (reviews.length > 0) {
-          const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
-          const averageRating = totalRating / reviews.length;
+      getDocuments("reviews", "stallId", "==", restaurantId).then((reviewsData) => {
+        setReviews(reviewsData); // Store reviews for display
+        if (reviewsData.length > 0) {
+          const totalRating = reviewsData.reduce((sum, review) => sum + review.rating, 0);
+          const averageRating = totalRating / reviewsData.length;
           setActualRating(Math.round(averageRating * 10) / 10);
-          setActualReviewCount(reviews.length);
+          setActualReviewCount(reviewsData.length);
         } else {
           setActualRating(0);
           setActualReviewCount(0);
@@ -73,6 +75,7 @@ export default function Restaurant() {
         console.error("Error fetching reviews:", error);
         setActualRating(0);
         setActualReviewCount(0);
+        setReviews([]);
       });
 
       // Subscribe to menu items
@@ -391,6 +394,119 @@ export default function Restaurant() {
         </AnimatePresence>
         </div>
       </div>
+
+      {/* Student Reviews Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="bg-white p-4 md:p-6 mb-2"
+      >
+        <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4">Student Reviews</h2>
+        
+        {reviews.length > 0 ? (
+          <div className="space-y-4">
+            {reviews.map((review) => (
+              <motion.div
+                key={review.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="border-b pb-4 last:border-b-0"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#6d031e] rounded-full flex items-center justify-center">
+                      <span className="text-white font-medium text-sm">
+                        {review.studentName?.charAt(0) || review.userEmail?.charAt(0) || 'S'}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">{review.studentName || review.userEmail || 'Student'}</p>
+                      <p className="text-xs text-gray-500">{review.studentId ? `ID: ${review.studentId}` : 'UB Student'}</p>
+                      <div className="flex items-center gap-1 mt-1">
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-4 h-4 ${
+                              i < review.rating
+                                ? 'text-yellow-400 fill-current'
+                                : 'text-gray-300'
+                            }`}
+                          />
+                        ))}
+                        <span className="text-sm text-gray-600 ml-1">({review.rating}/5)</span>
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {review.createdAt ? new Date(review.createdAt.toDate()).toLocaleDateString() : 'Recent'}
+                  </span>
+                </div>
+                {review.comment && (
+                  <p className="text-sm text-gray-700 ml-13">{review.comment}</p>
+                )}
+                {review.orderId && (
+                  <p className="text-xs text-gray-500 mt-2 ml-13">
+                    Order: {review.orderId}
+                  </p>
+                )}
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <Star className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">No Reviews Yet</h3>
+            <p className="text-gray-600 mb-4">
+              Only students who have ordered can leave reviews
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                // Navigate to orders or suggest ordering
+                toast({
+                  title: "Order first to review",
+                  description: "Place an order to share your experience!",
+                });
+              }}
+              className="text-[#6d031e] border-[#6d031e] hover:bg-[#6d031e] hover:text-white"
+            >
+              Order first to review
+            </Button>
+          </div>
+        )}
+      </motion.div>
+
+      {/* Rate & Review Button */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="bg-white p-4 md:p-6 text-center"
+      >
+        <Button
+          onClick={() => {
+            // This should check if user has ordered and show review modal
+            if (state.user) {
+              toast({
+                title: "Coming Soon",
+                description: "Review functionality will be available after placing an order!",
+              });
+            } else {
+              toast({
+                title: "Login Required",
+                description: "Please log in to leave a review",
+                variant: "destructive",
+              });
+            }
+          }}
+          variant="outline"
+          className="w-full text-[#6d031e] border-[#6d031e] hover:bg-[#6d031e] hover:text-white"
+        >
+          <Star className="w-4 h-4 mr-2" />
+          Rate & Review
+        </Button>
+      </motion.div>
 
       {/* Customization Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

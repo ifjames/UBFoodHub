@@ -121,6 +121,8 @@ UB FoodHub is a comprehensive mobile web application designed for the University
 - **Notification Service Fixes**: Resolved TypeScript errors and improved browser compatibility for push notifications
 - **Real-Time Order Processing**: QR scanner can instantly mark ready orders as completed or display order details for other statuses
 - **Enhanced Security**: QR codes now contain structured data with app verification to prevent misuse
+- **Fixed Student Reviews Display**: Resolved issue where reviews weren't showing on restaurant pages despite being stored correctly - added proper reviews fetching and display component
+- **Notification Collection Fix**: Fixed notification system to use correct 'notifications' collection with proper field mapping (isRead, message) for compatibility with notification bell component
 
 ### Desktop-Friendly UI Enhancement & Stall Dashboard Ordering Fixes (July 31, 2025)
 - **Enhanced Checkout Page**: Implemented responsive two-column layout for desktop with order details sidebar, sticky order summary, and improved mobile button positioning

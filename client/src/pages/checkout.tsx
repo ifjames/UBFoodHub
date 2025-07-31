@@ -232,32 +232,37 @@ export default function Checkout() {
         </div>
       </motion.div>
 
-      <div className="p-4 space-y-4 pb-32">
+      <div className="p-4 space-y-4 pb-32 md:pb-8">
+        {/* Desktop Layout Container */}
+        <div className="max-w-6xl mx-auto md:grid md:grid-cols-2 md:gap-8 md:space-y-0">
+          {/* Left Column - Main Content */}
+          <div className="space-y-4">
+        
         {/* Order Summary */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-lg p-4"
+          className="bg-white rounded-lg p-4 md:p-6"
         >
-          <h3 className="font-semibold text-gray-900 mb-3">Order Summary</h3>
-          <div className="space-y-3">
+          <h3 className="font-semibold text-gray-900 mb-3 md:text-lg md:mb-4">Order Summary</h3>
+          <div className="space-y-3 md:space-y-4">
             {cartItems.map((item) => (
-              <div key={item.id} className="flex justify-between">
-                <div>
-                  <p className="font-medium">{item.name} x{item.quantity}</p>
+              <div key={item.id} className="flex justify-between items-start md:p-2">
+                <div className="flex-1">
+                  <p className="font-medium md:text-base">{item.name} x{item.quantity}</p>
                   {item.customizations && item.customizations.length > 0 && (
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm md:text-sm text-gray-600">
                       {item.customizations.map((c: any) => c.name).join(", ")}
                     </p>
                   )}
                 </div>
-                <span className="font-semibold">
+                <span className="font-semibold md:text-base">
                   ₱{(((item.price || 0) + (item.customizations?.reduce((sum: number, custom: any) => sum + (custom.price || 0), 0) || 0)) * item.quantity).toFixed(2)}
                 </span>
               </div>
             ))}
-            <div className="border-t pt-3">
-              <div className="flex justify-between font-semibold text-lg">
+            <div className="border-t pt-3 md:pt-4">
+              <div className="flex justify-between font-semibold text-lg md:text-xl">
                 <span>Total</span>
                 <span>₱{subtotal.toFixed(2)}</span>
               </div>
@@ -432,23 +437,80 @@ export default function Checkout() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-white rounded-lg p-4"
+          className="bg-white rounded-lg p-4 md:p-6"
         >
-          <Label className="text-base font-medium">Special Instructions (Optional)</Label>
+          <Label className="text-base font-medium md:text-lg">Special Instructions (Optional)</Label>
           <Textarea
             placeholder="Any special requests for the stall owner"
             value={specialInstructions}
             onChange={(e) => setSpecialInstructions(e.target.value)}
-            className="mt-2"
+            className="mt-2 md:mt-3"
           />
         </motion.div>
+          </div>
+
+          {/* Right Column - Order Summary (Desktop Only) */}
+          <div className="hidden md:block">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white rounded-lg p-6 sticky top-24 shadow-lg"
+            >
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Order Total</h3>
+              
+              <div className="space-y-4 mb-6">
+                <div className="text-center py-4 border-b">
+                  <div className="text-3xl font-bold text-[#6d031e]">₱{subtotal.toFixed(2)}</div>
+                  <div className="text-sm text-gray-600">{cartItems.length} item{cartItems.length > 1 ? 's' : ''}</div>
+                </div>
+
+                {stallsInfo.length > 1 && (
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <p className="text-sm font-medium text-blue-900">Multi-Stall Order</p>
+                    <p className="text-xs text-blue-700">{stallsInfo.length} different stalls</p>
+                  </div>
+                )}
+
+                {groupOrderEmails.length > 0 && (
+                  <div className="p-3 bg-green-50 rounded-lg">
+                    <p className="text-sm font-medium text-green-900">Group Order</p>
+                    <p className="text-xs text-green-700">{groupOrderEmails.length} member{groupOrderEmails.length > 1 ? 's' : ''}</p>
+                  </div>
+                )}
+
+                {scheduledTime && (
+                  <div className="p-3 bg-orange-50 rounded-lg">
+                    <p className="text-sm font-medium text-orange-900">Scheduled Pickup</p>
+                    <p className="text-xs text-orange-700">Ready by {scheduledTime}</p>
+                  </div>
+                )}
+              </div>
+
+              <Button
+                onClick={placeOrder}
+                disabled={isProcessing || (paymentMethod === "cash" && (!cashAmount || parseFloat(cashAmount) < subtotal))}
+                className="w-full bg-[#6d031e] hover:bg-red-700 text-white py-4 text-lg font-medium"
+              >
+                {isProcessing ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Placing Order...
+                  </div>
+                ) : (
+                  "Place Order"
+                )}
+              </Button>
+            </motion.div>
+          </div>
+        </div>
       </div>
 
-      {/* Fixed Bottom Button */}
+      {/* Fixed Bottom Button - Mobile Only */}
       <motion.div
         initial={{ y: 100 }}
         animate={{ y: 0 }}
-        className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-50"
+        className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-50 md:hidden"
       >
         <div className="max-w-md mx-auto">
           <Button
@@ -456,7 +518,14 @@ export default function Checkout() {
             disabled={isProcessing || (paymentMethod === "cash" && (!cashAmount || parseFloat(cashAmount) < subtotal))}
             className="w-full bg-[#6d031e] hover:bg-red-700 text-white py-4 text-lg font-medium"
           >
-            {isProcessing ? "Placing Order..." : "Place Order"}
+            {isProcessing ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Placing Order...
+              </div>
+            ) : (
+              "Place Order"
+            )}
           </Button>
         </div>
       </motion.div>

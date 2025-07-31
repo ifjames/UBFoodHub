@@ -192,33 +192,33 @@ export default function Restaurant() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-white p-4 mb-2"
+        className="bg-white p-4 md:p-6 mb-2"
       >
-        <div className="flex items-center mb-2">
+        <div className="flex items-center mb-2 md:mb-4">
           {stall.image && (
             <img 
               src={stall.image} 
               alt={stall.name}
-              className="w-16 h-16 rounded-lg mr-4 object-cover"
+              className="w-16 h-16 md:w-24 md:h-24 rounded-lg mr-4 object-cover"
             />
           )}
           <div className="flex-1">
-            <h1 className="text-xl font-bold text-gray-900">{stall.name}</h1>
-            <div className="flex items-center gap-1 mt-1">
-              <Star className="w-4 h-4 text-yellow-400 fill-current" />
-              <span className="text-sm font-medium">
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900">{stall.name}</h1>
+            <div className="flex items-center gap-1 mt-1 md:mt-2">
+              <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-400 fill-current" />
+              <span className="text-sm md:text-base font-medium">
                 {actualRating > 0 ? actualRating.toString() : "No ratings"}
               </span>
               {actualReviewCount > 0 && (
-                <span className="text-sm text-gray-600">({actualReviewCount} ratings)</span>
+                <span className="text-sm md:text-base text-gray-600">({actualReviewCount} ratings)</span>
               )}
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+        <div className="flex items-center gap-4 text-sm md:text-base text-gray-600 mb-4">
           <div className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
+            <Clock className="w-4 h-4 md:w-5 md:h-5" />
             <span>Pickup ready in {stall.deliveryTime || "15-40 min"}</span>
           </div>
           <span>No additional fees for pickup</span>
@@ -326,7 +326,9 @@ export default function Restaurant() {
       </motion.div>
 
       {/* Menu Items */}
-      <div className="p-4 space-y-4 pb-24">
+      <div className="p-4 space-y-4 pb-24 md:pb-8">
+        {/* Desktop Grid Layout */}
+        <div className="md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6 md:max-w-7xl md:mx-auto md:space-y-0">
         <AnimatePresence>
           {filteredItems.map((item, index) => (
             <motion.div
@@ -336,33 +338,12 @@ export default function Restaurant() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ delay: 0.1 * index }}
               onClick={() => openCustomization(item)}
-              className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-all cursor-pointer"
+              className="bg-white rounded-lg p-4 md:p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer mb-4 md:mb-0"
             >
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-medium text-gray-900">{item.name}</h3>
-                    {item.isPopular && (
-                      <Badge className="bg-red-100 text-red-700 text-xs ml-2">NEW!</Badge>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-gray-900">₱{item.price}</span>
-                    <Button
-                      size="sm"
-                      className="rounded-full w-8 h-8 p-0"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openCustomization(item);
-                      }}
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
+              <div className="flex gap-4 md:flex-col">
+                {/* Image First on Desktop */}
                 {item.image && (
-                  <div className="w-20 h-20 rounded-lg bg-gray-100 overflow-hidden">
+                  <div className="w-20 h-20 md:w-full md:h-40 rounded-lg bg-gray-100 overflow-hidden md:mb-4 order-2 md:order-1">
                     <img 
                       src={item.image} 
                       alt={item.name}
@@ -370,26 +351,50 @@ export default function Restaurant() {
                     />
                   </div>
                 )}
+                
+                <div className="flex-1 order-1 md:order-2">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-medium text-gray-900 md:text-lg">{item.name}</h3>
+                    {item.isPopular && (
+                      <Badge className="bg-red-100 text-red-700 text-xs ml-2">NEW!</Badge>
+                    )}
+                  </div>
+                  <p className="text-sm md:text-base text-gray-600 mb-2 md:mb-4">{item.description}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-gray-900 md:text-lg">₱{item.price}</span>
+                    <Button
+                      size="sm"
+                      className="rounded-full w-8 h-8 md:w-10 md:h-10 p-0 bg-[#6d031e] hover:bg-red-700"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openCustomization(item);
+                      }}
+                    >
+                      <Plus className="w-4 h-4 md:w-5 md:h-5" />
+                    </Button>
+                  </div>
+                </div>
               </div>
             </motion.div>
           ))}
-        </AnimatePresence>
-
+          
         {filteredItems.length === 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-center py-12"
+            className="text-center py-12 md:col-span-full"
           >
             <p className="text-gray-600">No items found</p>
             <p className="text-sm text-gray-500 mt-1">Try adjusting your search or category</p>
           </motion.div>
         )}
+        </AnimatePresence>
+        </div>
       </div>
 
       {/* Customization Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md md:max-w-2xl mx-auto max-h-[90vh] overflow-y-auto">
           {selectedItem && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -412,32 +417,32 @@ export default function Restaurant() {
                     />
                   </div>
                 )}
-                <DialogTitle className="text-xl font-bold text-left">
+                <DialogTitle className="text-xl md:text-2xl font-bold text-left">
                   {selectedItem.name}
                   {selectedItem.isPopular && (
                     <Badge className="bg-blue-100 text-blue-700 text-xs ml-2">NEW</Badge>
                   )}
                 </DialogTitle>
-                <p className="text-gray-600 text-left text-sm">{selectedItem.description}</p>
-                <p className="font-semibold text-left">₱{selectedItem.price}</p>
+                <p className="text-gray-600 text-left text-sm md:text-base">{selectedItem.description}</p>
+                <p className="font-semibold text-left text-lg md:text-xl">₱{selectedItem.price}</p>
               </DialogHeader>
 
               {/* Dynamic Customizations */}
-              <div className="space-y-4">
+              <div className="space-y-4 md:space-y-6">
                 {selectedItem.customizations && selectedItem.customizations.length > 0 && (
                   <div>
-                    <Label className="text-base font-medium">Customization Options</Label>
-                    <p className="text-sm text-gray-600 mb-3">Optional add-ons</p>
-                    <div className="space-y-2">
+                    <Label className="text-base md:text-lg font-medium">Customization Options</Label>
+                    <p className="text-sm md:text-base text-gray-600 mb-3">Optional add-ons</p>
+                    <div className="space-y-2 md:space-y-3">
                       {selectedItem.customizations.map((custom, index) => (
-                        <div key={index} className="flex items-center space-x-2 p-3 border rounded-lg">
+                        <div key={index} className="flex items-center space-x-2 p-3 md:p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                           <Checkbox 
                             checked={customizations[custom.name] || false}
                             onCheckedChange={(checked) => setCustomizations({...customizations, [custom.name]: checked})}
                           />
-                          <Label className="flex-1">
-                            {custom.name}
-                            <span className="text-sm text-gray-600 block">
+                          <Label className="flex-1 cursor-pointer">
+                            <span className="md:text-base">{custom.name}</span>
+                            <span className="text-sm md:text-sm text-gray-600 block">
                               {custom.price > 0 ? `+₱${custom.price.toFixed(2)}` : 'Free'}
                             </span>
                           </Label>

@@ -59,33 +59,34 @@ export default function Restaurant() {
         }
       });
 
-      // Get actual reviews and calculate real rating
-      getDocuments("reviews", "stallId", "==", restaurantId).then((reviewsData) => {
+      // Subscribe to reviews for real-time updates
+      const reviewsUnsubscribe = subscribeToQuery("reviews", "stallId", "==", restaurantId, (reviewsData) => {
+        console.log("Reviews fetched for restaurant:", restaurantId, reviewsData);
         setReviews(reviewsData); // Store reviews for display
         if (reviewsData.length > 0) {
           const totalRating = reviewsData.reduce((sum, review) => sum + review.rating, 0);
           const averageRating = totalRating / reviewsData.length;
           setActualRating(Math.round(averageRating * 10) / 10);
           setActualReviewCount(reviewsData.length);
+          console.log("Reviews processed:", { count: reviewsData.length, averageRating, reviewsData });
         } else {
           setActualRating(0);
           setActualReviewCount(0);
+          console.log("No reviews found for restaurant:", restaurantId);
         }
-      }).catch((error) => {
-        console.error("Error fetching reviews:", error);
-        setActualRating(0);
-        setActualReviewCount(0);
-        setReviews([]);
       });
 
       // Subscribe to menu items
       console.log("Looking for menu items with stallId:", restaurantId);
-      const unsubscribe = subscribeToQuery("menuItems", "stallId", "==", restaurantId, (items) => {
+      const menuUnsubscribe = subscribeToQuery("menuItems", "stallId", "==", restaurantId, (items) => {
         console.log("Menu items loaded for restaurant:", restaurantId, items);
         setMenuItems(items.filter(item => item.isAvailable));
       });
 
-      return () => unsubscribe();
+      return () => {
+        menuUnsubscribe();
+        reviewsUnsubscribe();
+      };
     }
   }, [restaurantId]);
 
@@ -403,6 +404,7 @@ export default function Restaurant() {
         className="bg-white p-4 md:p-6 mb-2"
       >
         <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4">Student Reviews</h2>
+
         
         {reviews.length > 0 ? (
           <div className="space-y-4">
@@ -417,11 +419,11 @@ export default function Restaurant() {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-[#6d031e] rounded-full flex items-center justify-center">
                       <span className="text-white font-medium text-sm">
-                        {review.studentName?.charAt(0) || review.userEmail?.charAt(0) || 'S'}
+                        {review.userName?.charAt(0) || review.studentName?.charAt(0) || review.userEmail?.charAt(0) || 'S'}
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium text-sm">{review.studentName || review.userEmail || 'Student'}</p>
+                      <p className="font-medium text-sm">{review.userName || review.studentName || review.userEmail || 'Student'}</p>
                       <p className="text-xs text-gray-500">{review.studentId ? `ID: ${review.studentId}` : 'UB Student'}</p>
                       <div className="flex items-center gap-1 mt-1">
                         {Array.from({ length: 5 }, (_, i) => (

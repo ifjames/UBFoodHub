@@ -24,6 +24,14 @@ UB FoodHub is a cutting-edge mobile web application designed specifically for th
 
 ### 👨‍🎓 **Student Experience**
 
+#### 🏆 **Loyalty Points System**
+- **Earn Points**: 1 point per ₱10 spent on every order
+- **New Stall Bonus**: Double points when trying restaurants for the first time
+- **Redeem Rewards**: 100 points = ₱10 discount during checkout
+- **Tier Benefits**: Bronze/Silver/Gold tiers with increasing bonus percentages
+- **Smart Tracking**: Automatic point calculations and tier upgrades
+- **Transaction History**: Complete record of all point activities
+
 #### 🏪 Restaurant Discovery & Browsing
 - **Visual Restaurant Cards** with ratings, delivery times, and cuisine types
 - **Advanced Search & Filtering** with category-based organization
@@ -124,6 +132,14 @@ UB FoodHub is a cutting-edge mobile web application designed specifically for th
 ---
 
 ## 🆕 Latest Updates & Enhancements
+
+### 🏆 **January 2025 - Loyalty Points System**
+- ✅ **Complete Points System** - Earn 1 point per ₱10 spent, double points for new stalls
+- ✅ **Point Redemption** - 100 points = ₱10 discount, flexible checkout integration
+- ✅ **Tier System** - Bronze/Silver/Gold tiers with increasing benefits
+- ✅ **Transaction History** - Complete audit trail of all point activities
+- ✅ **Smart Detection** - Automatic new stall bonuses and tier upgrades
+- ✅ **Dashboard Integration** - Comprehensive loyalty management in profile
 
 ### 🎯 **August 2025 - Migration & Stability Improvements**
 - ✅ **Enhanced Security Practices** - Implemented robust client/server separation

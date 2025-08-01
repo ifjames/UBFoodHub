@@ -1,18 +1,20 @@
 import { useState } from "react";
-import { ArrowLeft, Settings, Ticket, Medal, HelpCircle, FileText, LogOut, Lock } from "lucide-react";
+import { ArrowLeft, Settings, Ticket, Medal, HelpCircle, FileText, LogOut, Lock, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
-import { logOut } from "@/lib/firebase";
+import { logOut, getUserLoyaltyTier } from "@/lib/firebase";
 import BottomNav from "@/components/layout/bottom-nav";
+import LoyaltyDashboard from "@/components/loyalty/loyalty-dashboard";
 
 export default function Profile() {
   const [, setLocation] = useLocation();
   const { state, dispatch } = useStore();
   const { toast } = useToast();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showLoyalty, setShowLoyalty] = useState(false);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -35,18 +37,22 @@ export default function Profile() {
     }
   };
 
+  const userPoints = state.user?.loyaltyPoints || 0;
+  const loyaltyTier = getUserLoyaltyTier(userPoints);
+
   const menuItems = [
+    { 
+      icon: Award, 
+      title: "Loyalty Points", 
+      subtitle: `${userPoints} points • ${loyaltyTier.tier} member`,
+      bgColor: "bg-maroon-50",
+      iconColor: "text-maroon-600",
+      locked: false,
+      action: () => setShowLoyalty(true)
+    },
     { 
       icon: Ticket, 
       title: "Vouchers", 
-      subtitle: "Coming Soon",
-      bgColor: "bg-gray-50",
-      iconColor: "text-gray-400",
-      locked: true
-    },
-    { 
-      icon: Medal, 
-      title: "UB Rewards", 
       subtitle: "Coming Soon",
       bgColor: "bg-gray-50",
       iconColor: "text-gray-400",
@@ -68,6 +74,33 @@ export default function Profile() {
       action: () => setLocation("/terms-policies")
     },
   ];
+
+  if (showLoyalty) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <header className="text-white p-4 bg-[#820d2a]">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowLoyalty(false)}
+              className="text-white hover:bg-red-700 -ml-2"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="text-xl font-semibold">Loyalty Points</h1>
+          </div>
+        </header>
+
+        <div className="p-4 pb-20 md:pb-8">
+          <LoyaltyDashboard />
+        </div>
+
+        <BottomNav />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -123,7 +156,11 @@ export default function Profile() {
           <h4 className="font-medium text-gray-800 mb-3">Perks for you</h4>
           <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
             {menuItems.map((item, index) => (
-              <Card key={index} className={`${item.locked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-md'} transition-shadow`}>
+              <Card 
+                key={index} 
+                className={`${item.locked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-md'} transition-shadow`}
+                onClick={item.locked ? undefined : item.action}
+              >
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">

@@ -275,6 +275,113 @@ export const getUserFavorites = async (userId: string) => {
   }
 };
 
+// Loyalty Points System Functions
+export const awardLoyaltyPoints = async (userId: string, orderAmount: number, isNewStall: boolean = false) => {
+  try {
+    // Base rate: 1 point per ₱10 spent
+    const basePoints = Math.floor(orderAmount / 10);
+    
+    // Bonus: Double points for trying new stalls
+    const bonusMultiplier = isNewStall ? 2 : 1;
+    const pointsToAward = basePoints * bonusMultiplier;
+    
+    if (pointsToAward > 0) {
+      // Get current user data
+      const userDoc = await getDocument("users", userId);
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const currentPoints = userData.loyaltyPoints || 0;
+        const newTotal = currentPoints + pointsToAward;
+        
+        // Update user's loyalty points
+        await updateDocument("users", userId, {
+          loyaltyPoints: newTotal
+        });
+        
+        // Log the points transaction
+        await addDocument("loyalty_transactions", {
+          userId,
+          type: "earned",
+          points: pointsToAward,
+          orderAmount,
+          isNewStall,
+          description: isNewStall ? `Double points for trying a new stall` : `Points earned from order`,
+          timestamp: new Date().toISOString()
+        });
+        
+        return { pointsAwarded: pointsToAward, newTotal };
+      }
+    }
+    return { pointsAwarded: 0, newTotal: 0 };
+  } catch (error) {
+    console.error("Error awarding loyalty points:", error);
+    throw error;
+  }
+};
+
+export const redeemLoyaltyPoints = async (userId: string, pointsToRedeem: number) => {
+  try {
+    // Conversion rate: 100 points = ₱10 discount
+    const discountAmount = (pointsToRedeem / 100) * 10;
+    
+    // Get current user data
+    const userDoc = await getDocument("users", userId);
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      const currentPoints = userData.loyaltyPoints || 0;
+      
+      if (currentPoints >= pointsToRedeem) {
+        const newTotal = currentPoints - pointsToRedeem;
+        
+        // Update user's loyalty points
+        await updateDocument("users", userId, {
+          loyaltyPoints: newTotal
+        });
+        
+        // Log the redemption transaction
+        await addDocument("loyalty_transactions", {
+          userId,
+          type: "redeemed",
+          points: -pointsToRedeem,
+          discountAmount,
+          description: `Redeemed ${pointsToRedeem} points for ₱${discountAmount.toFixed(2)} discount`,
+          timestamp: new Date().toISOString()
+        });
+        
+        return { success: true, discountAmount, newTotal };
+      } else {
+        return { success: false, error: "Insufficient points" };
+      }
+    }
+    return { success: false, error: "User not found" };
+  } catch (error) {
+    console.error("Error redeeming loyalty points:", error);
+    throw error;
+  }
+};
+
+export const getUserLoyaltyTier = (points: number) => {
+  if (points >= 1000) return { tier: "Gold", color: "text-yellow-600", benefits: "15% bonus points, priority support" };
+  if (points >= 500) return { tier: "Silver", color: "text-gray-500", benefits: "10% bonus points, early access" };
+  return { tier: "Bronze", color: "text-amber-600", benefits: "5% bonus points" };
+};
+
+export const getLoyaltyTransactions = async (userId: string) => {
+  try {
+    const transactionsQuery = query(
+      collection(db, "loyalty_transactions"),
+      where("userId", "==", userId),
+      orderBy("timestamp", "desc")
+    );
+    
+    const querySnapshot = await getDocs(transactionsQuery);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error("Error getting loyalty transactions:", error);
+    throw error;
+  }
+};
+
 export const checkIfFavorite = async (userId: string, stallId: string) => {
   try {
     const favoritesQuery = query(

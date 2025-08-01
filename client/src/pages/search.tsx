@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { useLocation } from "wouter";
-import { subscribeToCollection } from "@/lib/firebase";
+import { subscribeToCollection, getUserFavorites } from "@/lib/firebase";
+import { useStore } from "@/lib/store";
 import BottomNav from "@/components/layout/bottom-nav";
 import RestaurantCard from "@/components/restaurant-card";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,8 +19,10 @@ export default function SearchPage() {
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+  const [userFavorites, setUserFavorites] = useState<string[]>([]);
+  const { state } = useStore();
 
-  // Load restaurants and categories from Firestore
+  // Load restaurants, categories, and favorites from Firestore
   useEffect(() => {
     const unsubscribe = subscribeToCollection("stalls", (stallsData) => {
       const activeStalls = stallsData.filter(stall => stall.isActive);
@@ -39,6 +42,21 @@ export default function SearchPage() {
       unsubscribeCategories();
     };
   }, []);
+
+  // Load user favorites
+  useEffect(() => {
+    if (state.user?.uid) {
+      const loadFavorites = async () => {
+        try {
+          const favorites = await getUserFavorites(state.user.uid);
+          setUserFavorites(favorites);
+        } catch (error) {
+          console.error("Error loading favorites:", error);
+        }
+      };
+      loadFavorites();
+    }
+  }, [state.user?.uid]);
 
   // Load recent searches from localStorage
   useEffect(() => {
@@ -238,16 +256,28 @@ export default function SearchPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 md:text-xl">All Restaurants</h3>
                   <div className="space-y-4 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:gap-4 md:space-y-0">
-                    {restaurants.map((restaurant, index) => (
-                      <motion.div
-                        key={restaurant.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                      >
-                        <RestaurantCard restaurant={restaurant} />
-                      </motion.div>
-                    ))}
+                    {(() => {
+                      // Sort restaurants: favorites first, then alphabetical
+                      const sortedRestaurants = [...restaurants].sort((a, b) => {
+                        const aIsFavorite = userFavorites.includes(a.id);
+                        const bIsFavorite = userFavorites.includes(b.id);
+                        
+                        if (aIsFavorite && !bIsFavorite) return -1;
+                        if (!aIsFavorite && bIsFavorite) return 1;
+                        return a.name.localeCompare(b.name);
+                      });
+                      
+                      return sortedRestaurants.map((restaurant, index) => (
+                        <motion.div
+                          key={restaurant.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                        >
+                          <RestaurantCard restaurant={restaurant} />
+                        </motion.div>
+                      ));
+                    })()}
                   </div>
                 </div>
               )}

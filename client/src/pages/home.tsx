@@ -12,7 +12,7 @@ import LoadingOverlay from "@/components/loading-overlay";
 import NotificationCenter from "@/components/notifications/notification-center";
 import NotificationBell from "@/components/notifications/notification-bell";
 import { Search, MapPin, Clock, Star, Award, Bell } from "lucide-react";
-import { subscribeToCollection, getDocuments } from "@/lib/firebase";
+import { subscribeToCollection, getDocuments, getUserFavorites } from "@/lib/firebase";
 import { useStore } from "@/lib/store";
 
 export default function Home() {
@@ -27,6 +27,7 @@ export default function Home() {
   const [featuredStall, setFeaturedStall] = useState<any>(null);
   const [stallRatings, setStallRatings] = useState<{[key: string]: {rating: number, reviewCount: number}}>({});
   const [categories, setCategories] = useState<string[]>([]);
+  const [userFavorites, setUserFavorites] = useState<string[]>([]);
   const { state } = useStore();
 
   // Redirect admin and stall owners to their dashboards
@@ -189,6 +190,21 @@ export default function Home() {
     };
   }, []);
 
+  // Load user favorites
+  useEffect(() => {
+    if (state.user?.uid) {
+      const loadFavorites = async () => {
+        try {
+          const favorites = await getUserFavorites(state.user.uid);
+          setUserFavorites(favorites);
+        } catch (error) {
+          console.error("Error loading favorites:", error);
+        }
+      };
+      loadFavorites();
+    }
+  }, [state.user?.uid]);
+
   const filteredStalls = stalls.filter((stall) => {
     const matchesSearch =
       stall.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -197,6 +213,14 @@ export default function Home() {
       activeFilter === "all" ||
       stall.category.toLowerCase() === activeFilter.toLowerCase();
     return matchesSearch && matchesFilter;
+  }).sort((a, b) => {
+    // Sort favorites first, then alphabetical
+    const aIsFavorite = userFavorites.includes(a.id);
+    const bIsFavorite = userFavorites.includes(b.id);
+    
+    if (aIsFavorite && !bIsFavorite) return -1;
+    if (!aIsFavorite && bIsFavorite) return 1;
+    return a.name.localeCompare(b.name);
   });
 
 

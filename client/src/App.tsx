@@ -17,7 +17,7 @@ import Cart from "@/pages/cart";
 import Checkout from "@/pages/checkout";
 import Orders from "@/pages/orders";
 import Profile from "@/pages/profile";
-import Search from "@/pages/search";
+
 import AdminDashboard from "@/pages/admin-dashboard";
 import StallDashboard from "@/pages/stall-dashboard";
 import Settings from "@/pages/settings";
@@ -66,12 +66,7 @@ function Router() {
           <Profile />
         </AuthGuard>
       </Route>
-      <Route path="/search">
-        <AuthGuard>
-          <DesktopNav />
-          <Search />
-        </AuthGuard>
-      </Route>
+
       <Route path="/admin">
         <AuthGuard>
           <AdminDashboard />

@@ -1,4 +1,4 @@
-import { Home, Search, ShoppingCart, User, Package, Bell, LogOut } from "lucide-react";
+import { Home, ShoppingCart, User, Package, Bell, LogOut } from "lucide-react";
 import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -19,12 +19,6 @@ export default function DesktopNav() {
       label: "Home",
       path: "/",
       active: location === "/"
-    },
-    {
-      icon: Search,
-      label: "Search",
-      path: "/search",
-      active: location === "/search"
     },
     {
       icon: ShoppingCart,

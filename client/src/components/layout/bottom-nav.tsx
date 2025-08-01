@@ -1,4 +1,4 @@
-import { Home, Search, ShoppingCart, User, Package, Settings, BarChart3, Users } from "lucide-react";
+import { Home, ShoppingCart, User, Package, Settings, BarChart3, Users } from "lucide-react";
 import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
 import { motion } from "framer-motion";
@@ -69,13 +69,6 @@ export default function BottomNav() {
         path: "/",
         active: location === "/",
         key: "student-home"
-      },
-      {
-        icon: Search,
-        label: "Search",
-        path: "/search",
-        active: location === "/search",
-        key: "student-search"
       },
       {
         icon: ShoppingCart,

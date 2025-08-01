@@ -227,3 +227,68 @@ export const subscribeToQuery = (
       callback(docs);
     },
   );
+
+// Favorites operations
+export const toggleFavorite = async (userId: string, stallId: string) => {
+  try {
+    // Check if favorite already exists
+    const favoritesQuery = query(
+      collection(db, "favorites"),
+      where("userId", "==", userId),
+      where("stallId", "==", stallId)
+    );
+    
+    const querySnapshot = await getDocs(favoritesQuery);
+    
+    if (querySnapshot.empty) {
+      // Add to favorites
+      await addDocument("favorites", {
+        userId,
+        stallId,
+      });
+      return true; // Now favorited
+    } else {
+      // Remove from favorites
+      const favoriteDoc = querySnapshot.docs[0];
+      await deleteDocument("favorites", favoriteDoc.id);
+      return false; // No longer favorited
+    }
+  } catch (error) {
+    console.error("Error toggling favorite:", error);
+    throw error;
+  }
+};
+
+export const getUserFavorites = async (userId: string) => {
+  try {
+    const favoritesQuery = query(
+      collection(db, "favorites"),
+      where("userId", "==", userId)
+    );
+    
+    const querySnapshot = await getDocs(favoritesQuery);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error("Error getting user favorites:", error);
+    throw error;
+  }
+};
+
+export const checkIfFavorite = async (userId: string, stallId: string) => {
+  try {
+    const favoritesQuery = query(
+      collection(db, "favorites"),
+      where("userId", "==", userId),
+      where("stallId", "==", stallId)
+    );
+    
+    const querySnapshot = await getDocs(favoritesQuery);
+    return !querySnapshot.empty;
+  } catch (error) {
+    console.error("Error checking favorite:", error);
+    return false;
+  }
+};

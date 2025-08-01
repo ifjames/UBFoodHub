@@ -1,8 +1,11 @@
 import { Star, Heart, Percent } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { useStore } from "@/lib/store";
+import { toggleFavorite, checkIfFavorite } from "@/lib/firebase";
+import { useToast } from "@/hooks/use-toast";
 
 interface RestaurantCardProps {
   restaurant: {
@@ -22,10 +25,61 @@ interface RestaurantCardProps {
 export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
   const [, setLocation] = useLocation();
   const [liked, setLiked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { state } = useStore();
+  const { toast } = useToast();
 
-  const handleLike = (e: React.MouseEvent) => {
+  // Check if restaurant is favorited when component mounts
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      if (state.user?.uid) {
+        try {
+          const isFavorite = await checkIfFavorite(state.user.uid, restaurant.id.toString());
+          setLiked(isFavorite);
+        } catch (error) {
+          console.error("Error checking favorite status:", error);
+        }
+      }
+    };
+
+    checkFavoriteStatus();
+  }, [state.user?.uid, restaurant.id]);
+
+  const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    setLiked(!liked);
+    
+    if (!state.user?.uid) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to add favorites",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isLoading) return;
+
+    setIsLoading(true);
+    try {
+      const newLikedState = await toggleFavorite(state.user.uid, restaurant.id.toString());
+      setLiked(newLikedState);
+      
+      toast({
+        title: newLikedState ? "Added to favorites" : "Removed from favorites",
+        description: newLikedState 
+          ? `${restaurant.name} has been added to your favorites`
+          : `${restaurant.name} has been removed from your favorites`,
+      });
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update favorites. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -42,9 +96,12 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
 
         <button
           onClick={handleLike}
-          className="absolute top-2 right-2 bg-white/90 rounded-full p-2 hover:bg-white transition-colors"
+          disabled={isLoading}
+          className="absolute top-2 right-2 bg-white/90 rounded-full p-2 hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Heart className={`h-4 w-4 ${liked ? "text-red-500 fill-red-500" : "text-gray-400"}`} />
+          <Heart className={`h-4 w-4 transition-colors ${
+            liked ? "text-red-500 fill-red-500" : "text-gray-400"
+          } ${isLoading ? "opacity-50" : ""}`} />
         </button>
       </div>
       

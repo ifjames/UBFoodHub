@@ -17,15 +17,27 @@ export default function SearchPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
 
-  // Load restaurants from Firestore
+  // Load restaurants and categories from Firestore
   useEffect(() => {
     const unsubscribe = subscribeToCollection("stalls", (stallsData) => {
       const activeStalls = stallsData.filter(stall => stall.isActive);
       setRestaurants(activeStalls);
     });
 
-    return () => unsubscribe();
+    const unsubscribeCategories = subscribeToCollection("categories", (categoriesData) => {
+      const categoryNames = categoriesData.map(cat => cat.name);
+      // Always include default categories
+      const defaultCategories = ['Filipino', 'Asian', 'Western', 'Snacks', 'Beverages', 'Desserts'];
+      const allCategories = Array.from(new Set([...defaultCategories, ...categoryNames]));
+      setCategories(allCategories);
+    });
+
+    return () => {
+      unsubscribe();
+      unsubscribeCategories();
+    };
   }, []);
 
   // Load recent searches from localStorage
@@ -66,6 +78,10 @@ export default function SearchPage() {
 
   const handleRecentSearch = (query: string) => {
     handleSearch(query);
+  };
+
+  const handleCategorySearch = (category: string) => {
+    handleSearch(category);
   };
 
   const clearRecentSearches = () => {
@@ -199,7 +215,7 @@ export default function SearchPage() {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 md:text-xl">Popular Categories</h3>
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-                  {["Filipino", "Asian", "Beverages", "Snacks", "Rice Meals", "Desserts"].map((category, index) => (
+                  {categories.slice(0, 6).map((category, index) => (
                     <motion.button
                       key={category}
                       initial={{ opacity: 0, y: 20 }}

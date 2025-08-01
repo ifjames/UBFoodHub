@@ -26,6 +26,7 @@ export default function Home() {
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const [featuredStall, setFeaturedStall] = useState<any>(null);
   const [stallRatings, setStallRatings] = useState<{[key: string]: {rating: number, reviewCount: number}}>({});
+  const [categories, setCategories] = useState<string[]>([]);
   const { state } = useStore();
 
   // Redirect admin and stall owners to their dashboards
@@ -173,7 +174,19 @@ export default function Home() {
       setIsLoading(false);
     });
 
-    return () => unsubscribe();
+    // Subscribe to categories from Firebase
+    const unsubscribeCategories = subscribeToCollection("categories", (categoriesData) => {
+      const categoryNames = categoriesData.map(cat => cat.name);
+      // Always include default categories
+      const defaultCategories = ['Filipino', 'Asian', 'Western', 'Snacks', 'Beverages', 'Desserts'];
+      const allCategories = Array.from(new Set([...defaultCategories, ...categoryNames]));
+      setCategories(['all', ...allCategories]);
+    });
+
+    return () => {
+      unsubscribe();
+      unsubscribeCategories();
+    };
   }, []);
 
   const filteredStalls = stalls.filter((stall) => {
@@ -186,15 +199,7 @@ export default function Home() {
     return matchesSearch && matchesFilter;
   });
 
-  const categories = [
-    "all",
-    "Filipino",
-    "Asian",
-    "Western",
-    "Snacks",
-    "Beverages",
-    "Desserts",
-  ];
+
 
   return (
     <div className="min-h-screen bg-gray-50 md:pt-20">

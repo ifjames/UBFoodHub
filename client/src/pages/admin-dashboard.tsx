@@ -26,7 +26,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<any[]>([]);
   const [stalls, setStalls] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
-  const [categories, setCategories] = useState<string[]>(['Filipino', 'Asian', 'Western', 'Snacks', 'Beverages', 'Desserts']);
+  const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [userFilter, setUserFilter] = useState('all');
   const [newCategory, setNewCategory] = useState('');
@@ -85,11 +85,19 @@ export default function AdminDashboard() {
     const unsubscribeUsers = subscribeToCollection("users", setUsers);
     const unsubscribeStalls = subscribeToCollection("stalls", setStalls);
     const unsubscribeOrders = subscribeToCollection("orders", setOrders);
+    const unsubscribeCategories = subscribeToCollection("categories", (categoriesData) => {
+      const categoryNames = categoriesData.map(cat => cat.name);
+      // Always include default categories if they don't exist
+      const defaultCategories = ['Filipino', 'Asian', 'Western', 'Snacks', 'Beverages', 'Desserts'];
+      const allCategories = Array.from(new Set([...defaultCategories, ...categoryNames]));
+      setCategories(allCategories);
+    });
 
     return () => {
       unsubscribeUsers();
       unsubscribeStalls();
       unsubscribeOrders();
+      unsubscribeCategories();
     };
   }, []);
 
@@ -216,6 +224,78 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleAddCategory = async () => {
+    if (!newCategory.trim()) {
+      toast({
+        title: "Invalid category",
+        description: "Please enter a category name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (categories.includes(newCategory.trim())) {
+      toast({
+        title: "Category exists",
+        description: "This category already exists.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await addDocument("categories", {
+        name: newCategory.trim(),
+        isDefault: false,
+      });
+      
+      toast({
+        title: "Category added",
+        description: `"${newCategory}" has been added to the categories.`,
+      });
+      
+      setNewCategory('');
+    } catch (error: any) {
+      toast({
+        title: "Error adding category",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteCategory = async (categoryName: string) => {
+    const defaultCategories = ['Filipino', 'Asian', 'Western', 'Snacks', 'Beverages', 'Desserts'];
+    if (defaultCategories.includes(categoryName)) {
+      toast({
+        title: "Cannot delete",
+        description: "Default categories cannot be deleted.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Find and delete the category document
+      const categoryDocs = await getCollection("categories");
+      const categoryToDelete = categoryDocs.docs.find(doc => doc.data().name === categoryName);
+      
+      if (categoryToDelete) {
+        await deleteDocument("categories", categoryToDelete.id);
+        toast({
+          title: "Category removed",
+          description: `"${categoryName}" has been removed.`,
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error removing category",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDeleteUser = async (userId: string) => {
     try {
       await deleteDocument("users", userId);
@@ -287,16 +367,7 @@ export default function AdminDashboard() {
     return user.role === userFilter;
   });
 
-  const handleAddCategory = () => {
-    if (newCategory.trim() && !categories.includes(newCategory.trim())) {
-      setCategories([...categories, newCategory.trim()]);
-      setNewCategory('');
-      toast({
-        title: "Category added",
-        description: `"${newCategory.trim()}" has been added to the categories.`,
-      });
-    }
-  };
+
 
 
 
@@ -641,17 +712,11 @@ export default function AdminDashboard() {
                       <Card key={index} className="p-3">
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium">{category}</span>
-                          {index >= 6 && ( // Allow deleting custom categories (not the initial 6)
+                          {!['Filipino', 'Asian', 'Western', 'Snacks', 'Beverages', 'Desserts'].includes(category) && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => {
-                                setCategories(categories.filter((_, i) => i !== index));
-                                toast({
-                                  title: "Category removed",
-                                  description: `"${category}" has been removed.`,
-                                });
-                              }}
+                              onClick={() => handleDeleteCategory(category)}
                               className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
                             >
                               <Trash2 className="w-3 h-3" />

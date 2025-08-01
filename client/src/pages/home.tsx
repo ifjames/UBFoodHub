@@ -215,8 +215,9 @@ export default function Home() {
     return matchesSearch && matchesFilter;
   }).sort((a, b) => {
     // Sort favorites first, then alphabetical
-    const aIsFavorite = userFavorites.includes(a.id);
-    const bIsFavorite = userFavorites.includes(b.id);
+    // Check both string and numeric ID formats since Firebase uses string IDs
+    const aIsFavorite = userFavorites.includes(a.id) || userFavorites.includes(a.id.toString());
+    const bIsFavorite = userFavorites.includes(b.id) || userFavorites.includes(b.id.toString());
     
     if (aIsFavorite && !bIsFavorite) return -1;
     if (!aIsFavorite && bIsFavorite) return 1;

@@ -267,10 +267,8 @@ export const getUserFavorites = async (userId: string) => {
     );
     
     const querySnapshot = await getDocs(favoritesQuery);
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const favoriteStallIds = querySnapshot.docs.map(doc => doc.data().stallId);
+    return favoriteStallIds;
   } catch (error) {
     console.error("Error getting user favorites:", error);
     throw error;

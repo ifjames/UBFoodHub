@@ -12,7 +12,7 @@ import LoadingOverlay from "@/components/loading-overlay";
 import NotificationCenter from "@/components/notifications/notification-center";
 import NotificationBell from "@/components/notifications/notification-bell";
 import { Search, MapPin, Clock, Star, Award, Bell } from "lucide-react";
-import { subscribeToCollection, getDocuments, getUserFavorites } from "@/lib/firebase";
+import { subscribeToCollection, getDocuments, getUserFavorites, subscribeToQuery } from "@/lib/firebase";
 import { useStore } from "@/lib/store";
 
 export default function Home() {
@@ -190,18 +190,23 @@ export default function Home() {
     };
   }, []);
 
-  // Load user favorites
+  // Load user favorites with real-time updates
   useEffect(() => {
     if (state.user?.uid) {
-      const loadFavorites = async () => {
-        try {
-          const favorites = await getUserFavorites(state.user.uid);
-          setUserFavorites(favorites);
-        } catch (error) {
-          console.error("Error loading favorites:", error);
+      const unsubscribeFavorites = subscribeToQuery(
+        "favorites",
+        "userId",
+        "==",
+        state.user.uid,
+        (favoritesData) => {
+          const favoriteStallIds = favoritesData.map(fav => fav.stallId);
+          setUserFavorites(favoriteStallIds);
         }
+      );
+
+      return () => {
+        unsubscribeFavorites();
       };
-      loadFavorites();
     }
   }, [state.user?.uid]);
 

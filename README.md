@@ -105,7 +105,6 @@ UB FoodHub is a cutting-edge mobile web application designed specifically for th
 - **Node.js + Express.js** with TypeScript and ESM modules
 - **Firebase Firestore** for real-time NoSQL database
 - **Firebase Authentication** with Google OAuth integration
-- **Cloudinary** for image storage and optimization
 - **Service Workers** for push notifications and offline support
 
 ### 🔐 **Security & Authentication**
@@ -127,7 +126,6 @@ UB FoodHub is a cutting-edge mobile web application designed specifically for th
 ## 🆕 Latest Updates & Enhancements
 
 ### 🎯 **August 2025 - Migration & Stability Improvements**
-- ✅ **Replit Environment Migration** - Completed full migration from Replit Agent to standard environment
 - ✅ **Enhanced Security Practices** - Implemented robust client/server separation
 - ✅ **Performance Optimization** - Improved loading times and responsiveness
 - ✅ **Stability Enhancements** - Fixed authentication state management and session handling
@@ -203,43 +201,6 @@ UB FoodHub is a cutting-edge mobile web application designed specifically for th
 
 ---
 
-## 🛠️ Installation & Development
-
-### Prerequisites
-- Node.js 20+ 
-- Firebase project with Firestore and Authentication
-- Cloudinary account for image storage
-
-### Environment Setup
-```bash
-# Clone repository
-git clone https://github.com/ubfoodhub/app.git
-cd ub-foodhub
-
-# Install dependencies
-npm install
-
-# Configure environment variables
-cp .env.example .env
-# Edit .env with your Firebase and Cloudinary credentials
-
-# Start development server
-npm run dev
-```
-
-### Environment Variables
-```env
-VITE_FIREBASE_API_KEY=your_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
-CLOUDINARY_UPLOAD_PRESET=your_upload_preset
-```
-
----
-
 ## 📊 System Statistics
 
 - **10 Restaurant Partners** with comprehensive menus
@@ -251,17 +212,9 @@ CLOUDINARY_UPLOAD_PRESET=your_upload_preset
 
 ---
 
-## 🏆 Awards & Recognition
-
-- **University Innovation Award** - Digital Transformation in Food Service
-- **Student Choice Award** - Best Campus Technology Solution
-- **Sustainability Recognition** - Reduced wait times and food waste
-
----
-
 ## 📱 Download & Access
 
-**Web App**: [ubfoodhub.replit.app](https://ubfoodhub.replit.app)
+**Web App**: [ubianfoodhub.web.app](https://ubianfoodhub.web.app)
 
 **PWA Installation**: Visit the web app and click "Add to Home Screen" for native app experience.
 
@@ -271,16 +224,6 @@ CLOUDINARY_UPLOAD_PRESET=your_upload_preset
 
 **Team 17** - University of Batangas Computer Science Program
 - **James Matthew C. Castillo** - Lead Developer
-- **Lance Gainard S. Ferrancol** - UI/UX Designer  
-- **Noriel A. Ramirez** - Backend Architect
-
----
-
-## 📞 Support & Contact
-
-- **Technical Support**: foodhub@ub.edu.ph
-- **Feature Requests**: Create an issue on GitHub
-- **Emergency Contact**: University IT Department
 
 ---
 
@@ -294,8 +237,7 @@ CLOUDINARY_UPLOAD_PRESET=your_upload_preset
 
 **Version**: 2.0.1  
 **Last Updated**: August 01, 2025  
-**Status**: Production Ready  
-**Environment**: Replit Hosted  
+**Status**: Production Ready   
 **Compatibility**: All modern mobile browsers, PWA-enabled
 
 ---

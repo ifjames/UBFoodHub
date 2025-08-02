@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /admin
+Disallow: /stall-dashboard
+Disallow: /api/
+Disallow: /_darcs
+Disallow: /.bzr
+Disallow: /.hg
+Disallow: /BitKeeper
+Allow: /
+
+Sitemap: https://ubianfoodhub.web.app/sitemap.xml

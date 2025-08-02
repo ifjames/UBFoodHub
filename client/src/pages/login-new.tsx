@@ -244,7 +244,6 @@ export default function LoginPage() {
           <div className="relative z-10 text-center text-white">
             <div className="mb-8">
               <img
-                key={`logo-${authMode}-${isSignUp}`}
                 src="/logo.png"
                 alt="UB FoodHub"
                 className="w-32 h-32 mx-auto mb-4 animate-bounce-gentle"
@@ -370,7 +369,6 @@ export default function LoginPage() {
         <div className="relative z-10 text-center text-white">
           <div className="mb-8">
             <img
-              key={`desktop-logo-${authMode}-${isSignUp}`}
               src="/logo.png"
               alt="UB FoodHub"
               className="w-32 h-32 mx-auto mb-4 animate-bounce-gentle"
@@ -407,7 +405,6 @@ export default function LoginPage() {
           {/* Enhanced Mobile Logo */}
           <div className="text-center lg:hidden">
             <img
-              key={`mobile-logo-${authMode}-${isSignUp}`}
               src="/logo.png"
               alt="UB FoodHub"
               className="w-24 h-24 mx-auto mb-4 animate-bounce-gentle"

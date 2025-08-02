@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +33,35 @@ export default function Home() {
   const [categories, setCategories] = useState<string[]>([]);
   const [userFavorites, setUserFavorites] = useState<string[]>([]);
   const { state } = useStore();
+
+  // Drag-to-scroll functionality for category filters
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!categoryScrollRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - categoryScrollRef.current.offsetLeft);
+    setScrollLeft(categoryScrollRef.current.scrollLeft);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !categoryScrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - categoryScrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // Multiply by 2 for faster scrolling
+    categoryScrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
 
   // Redirect admin and stall owners to their dashboards
   useEffect(() => {
@@ -372,13 +401,30 @@ export default function Home() {
         </Card>
 
         {/* Category Filter */}
-        <div className="flex gap-2 overflow-x-auto pb-2 md:justify-center md:flex-wrap">
+        <div 
+          ref={categoryScrollRef}
+          className={`flex gap-2 overflow-x-auto pb-2 md:justify-center md:flex-wrap scrollbar-hide select-none ${
+            isDragging ? 'cursor-grabbing' : 'cursor-grab'
+          } md:cursor-default`}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          style={{ scrollBehavior: isDragging ? 'auto' : 'smooth' }}
+        >
           {categories.map((category) => (
             <Button
               key={category}
               variant={activeFilter === category ? "default" : "outline"}
               size="sm" 
-              onClick={() => setActiveFilter(category)}
+              onClick={(e) => {
+                // Prevent click during drag
+                if (isDragging) {
+                  e.preventDefault();
+                  return;
+                }
+                setActiveFilter(category);
+              }}
               className={`flex-shrink-0 md:flex-shrink md:px-6 md:py-3 ${
                 activeFilter === category
                   ? "bg-[#6d031e] hover:bg-[#8b0426] text-white"

@@ -213,11 +213,19 @@ export default function Home() {
 
     // Subscribe to categories from Firebase
     const unsubscribeCategories = subscribeToCollection("categories", (categoriesData) => {
-      const categoryNames = categoriesData.map(cat => cat.name);
-      // Always include default categories
-      const defaultCategories = ['Filipino', 'Asian', 'Western', 'Snacks', 'Beverages', 'Desserts'];
-      const allCategories = Array.from(new Set([...defaultCategories, ...categoryNames]));
-      setCategories(['all', ...allCategories]);
+      const categoryNames = categoriesData
+        .filter(cat => cat.isActive !== false) // Only show active categories
+        .sort((a, b) => {
+          // Sort by order if available, then alphabetically
+          if (a.order !== undefined && b.order !== undefined) {
+            return a.order - b.order;
+          }
+          if (a.order !== undefined) return -1;
+          if (b.order !== undefined) return 1;
+          return a.name.localeCompare(b.name);
+        })
+        .map(cat => cat.name);
+      setCategories(['all', ...categoryNames]);
     });
 
     return () => {
@@ -249,10 +257,13 @@ export default function Home() {
   const filteredStalls = stalls.filter((stall) => {
     const matchesSearch =
       stall.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      stall.category.toLowerCase().includes(searchQuery.toLowerCase());
+      (stall.category && stall.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (stall.categories && stall.categories.some((cat: string) => cat.toLowerCase().includes(searchQuery.toLowerCase())));
+    
     const matchesFilter =
       activeFilter === "all" ||
-      stall.category.toLowerCase() === activeFilter.toLowerCase();
+      (stall.category && stall.category.toLowerCase() === activeFilter.toLowerCase()) ||
+      (stall.categories && stall.categories.some((cat: string) => cat.toLowerCase() === activeFilter.toLowerCase()));
     return matchesSearch && matchesFilter;
   }).sort((a, b) => {
     // Sort favorites first, then alphabetical

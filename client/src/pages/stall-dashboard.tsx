@@ -41,8 +41,12 @@ import {
   deleteDocument, 
   getDocument,
   getDocuments,
+  getCollection,
+  auth,
+  db,
   logOut 
 } from "@/lib/firebase";
+import { collection, getDocs } from "firebase/firestore";
 import { useLocation } from "wouter";
 import NotificationBell from "@/components/notifications/notification-bell";
 import CancellationRequestManagement from "@/components/orders/cancellation-request-management";
@@ -165,37 +169,25 @@ export default function StallDashboard() {
       try {
         console.log("Fetching admin categories from 'categories' collection...");
         
-        // First, try to get ALL categories to see what exists
+        // Test Firebase authentication and permissions first
+        console.log("Current Firebase user:", auth.currentUser);
+        console.log("User email:", auth.currentUser?.email);
+        console.log("User uid:", auth.currentUser?.uid);
+        
+        // First, try to access the categories collection directly using Firebase SDK
         try {
-          console.log("Getting ALL categories to debug...");
-          const allCats = await getCollection("categories");
-          const allData = allCats.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-          console.log("ALL categories found:", allData);
+          console.log("Getting ALL categories directly from Firebase...");
+          const categoriesRef = collection(db, "categories");
+          const snapshot = await getDocs(categoriesRef);
+          console.log("Direct Firebase query result:", snapshot);
+          console.log("Snapshot size:", snapshot.size);
+          console.log("Snapshot empty:", snapshot.empty);
           
-          if (allData.length > 0) {
-            // If we found categories, try to filter active ones
-            const activeCategories = allData.filter((cat: any) => {
-              return cat.isActive === true || cat.active === true || cat.status === 'active' || cat.enabled === true;
-            });
-            console.log("Filtered active categories:", activeCategories);
+          if (!snapshot.empty) {
+            const allData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+            console.log("ALL categories found via direct query:", allData);
             
-            if (activeCategories.length > 0) {
-              const categoryNames = activeCategories
-                .sort((a: any, b: any) => {
-                  if (a.order !== undefined && b.order !== undefined) {
-                    return a.order - b.order;
-                  }
-                  if (a.order !== undefined) return -1;
-                  if (b.order !== undefined) return 1;
-                  return a.name.localeCompare(b.name);
-                })
-                .map((cat: any) => cat.name);
-              setAvailableCategories(categoryNames);
-              console.log("Admin-created categories loaded:", categoryNames);
-              return;
-            } else {
-              // If no active ones found, use all categories
-              console.log("No active categories found, using all categories");
+            if (allData.length > 0) {
               const categoryNames = allData
                 .sort((a: any, b: any) => {
                   if (a.order !== undefined && b.order !== undefined) {
@@ -207,12 +199,46 @@ export default function StallDashboard() {
                 })
                 .map((cat: any) => cat.name);
               setAvailableCategories(categoryNames);
-              console.log("All categories loaded:", categoryNames);
+              console.log("Admin-created categories loaded via direct query:", categoryNames);
+              return;
+            }
+          } else {
+            console.log("Categories collection is empty");
+          }
+        } catch (directError) {
+          console.error("Direct Firebase query failed:", directError);
+          console.error("Error code:", directError.code);
+          console.error("Error message:", directError.message);
+        }
+        
+        // Fallback: try using the getCollection wrapper function
+        try {
+          console.log("Trying getCollection wrapper function...");
+          const allCats = await getCollection("categories");
+          console.log("getCollection result:", allCats);
+          
+          if (allCats && allCats.docs) {
+            const allData = allCats.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+            console.log("Categories via wrapper function:", allData);
+            
+            if (allData.length > 0) {
+              const categoryNames = allData
+                .sort((a: any, b: any) => {
+                  if (a.order !== undefined && b.order !== undefined) {
+                    return a.order - b.order;
+                  }
+                  if (a.order !== undefined) return -1;
+                  if (b.order !== undefined) return 1;
+                  return a.name.localeCompare(b.name);
+                })
+                .map((cat: any) => cat.name);
+              setAvailableCategories(categoryNames);
+              console.log("Admin-created categories loaded via wrapper:", categoryNames);
               return;
             }
           }
-        } catch (getAllError) {
-          console.error("Failed to get all categories:", getAllError);
+        } catch (wrapperError) {
+          console.error("Wrapper function failed:", wrapperError);
         }
         
         // Fallback to existing categories from current stall

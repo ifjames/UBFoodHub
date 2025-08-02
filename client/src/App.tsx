@@ -9,7 +9,6 @@ import { StoreProvider } from "./lib/store.tsx";
 import AuthGuard from "@/components/auth-guard";
 import SplashScreen from "@/components/splash-screen";
 import DesktopNav from "@/components/layout/desktop-nav";
-import PageTransition from "@/components/layout/page-transition";
 import NotFound from "@/pages/not-found";
 import LoginNew from "@/pages/login-new";
 import Home from "@/pages/home";
@@ -29,77 +28,75 @@ import { useStore } from "@/lib/store";
 
 function Router() {
   return (
-    <PageTransition>
-      <Switch>
-        <Route path="/login" component={LoginNew} />
-        <Route path="/">
-          <AuthGuard>
-            <DesktopNav />
-            <Home />
-          </AuthGuard>
-        </Route>
-        <Route path="/restaurant/:id">
-          <AuthGuard>
-            <DesktopNav />
-            <Restaurant />
-          </AuthGuard>
-        </Route>
-        <Route path="/cart">
-          <AuthGuard>
-            <DesktopNav />
-            <Cart />
-          </AuthGuard>
-        </Route>
-        <Route path="/checkout">
-          <AuthGuard>
-            <DesktopNav />
-            <Checkout />
-          </AuthGuard>
-        </Route>
-        <Route path="/orders">
-          <AuthGuard>
-            <DesktopNav />
-            <Orders />
-          </AuthGuard>
-        </Route>
-        <Route path="/profile">
-          <AuthGuard>
-            <DesktopNav />
-            <Profile />
-          </AuthGuard>
-        </Route>
+    <Switch>
+      <Route path="/login" component={LoginNew} />
+      <Route path="/">
+        <AuthGuard>
+          <DesktopNav />
+          <Home />
+        </AuthGuard>
+      </Route>
+      <Route path="/restaurant/:id">
+        <AuthGuard>
+          <DesktopNav />
+          <Restaurant />
+        </AuthGuard>
+      </Route>
+      <Route path="/cart">
+        <AuthGuard>
+          <DesktopNav />
+          <Cart />
+        </AuthGuard>
+      </Route>
+      <Route path="/checkout">
+        <AuthGuard>
+          <DesktopNav />
+          <Checkout />
+        </AuthGuard>
+      </Route>
+      <Route path="/orders">
+        <AuthGuard>
+          <DesktopNav />
+          <Orders />
+        </AuthGuard>
+      </Route>
+      <Route path="/profile">
+        <AuthGuard>
+          <DesktopNav />
+          <Profile />
+        </AuthGuard>
+      </Route>
 
-        <Route path="/admin">
-          <AuthGuard>
-            <AdminDashboard />
-          </AuthGuard>
-        </Route>
-        <Route path="/stall-dashboard">
-          <AuthGuard>
-            <StallDashboard />
-          </AuthGuard>
-        </Route>
-        <Route path="/settings">
-          <AuthGuard>
-            <DesktopNav />
-            <Settings />
-          </AuthGuard>
-        </Route>
-        <Route path="/help-center">
-          <AuthGuard>
-            <DesktopNav />
-            <HelpCenter />
-          </AuthGuard>
-        </Route>
-        <Route path="/terms-policies">
-          <AuthGuard>
-            <DesktopNav />
-            <TermsPolicies />
-          </AuthGuard>
-        </Route>
-        <Route component={NotFound} />
-      </Switch>
-    </PageTransition>
+      <Route path="/admin">
+        <AuthGuard>
+          <AdminDashboard />
+        </AuthGuard>
+      </Route>
+      <Route path="/stall-dashboard">
+        <AuthGuard>
+          <StallDashboard />
+        </AuthGuard>
+      </Route>
+      <Route path="/settings">
+        <AuthGuard>
+          <DesktopNav />
+          <Settings />
+        </AuthGuard>
+      </Route>
+      <Route path="/help-center">
+        <AuthGuard>
+          <DesktopNav />
+          <HelpCenter />
+        </AuthGuard>
+      </Route>
+      <Route path="/terms-policies">
+        <AuthGuard>
+          <DesktopNav />
+          <TermsPolicies />
+        </AuthGuard>
+      </Route>
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 

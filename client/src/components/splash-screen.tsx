@@ -7,22 +7,14 @@ interface SplashScreenProps {
 
 export default function SplashScreen({ onComplete }: SplashScreenProps) {
   const [isVisible, setIsVisible] = useState(true);
-  const [phase, setPhase] = useState(0);
 
   useEffect(() => {
-    const timers = [
-      setTimeout(() => setPhase(1), 400),   // Logo zoom out - faster
-      setTimeout(() => setPhase(2), 1000),  // Title appear - faster  
-      setTimeout(() => setPhase(3), 1800),  // Tagline appear - faster
-    ];
-
     const exitTimer = setTimeout(() => {
       setIsVisible(false);
       setTimeout(onComplete, 800);
-    }, 4200); // Longer duration to let animations complete
+    }, 3500); // Simpler timing
 
     return () => {
-      timers.forEach(clearTimeout);
       clearTimeout(exitTimer);
     };
   }, [onComplete]);
@@ -57,25 +49,18 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
             <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(139,10,46,0.05)_100%)]" />
           </div>
 
-          {/* Main cinematic content */}
-          <div className="relative z-10 h-full flex flex-col items-center justify-center">
-            {/* Phase 0: Logo entrance - smooth cinematic */}
+          {/* Main cinematic content - everything appears together */}
+          <div className="relative z-10 h-full flex flex-col items-center justify-center text-center">
+            
+            {/* Logo - smooth entrance */}
             <motion.div
-              initial={{ scale: 2, opacity: 0, y: 0 }}
-              animate={{ 
-                scale: 1,
-                opacity: 1,
-                y: phase >= 2 ? -30 : 0
-              }}
-              transition={{ 
-                scale: { duration: 1.2, ease: [0.23, 1, 0.32, 1] },
-                opacity: { duration: 1.2, ease: "easeOut" },
-                y: { duration: 0.8, ease: [0.23, 1, 0.32, 1] }
-              }}
-              className={`${phase >= 2 ? 'mb-4' : 'mb-8'} transition-all duration-800`}
+              initial={{ scale: 1.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 1.2, ease: [0.23, 1, 0.32, 1] }}
+              className="mb-8"
             >
               <div className="relative">
-                {/* Subtle glow without harsh borders */}
+                {/* Subtle glow */}
                 <motion.div
                   className="absolute inset-0 bg-[hsl(345,82%,40%)] rounded-full blur-3xl opacity-30"
                   animate={{ 
@@ -93,49 +78,39 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
               </div>
             </motion.div>
 
-            {/* Phase 1: Title reveal with letterpress effect */}
-            {phase >= 2 && (
-              <motion.div
-                initial={{ y: 30, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-                className="text-center mb-4"
+            {/* Title - appears after logo */}
+            <motion.div
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 1, ease: "easeOut", delay: 0.6 }}
+              className="mb-4"
+            >
+              <motion.h1
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-3 tracking-tight px-4"
+                style={{
+                  textShadow: "0 0 20px rgba(139,10,46,0.8), 0 0 40px rgba(139,10,46,0.6)",
+                }}
+                initial={{ letterSpacing: "0.3em", opacity: 0 }}
+                animate={{ letterSpacing: "normal", opacity: 1 }}
+                transition={{ duration: 1, delay: 0.8 }}
               >
-                <motion.h1
-                  className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-3 tracking-tight px-4"
-                  style={{
-                    textShadow:
-                      "0 0 20px rgba(139,10,46,0.8), 0 0 40px rgba(139,10,46,0.6)",
-                  }}
-                  initial={{ letterSpacing: "0.5em", opacity: 0 }}
-                  animate={{ letterSpacing: "normal", opacity: 1 }}
-                  transition={{ duration: 0.8, delay: 0.1 }}
-                >
-                  <span className="text-[hsl(345,82%,55%)]">UB</span>{" "}
-                  <span className="text-white">FoodHub</span>
-                </motion.h1>
-              </motion.div>
-            )}
+                <span className="text-[hsl(345,82%,55%)]">UB</span>{" "}
+                <span className="text-white">FoodHub</span>
+              </motion.h1>
+            </motion.div>
 
-            {/* Phase 2: Subtitle with typewriter effect */}
-            {phase >= 3 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.8, delay: 0.5 }}
-                className="text-center"
+            {/* Subtitle - appears last */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1.2 }}
+            >
+              <motion.p
+                className="text-base sm:text-lg md:text-xl text-gray-300 font-light tracking-wide px-4"
               >
-                <motion.p
-                  className="text-base sm:text-lg md:text-xl text-gray-300 font-light tracking-wide px-4"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
-                >
-                  University of Batangas Food Experience
-                </motion.p>
-              </motion.div>
-            )}
-
+                University of Batangas Food Experience
+              </motion.p>
+            </motion.div>
 
           </div>
 

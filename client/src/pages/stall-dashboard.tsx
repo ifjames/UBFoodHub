@@ -160,79 +160,20 @@ export default function StallDashboard() {
 
   // Subscribe to menu items and orders when stallId is available
   useEffect(() => {
-    // Set predefined categories since categories collection might not exist
-    const fetchCategories = async () => {
-      try {
-        // Try to fetch from Firebase first
-        const categoriesData = await getDocuments("categories", "isActive", "==", true);
-        if (categoriesData && categoriesData.length > 0) {
-          const categoryNames = categoriesData
-            .sort((a: any, b: any) => {
-              if (a.order !== undefined && b.order !== undefined) {
-                return a.order - b.order;
-              }
-              if (a.order !== undefined) return -1;
-              if (b.order !== undefined) return 1;
-              return a.name.localeCompare(b.name);
-            })
-            .map((cat: any) => cat.name);
-          setAvailableCategories(categoryNames);
-        } else {
-          // Fallback to predefined categories
-          const defaultCategories = [
-            "Filipino",
-            "Chinese", 
-            "Japanese",
-            "Korean",
-            "American",
-            "Italian",
-            "Fast Food",
-            "BBQ & Grilled",
-            "Rice Meals",
-            "Noodles",
-            "Desserts & Snacks",
-            "Beverages",
-            "Fresh Juices",
-            "Coffee",
-            "Fried Chicken",
-            "Pizza",
-            "Burgers",
-            "Sandwiches",
-            "Salads",
-            "Healthy"
-          ];
-          setAvailableCategories(defaultCategories);
-        }
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-        // Fallback to predefined categories
-        const defaultCategories = [
-          "Filipino",
-          "Chinese", 
-          "Japanese",
-          "Korean",
-          "American",
-          "Italian",
-          "Fast Food",
-          "BBQ & Grilled",
-          "Rice Meals",
-          "Noodles",
-          "Desserts & Snacks",
-          "Beverages",
-          "Fresh Juices",
-          "Coffee",
-          "Fried Chicken",
-          "Pizza",
-          "Burgers",
-          "Sandwiches",
-          "Salads",
-          "Healthy"
-        ];
-        setAvailableCategories(defaultCategories);
+    // Set categories to ONLY what exists in your actual Firebase data
+    const setCategories = () => {
+      // Only use the exact categories that are already in your stall data
+      if (stallInfo?.categories && Array.isArray(stallInfo.categories)) {
+        setAvailableCategories(stallInfo.categories);
+      } else if (stallInfo?.category) {
+        setAvailableCategories([stallInfo.category]);
+      } else {
+        // Only your actual categories: Chinese and Filipino
+        setAvailableCategories(["Chinese", "Filipino"]);
       }
     };
 
-    fetchCategories();
+    setCategories();
 
     if (stallId) {
       // Subscribe to menu items for this stall

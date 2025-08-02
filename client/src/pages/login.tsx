@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Mail, Lock, ArrowLeft, User, Phone, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowLeft, User, Phone, CheckCircle, Shield } from "lucide-react";
 import { useAuth } from "@/lib/store";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +11,20 @@ import { Spinner } from "@/components/ui/spinner";
 import { TermsDialog } from "@/components/TermsDialog";
 import campusImage from "@assets/campus.png";
 import ubLogo from "@assets/ub foodhub logo2_1751778236646.png";
+import { 
+  authRateLimiter, 
+  validateUserInput, 
+  emailSchema, 
+  passwordSchema, 
+  nameSchema,
+  sanitizeString,
+  sanitizeEmail 
+} from "@/lib/security";
+import { 
+  checkAccountLockout, 
+  recordLoginAttempt, 
+  logUserActivity 
+} from "@/lib/auth-guard";
 
 export default function LoginPage() {
   const [authMode, setAuthMode] = useState<"social" | "email">("social");
@@ -90,8 +104,56 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
+      const email = sanitizeEmail(loginDataRef.current.email);
+      const password = loginDataRef.current.password;
+
+      // Rate limiting check
+      if (!authRateLimiter.isAllowed(email)) {
+        const remaining = authRateLimiter.getRemainingRequests(email);
+        toast({
+          title: "Too Many Attempts",
+          description: `Please wait before trying again. ${remaining} attempts remaining.`,
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Account lockout check
+      const lockoutCheck = checkAccountLockout(email);
+      if (lockoutCheck.isLocked) {
+        const minutes = Math.ceil((lockoutCheck.timeRemaining || 0) / 60000);
+        toast({
+          title: "Account Temporarily Locked",
+          description: `Too many failed attempts. Try again in ${minutes} minutes.`,
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Input validation
+      const emailValidation = validateUserInput({ email }, emailSchema);
+      if (!emailValidation.success) {
+        toast({
+          title: "Invalid Email",
+          description: emailValidation.errors?.join(', '),
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Log attempt
+      logUserActivity('login_attempt', { email, method: 'email' });
+
       // Use ref to access current values without causing re-renders
-      const result = await signIn(loginDataRef.current.email, loginDataRef.current.password);
+      const result = await signIn(email, password);
+      
+      // Record successful login
+      recordLoginAttempt(email, true);
+      logUserActivity('login_success', { email, role: result.role });
+      
       toast({
         title: "Welcome back!",
         description: "You've successfully signed in.",
@@ -106,6 +168,12 @@ export default function LoginPage() {
         setLocation("/");
       }
     } catch (error: any) {
+      const email = sanitizeEmail(loginDataRef.current.email);
+      
+      // Record failed login
+      recordLoginAttempt(email, false);
+      logUserActivity('login_failed', { email, error: error.message });
+      
       toast({
         title: "Login Failed",
         description: error.message || "Invalid email or password",
@@ -120,43 +188,99 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Use refs to access current values without causing re-renders
-    if (!agreedToTermsRef.current) {
-      toast({
-        title: "Terms Agreement Required",
-        description: "You must agree to the Terms of Service and Privacy Policy to create an account",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-      return;
-    }
-
-    if (signUpDataRef.current.password !== signUpDataRef.current.confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Passwords do not match",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-      return;
-    }
-
-    if (!signUpDataRef.current.email.endsWith("@ub.edu.ph")) {
-      toast({
-        title: "Email Restriction",
-        description: "Only @ub.edu.ph email addresses are allowed",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      await signUp(signUpDataRef.current.email, signUpDataRef.current.password, {
-        name: signUpDataRef.current.name,
+      // Use refs to access current values without causing re-renders
+      if (!agreedToTermsRef.current) {
+        toast({
+          title: "Terms Agreement Required",
+          description: "You must agree to the Terms of Service and Privacy Policy to create an account",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const email = sanitizeEmail(signUpDataRef.current.email);
+      const password = signUpDataRef.current.password;
+      const name = sanitizeString(signUpDataRef.current.name);
+
+      // Rate limiting check
+      if (!authRateLimiter.isAllowed(email)) {
+        const remaining = authRateLimiter.getRemainingRequests(email);
+        toast({
+          title: "Too Many Attempts",
+          description: `Please wait before trying again. ${remaining} attempts remaining.`,
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Comprehensive input validation
+      const emailValidation = validateUserInput({ email }, emailSchema);
+      const passwordValidation = validateUserInput({ password }, passwordSchema);
+      const nameValidation = validateUserInput({ name }, nameSchema);
+
+      if (!emailValidation.success) {
+        toast({
+          title: "Invalid Email",
+          description: emailValidation.errors?.join(', '),
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (!passwordValidation.success) {
+        toast({
+          title: "Invalid Password",
+          description: passwordValidation.errors?.join(', '),
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (!nameValidation.success) {
+        toast({
+          title: "Invalid Name",
+          description: nameValidation.errors?.join(', '),
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (password !== signUpDataRef.current.confirmPassword) {
+        toast({
+          title: "Error",
+          description: "Passwords do not match",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (!email.endsWith("@ub.edu.ph")) {
+        toast({
+          title: "Email Restriction",
+          description: "Only @ub.edu.ph email addresses are allowed",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Log signup attempt
+      logUserActivity('signup_attempt', { email, name });
+
+      await signUp(email, password, {
+        name,
         phoneNumber: signUpDataRef.current.phoneNumber,
         studentId: signUpDataRef.current.studentId,
       });
+      
+      logUserActivity('signup_success', { email, name });
       
       toast({
         title: "Account Created!",
@@ -165,6 +289,9 @@ export default function LoginPage() {
       
       setIsSignUp(false);
     } catch (error: any) {
+      const email = sanitizeEmail(signUpDataRef.current.email);
+      logUserActivity('signup_failed', { email, error: error.message });
+      
       toast({
         title: "Sign Up Failed",
         description: error.message || "Failed to create account",

@@ -35,8 +35,11 @@ export function useAuthGuard(requireRole?: string, requireEmailVerified = true) 
           return;
         }
 
-        // Check email verification if required
-        if (requireEmailVerified && !auth.currentUser.emailVerified) {
+        // Check email verification if required (only for students)
+        const userRole = state.user.role;
+        const needsEmailVerification = requireEmailVerified && userRole === 'student';
+        
+        if (needsEmailVerification && !auth.currentUser.emailVerified) {
           setError('Email verification required');
           setIsAuthorized(false);
           setIsLoading(false);

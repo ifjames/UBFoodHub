@@ -1,16 +1,20 @@
 import { z } from 'zod';
 
 // Input validation schemas
-export const emailSchema = z.string()
-  .email('Invalid email format')
-  .regex(/@ub\.edu\.ph$/, 'Must be a valid UB email address')
-  .max(100, 'Email must be less than 100 characters');
+export const emailSchema = z.object({
+  email: z.string()
+    .email('Invalid email format')
+    .regex(/@ub\.edu\.ph$/, 'Must be a valid UB email address')
+    .max(100, 'Email must be less than 100 characters')
+});
 
-export const passwordSchema = z.string()
-  .min(8, 'Password must be at least 8 characters')
-  .max(128, 'Password must be less than 128 characters')
-  .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, 
-    'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character');
+export const passwordSchema = z.object({
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password must be less than 128 characters')
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, 
+      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character')
+});
 
 export const studentIdSchema = z.string()
   .regex(/^\d{7}$/, 'Student ID must be exactly 7 digits')
@@ -20,10 +24,12 @@ export const phoneNumberSchema = z.string()
   .regex(/^(\+63|0)?9\d{9}$/, 'Must be a valid Philippine phone number')
   .optional();
 
-export const nameSchema = z.string()
-  .min(2, 'Name must be at least 2 characters')
-  .max(50, 'Name must be less than 50 characters')
-  .regex(/^[a-zA-Z\s\-\'\.]+$/, 'Name can only contain letters, spaces, hyphens, apostrophes, and periods');
+export const nameSchema = z.object({
+  name: z.string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(50, 'Name must be less than 50 characters')
+    .regex(/^[a-zA-Z\s\-\'\.]+$/, 'Name can only contain letters, spaces, hyphens, apostrophes, and periods')
+});
 
 export const stallNameSchema = z.string()
   .min(2, 'Stall name must be at least 2 characters')

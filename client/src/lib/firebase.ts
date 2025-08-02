@@ -143,13 +143,15 @@ export const sendVerificationEmail = async (user: FirebaseUser) => {
 
 // Enhanced authentication functions with security checks
 export const secureSignIn = async (email: string, password: string) => {
-  if (!email.endsWith('@ub.edu.ph')) {
+  if (!email.endsWith('@ub.edu.ph') && !email.endsWith('@foodhub.com')) {
     throw new Error('Only UB email addresses are allowed');
   }
   
   const result = await signInWithEmailAndPassword(auth, email, password);
   
-  if (!result.user.emailVerified) {
+  // Only require email verification for students (UB emails), not admin/stall owners
+  const isStudent = result.user.email?.endsWith('@ub.edu.ph');
+  if (isStudent && !result.user.emailVerified) {
     await signOut(auth);
     throw new Error('Please verify your email before signing in');
   }

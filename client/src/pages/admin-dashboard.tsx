@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -82,6 +82,36 @@ export default function AdminDashboard() {
     stallDescription: "",
     stallCategory: "",
   });
+
+  // Drag-to-scroll functionality for mobile tabs
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [activeTab, setActiveTab] = useState("users");
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // Multiply by 2 for faster scrolling
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
 
   useEffect(() => {
     // Subscribe to real-time data
@@ -635,8 +665,52 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 text-xs sm:text-sm">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          {/* Mobile Horizontal Scroll Navigation */}
+          <div className="md:hidden mb-6">
+            <div 
+              ref={scrollContainerRef}
+              className={`flex space-x-2 bg-gray-100 rounded-lg p-1 overflow-x-auto scrollbar-hide select-none ${
+                isDragging ? 'cursor-grabbing' : 'cursor-grab'
+              }`}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
+              style={{ scrollBehavior: isDragging ? 'auto' : 'smooth' }}
+            >
+              {[
+                { id: "users", label: "Users", icon: Users },
+                { id: "stalls", label: "Stalls", icon: Store },
+                { id: "categories", label: "Categories", icon: Settings },
+                { id: "penalties", label: "Penalties", icon: Settings },
+                { id: "notifications", label: "Notify", icon: Settings }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={(e) => {
+                    // Prevent click during drag
+                    if (isDragging) {
+                      e.preventDefault();
+                      return;
+                    }
+                    setActiveTab(tab.id);
+                  }}
+                  className={`flex items-center justify-center gap-1 py-2 px-3 rounded-md text-xs font-medium transition-all whitespace-nowrap flex-shrink-0 ${
+                    activeTab === tab.id
+                      ? "bg-[#6d031e] text-white shadow-sm"
+                      : "text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Desktop Grid Navigation */}
+          <TabsList className="hidden md:grid w-full grid-cols-5 text-xs sm:text-sm">
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="stalls">Stalls</TabsTrigger>
             <TabsTrigger value="categories">Categories</TabsTrigger>

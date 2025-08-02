@@ -45,6 +45,57 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
               style={{ transform: "skewX(-15deg)", width: "120%" }}
             />
 
+            {/* Floating particles */}
+            <div className="absolute inset-0 overflow-hidden">
+              {[...Array(25)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 bg-white/30 rounded-full"
+                  initial={{
+                    x: Math.random() * (typeof window !== "undefined" ? window.innerWidth : 400),
+                    y: typeof window !== "undefined" ? window.innerHeight + 20 : 700,
+                    scale: 0,
+                  }}
+                  animate={{
+                    y: -50,
+                    scale: [0, 1, 0.8, 0],
+                    opacity: [0, 0.8, 0.5, 0],
+                  }}
+                  transition={{
+                    duration: 4 + Math.random() * 3,
+                    repeat: Infinity,
+                    delay: Math.random() * 3,
+                    ease: "easeOut",
+                  }}
+                />
+              ))}
+              
+              {/* Larger floating particles */}
+              {[...Array(15)].map((_, i) => (
+                <motion.div
+                  key={`large-${i}`}
+                  className="absolute w-1.5 h-1.5 bg-[hsl(345,82%,55%)]/20 rounded-full"
+                  initial={{
+                    x: Math.random() * (typeof window !== "undefined" ? window.innerWidth : 400),
+                    y: typeof window !== "undefined" ? window.innerHeight + 30 : 700,
+                    scale: 0,
+                  }}
+                  animate={{
+                    y: -80,
+                    x: `+=${Math.random() * 100 - 50}`,
+                    scale: [0, 1.2, 1, 0],
+                    opacity: [0, 0.6, 0.4, 0],
+                  }}
+                  transition={{
+                    duration: 5 + Math.random() * 4,
+                    repeat: Infinity,
+                    delay: Math.random() * 4,
+                    ease: "easeOut",
+                  }}
+                />
+              ))}
+            </div>
+
             {/* Subtle grain overlay - lightened */}
             <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(139,10,46,0.05)_100%)]" />
           </div>
@@ -81,6 +132,10 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
                     src="/logo.png"
                     alt="UB FoodHub"
                     className="relative z-10 w-32 h-32 md:w-40 md:h-40 lg:w-44 lg:h-44 drop-shadow-xl mx-auto"
+                    style={{
+                      mixBlendMode: "multiply",
+                      filter: "brightness(1.1) contrast(1.1)"
+                    }}
                   />
                 </div>
               </motion.div>

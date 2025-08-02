@@ -37,6 +37,7 @@ import {
   updateDocument, 
   deleteDocument, 
   getDocument,
+  getDocuments,
   logOut 
 } from "@/lib/firebase";
 import { useLocation } from "wouter";
@@ -68,6 +69,14 @@ export default function StallDashboard() {
   const [overviewOrdersPerPage] = useState(5);
   const [orderSearchQuery, setOrderSearchQuery] = useState("");
   const [showQRScanner, setShowQRScanner] = useState(false);
+  const [stallForm, setStallForm] = useState({
+    name: "",
+    description: "",
+    categories: [] as string[],
+    image: "",
+  });
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [isEditingStall, setIsEditingStall] = useState(false);
   const [itemForm, setItemForm] = useState({
     name: "",
     description: "",
@@ -97,6 +106,13 @@ export default function StallDashboard() {
               const stall = stalls[0];
               setStallInfo(stall);
               setStallId(stall.id);
+              // Populate stall form for editing
+              setStallForm({
+                name: stall.name || "",
+                description: stall.description || "",
+                categories: stall.categories || (stall.category ? [stall.category] : []),
+                image: stall.image || "",
+              });
               console.log("Found stall by ownerId:", stall);
             } else {
               console.log("No stall found for user:", state.user.id);
@@ -110,6 +126,28 @@ export default function StallDashboard() {
 
   // Subscribe to menu items and orders when stallId is available
   useEffect(() => {
+    // Fetch available categories from Firebase
+    const fetchCategories = async () => {
+      try {
+        const categoriesData = await getDocuments("categories", "isActive", "==", true);
+        const categoryNames = categoriesData
+          .sort((a: any, b: any) => {
+            if (a.order !== undefined && b.order !== undefined) {
+              return a.order - b.order;
+            }
+            if (a.order !== undefined) return -1;
+            if (b.order !== undefined) return 1;
+            return a.name.localeCompare(b.name);
+          })
+          .map((cat: any) => cat.name);
+        setAvailableCategories(categoryNames);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+
     if (stallId) {
       // Subscribe to menu items for this stall
       const unsubscribeMenuItems = subscribeToQuery(
@@ -248,6 +286,63 @@ export default function StallDashboard() {
         variant: "destructive",
       });
     }
+  };
+
+  // Stall editing functions
+  const handleSaveStall = async () => {
+    if (!stallForm.name || stallForm.categories.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please fill in stall name and select at least one category",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!stallId) {
+      toast({
+        title: "Error", 
+        description: "Stall information not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const stallData = {
+        name: stallForm.name,
+        description: stallForm.description,
+        categories: stallForm.categories,
+        image: stallForm.image,
+      };
+
+      await updateDocument("stalls", stallId, stallData);
+      
+      // Update local state
+      setStallInfo(prev => ({ ...prev, ...stallData }));
+      
+      toast({
+        title: "Success",
+        description: "Stall information updated successfully",
+      });
+      
+      setIsEditingStall(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update stall information",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleCategory = (category: string) => {
+    setStallForm(prev => ({
+      ...prev,
+      categories: prev.categories.includes(category)
+        ? prev.categories.filter(c => c !== category)
+        : [...prev.categories, category]
+    }));
   };
 
   const handleLogout = async () => {
@@ -590,6 +685,7 @@ export default function StallDashboard() {
               { id: "overview", label: "Overview", icon: TrendingUp },
               { id: "menu", label: "Menu", icon: Package },
               { id: "orders", label: "Orders", icon: Clock },
+              { id: "settings", label: "Stall Settings", icon: Settings },
               { id: "cancellations", label: "Cancellations", icon: Settings },
               { id: "reviews", label: "Reviews", icon: Star },
               { id: "statistics", label: "Statistics", icon: TrendingUp }
@@ -1689,6 +1785,233 @@ export default function StallDashboard() {
                       <p className="text-gray-600">Best Seller</p>
                       <p className="font-bold text-lg">{popularItems.length > 0 ? popularItems[0][0].slice(0, 12) + '...' : 'N/A'}</p>
                     </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Stall Settings Tab */}
+        {activeTab === "settings" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-[#6d031e]">Stall Settings</h2>
+              <div className="flex gap-2">
+                {isEditingStall ? (
+                  <>
+                    <Button
+                      onClick={handleSaveStall}
+                      className="bg-[#6d031e] text-white hover:bg-red-700"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Changes
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setIsEditingStall(false);
+                        // Reset form to original stall data
+                        if (stallInfo) {
+                          setStallForm({
+                            name: stallInfo.name || "",
+                            description: stallInfo.description || "",
+                            categories: stallInfo.categories || (stallInfo.category ? [stallInfo.category] : []),
+                            image: stallInfo.image || "",
+                          });
+                        }
+                      }}
+                      variant="outline"
+                    >
+                      Cancel
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    onClick={() => setIsEditingStall(true)}
+                    variant="outline"
+                    className="border-[#6d031e] text-[#6d031e] hover:bg-[#6d031e] hover:text-white"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Stall
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-[#6d031e] flex items-center gap-2">
+                  <Store className="w-5 h-5" />
+                  Stall Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Stall Name */}
+                <div>
+                  <Label htmlFor="stall-name" className="text-sm font-medium">
+                    Stall Name
+                  </Label>
+                  {isEditingStall ? (
+                    <Input
+                      id="stall-name"
+                      value={stallForm.name}
+                      onChange={(e) => setStallForm(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Enter stall name"
+                      className="mt-1"
+                    />
+                  ) : (
+                    <p className="text-sm text-gray-900 mt-1 p-2 bg-gray-50 rounded-md">
+                      {stallInfo?.name || "No name set"}
+                    </p>
+                  )}
+                </div>
+
+                {/* Stall Description */}
+                <div>
+                  <Label htmlFor="stall-description" className="text-sm font-medium">
+                    Description
+                  </Label>
+                  {isEditingStall ? (
+                    <Textarea
+                      id="stall-description"
+                      value={stallForm.description}
+                      onChange={(e) => setStallForm(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Describe your stall and what makes it special"
+                      className="mt-1"
+                      rows={3}
+                    />
+                  ) : (
+                    <p className="text-sm text-gray-900 mt-1 p-2 bg-gray-50 rounded-md min-h-[60px]">
+                      {stallInfo?.description || "No description set"}
+                    </p>
+                  )}
+                </div>
+
+                {/* Stall Categories */}
+                <div>
+                  <Label className="text-sm font-medium">
+                    Food Categories
+                  </Label>
+                  {isEditingStall ? (
+                    <div className="mt-2 space-y-2">
+                      <p className="text-xs text-gray-600">Select all categories that apply to your stall:</p>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {availableCategories.map((category) => (
+                          <div
+                            key={category}
+                            onClick={() => toggleCategory(category)}
+                            className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                              stallForm.categories.includes(category)
+                                ? 'bg-[#6d031e] text-white border-[#6d031e]'
+                                : 'bg-white text-gray-700 border-gray-200 hover:border-[#6d031e] hover:bg-red-50'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">{category}</span>
+                              {stallForm.categories.includes(category) && (
+                                <CheckCircle className="w-4 h-4" />
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {stallForm.categories.length === 0 && (
+                        <p className="text-sm text-red-600 mt-1">
+                          Please select at least one category
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="mt-2">
+                      {stallInfo?.categories && stallInfo.categories.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {stallInfo.categories.map((category: string) => (
+                            <Badge
+                              key={category}
+                              className="bg-[#6d031e] text-white hover:bg-red-700"
+                            >
+                              {category}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : stallInfo?.category ? (
+                        <Badge className="bg-[#6d031e] text-white hover:bg-red-700">
+                          {stallInfo.category}
+                        </Badge>
+                      ) : (
+                        <p className="text-sm text-gray-500">No categories set</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Stall Image */}
+                <div>
+                  <Label htmlFor="stall-image" className="text-sm font-medium">
+                    Stall Image URL
+                  </Label>
+                  {isEditingStall ? (
+                    <div className="mt-1 space-y-2">
+                      <Input
+                        id="stall-image"
+                        value={stallForm.image}
+                        onChange={(e) => setStallForm(prev => ({ ...prev, image: e.target.value }))}
+                        placeholder="https://example.com/stall-image.jpg"
+                      />
+                      <p className="text-xs text-gray-600">
+                        Provide a URL for your stall's image. This will be shown to customers.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-2">
+                      {stallInfo?.image ? (
+                        <div className="space-y-2">
+                          <img
+                            src={stallInfo.image}
+                            alt={stallInfo.name}
+                            className="w-32 h-32 object-cover rounded-lg border"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                          />
+                          <p className="text-xs text-gray-600 break-all">
+                            {stallInfo.image}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="w-32 h-32 bg-gray-100 rounded-lg border flex items-center justify-center">
+                          <div className="text-center">
+                            <ImageIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                            <p className="text-xs text-gray-500">No image</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Current Status */}
+                <div>
+                  <Label className="text-sm font-medium">Current Status</Label>
+                  <div className="mt-2 flex items-center gap-3">
+                    <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      stallInfo?.isActive 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {stallInfo?.isActive ? 'Active' : 'Inactive'}
+                    </div>
+                    <p className="text-xs text-gray-600">
+                      {stallInfo?.isActive 
+                        ? 'Your stall is visible to customers'
+                        : 'Your stall is hidden from customers'
+                      }
+                    </p>
                   </div>
                 </div>
               </CardContent>

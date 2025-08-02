@@ -13,7 +13,7 @@ import { useStore } from "@/lib/store";
 import { subscribeToCollection, addDocument, updateDocument, deleteDocument, getCollection, signUp, createDocument } from "@/lib/firebase";
 import { logOut } from "@/lib/firebase";
 import { useLocation } from "wouter";
-import { Users, Store, Plus, Edit, Trash2, LogOut, Settings, BarChart3, GripVertical } from "lucide-react";
+import { Users, Store, Plus, Edit, Trash2, LogOut, Settings, BarChart3, GripVertical, Check } from "lucide-react";
 import PenaltyManagement from "@/components/penalties/penalty-management";
 import BroadcastNotification from "@/components/admin/broadcast-notification";
 import NotificationBell from "@/components/notifications/notification-bell";
@@ -37,6 +37,7 @@ export default function AdminDashboard() {
     name: "",
     description: "",
     category: "",
+    categories: [] as string[],
     ownerId: "",
     image: "",
     isActive: true,
@@ -50,6 +51,7 @@ export default function AdminDashboard() {
     name: "",
     description: "",
     category: "",
+    categories: [] as string[],
     ownerId: "",
     image: "",
     isActive: true,
@@ -127,11 +129,23 @@ export default function AdminDashboard() {
 
   const handleCreateStall = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!newStall.categories || newStall.categories.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please select at least one category for the stall.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
       await addDocument("stalls", {
         ...newStall,
+        // Keep category for backward compatibility, use first category
+        category: newStall.categories[0],
         rating: 0,
         reviewCount: 0,
         deliveryTime: "15-30 min",
@@ -147,6 +161,7 @@ export default function AdminDashboard() {
         name: "",
         description: "",
         category: "",
+        categories: [],
         ownerId: "",
         image: "",
         isActive: true,
@@ -168,6 +183,7 @@ export default function AdminDashboard() {
       name: stall.name || "",
       description: stall.description || "",
       category: stall.category || "",
+      categories: stall.categories || (stall.category ? [stall.category] : []),
       ownerId: stall.ownerId || "",
       image: stall.image || "",
       isActive: stall.isActive ?? true,
@@ -179,9 +195,22 @@ export default function AdminDashboard() {
     e.preventDefault();
     if (!editingStall) return;
     
+    if (!editStall.categories || editStall.categories.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please select at least one category for the stall.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     try {
-      await updateDocument("stalls", editingStall.id, editStall);
+      await updateDocument("stalls", editingStall.id, {
+        ...editStall,
+        // Keep category for backward compatibility, use first category
+        category: editStall.categories[0],
+      });
       
       toast({
         title: "Stall updated successfully",
@@ -824,20 +853,46 @@ export default function AdminDashboard() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="category">Category</Label>
-                      <Select
-                        value={newStall.category}
-                        onValueChange={(value) => setNewStall({ ...newStall, category: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
+                      <Label>Categories</Label>
+                      <div className="mt-2 space-y-2">
+                        <p className="text-sm text-gray-600">Select all categories that apply to this stall:</p>
+                        <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
                           {categories.map((category) => (
-                            <SelectItem key={category} value={category}>{category}</SelectItem>
+                            <div
+                              key={category}
+                              onClick={() => {
+                                const currentCategories = newStall.categories || [];
+                                if (currentCategories.includes(category)) {
+                                  setNewStall({ 
+                                    ...newStall, 
+                                    categories: currentCategories.filter(c => c !== category)
+                                  });
+                                } else {
+                                  setNewStall({ 
+                                    ...newStall, 
+                                    categories: [...currentCategories, category]
+                                  });
+                                }
+                              }}
+                              className={`p-2 rounded border cursor-pointer transition-all text-sm ${
+                                (newStall.categories || []).includes(category)
+                                  ? 'bg-[#6d031e] text-white border-[#6d031e]'
+                                  : 'bg-white text-gray-700 border-gray-200 hover:border-[#6d031e] hover:bg-red-50'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-medium">{category}</span>
+                                {(newStall.categories || []).includes(category) && (
+                                  <Check className="w-3 h-3" />
+                                )}
+                              </div>
+                            </div>
                           ))}
-                        </SelectContent>
-                      </Select>
+                        </div>
+                        {(!newStall.categories || newStall.categories.length === 0) && (
+                          <p className="text-sm text-red-600">Please select at least one category</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div>
@@ -895,8 +950,16 @@ export default function AdminDashboard() {
                       <div className="flex-1">
                         <h3 className="font-medium">{stall.name}</h3>
                         <p className="text-sm text-gray-600">{stall.description}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline">{stall.category}</Badge>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          {stall.categories && stall.categories.length > 0 ? (
+                            stall.categories.map((category: string) => (
+                              <Badge key={category} variant="outline">{category}</Badge>
+                            ))
+                          ) : stall.category ? (
+                            <Badge variant="outline">{stall.category}</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-gray-500">No categories</Badge>
+                          )}
                           <Badge variant={stall.isActive ? "default" : "secondary"}>
                             {stall.isActive ? "Active" : "Inactive"}
                           </Badge>
@@ -1007,20 +1070,46 @@ export default function AdminDashboard() {
               />
             </div>
             <div>
-              <Label htmlFor="editCategory">Category</Label>
-              <Select
-                value={editStall.category}
-                onValueChange={(value) => setEditStall({ ...editStall, category: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
+              <Label>Categories</Label>
+              <div className="mt-2 space-y-2">
+                <p className="text-sm text-gray-600">Select all categories that apply to this stall:</p>
+                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
                   {categories.map((category) => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                    <div
+                      key={category}
+                      onClick={() => {
+                        const currentCategories = editStall.categories || [];
+                        if (currentCategories.includes(category)) {
+                          setEditStall({ 
+                            ...editStall, 
+                            categories: currentCategories.filter(c => c !== category)
+                          });
+                        } else {
+                          setEditStall({ 
+                            ...editStall, 
+                            categories: [...currentCategories, category]
+                          });
+                        }
+                      }}
+                      className={`p-2 rounded border cursor-pointer transition-all text-sm ${
+                        (editStall.categories || []).includes(category)
+                          ? 'bg-[#6d031e] text-white border-[#6d031e]'
+                          : 'bg-white text-gray-700 border-gray-200 hover:border-[#6d031e] hover:bg-red-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{category}</span>
+                        {(editStall.categories || []).includes(category) && (
+                          <Check className="w-3 h-3" />
+                        )}
+                      </div>
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+                {(!editStall.categories || editStall.categories.length === 0) && (
+                  <p className="text-sm text-red-600">Please select at least one category</p>
+                )}
+              </div>
             </div>
             <div>
               <Label htmlFor="editDescription">Description</Label>

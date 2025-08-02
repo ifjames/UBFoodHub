@@ -24,7 +24,7 @@ export const restaurants = pgTable("restaurants", {
   reviewCount: integer("review_count").default(0),
   deliveryTime: text("delivery_time").default("5-20 min"),
   priceRange: text("price_range").default("₱"),
-  category: text("category").notNull(),
+  categories: text("categories").array().notNull(), // Changed to support multiple categories
   isActive: boolean("is_active").default(true),
   deliveryFee: decimal("delivery_fee", { precision: 10, scale: 2 }).default("5.00"),
   ownerId: integer("owner_id").references(() => users.id),

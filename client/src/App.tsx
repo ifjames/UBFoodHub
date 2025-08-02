@@ -353,7 +353,12 @@ function App() {
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
+              transition={{ 
+                duration: 0.8, 
+                ease: "easeOut",
+                // Enhanced mobile transition
+                y: { duration: 0.9, ease: [0.23, 1, 0.32, 1] }
+              }}
               className="w-full bg-white min-h-screen relative md:max-w-none max-w-md mx-auto md:shadow-none shadow-xl"
             >
               <Toaster />

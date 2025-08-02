@@ -11,7 +11,9 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
   useEffect(() => {
     const exitTimer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(onComplete, 1000); // Slightly longer for smoother transition
+      // Longer delay for mobile to ensure smooth transition
+      const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
+      setTimeout(onComplete, isMobile ? 1200 : 1000);
     }, 3500);
 
     return () => {

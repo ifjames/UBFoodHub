@@ -77,6 +77,7 @@ export default function StallDashboard() {
     description: "",
     categories: [] as string[],
     image: "",
+    isActive: true,
   });
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [isEditingStall, setIsEditingStall] = useState(false);
@@ -144,6 +145,7 @@ export default function StallDashboard() {
                 description: stall.description || "",
                 categories: stall.categories || (stall.category ? [stall.category] : []),
                 image: stall.image || "",
+                isActive: stall.isActive !== undefined ? stall.isActive : true,
               });
               console.log("Found stall by ownerId:", stall);
             } else {
@@ -158,23 +160,75 @@ export default function StallDashboard() {
 
   // Subscribe to menu items and orders when stallId is available
   useEffect(() => {
-    // Fetch available categories from Firebase
+    // Set predefined categories since categories collection might not exist
     const fetchCategories = async () => {
       try {
+        // Try to fetch from Firebase first
         const categoriesData = await getDocuments("categories", "isActive", "==", true);
-        const categoryNames = categoriesData
-          .sort((a: any, b: any) => {
-            if (a.order !== undefined && b.order !== undefined) {
-              return a.order - b.order;
-            }
-            if (a.order !== undefined) return -1;
-            if (b.order !== undefined) return 1;
-            return a.name.localeCompare(b.name);
-          })
-          .map((cat: any) => cat.name);
-        setAvailableCategories(categoryNames);
+        if (categoriesData && categoriesData.length > 0) {
+          const categoryNames = categoriesData
+            .sort((a: any, b: any) => {
+              if (a.order !== undefined && b.order !== undefined) {
+                return a.order - b.order;
+              }
+              if (a.order !== undefined) return -1;
+              if (b.order !== undefined) return 1;
+              return a.name.localeCompare(b.name);
+            })
+            .map((cat: any) => cat.name);
+          setAvailableCategories(categoryNames);
+        } else {
+          // Fallback to predefined categories
+          const defaultCategories = [
+            "Filipino",
+            "Chinese", 
+            "Japanese",
+            "Korean",
+            "American",
+            "Italian",
+            "Fast Food",
+            "BBQ & Grilled",
+            "Rice Meals",
+            "Noodles",
+            "Desserts & Snacks",
+            "Beverages",
+            "Fresh Juices",
+            "Coffee",
+            "Fried Chicken",
+            "Pizza",
+            "Burgers",
+            "Sandwiches",
+            "Salads",
+            "Healthy"
+          ];
+          setAvailableCategories(defaultCategories);
+        }
       } catch (error) {
         console.error("Error fetching categories:", error);
+        // Fallback to predefined categories
+        const defaultCategories = [
+          "Filipino",
+          "Chinese", 
+          "Japanese",
+          "Korean",
+          "American",
+          "Italian",
+          "Fast Food",
+          "BBQ & Grilled",
+          "Rice Meals",
+          "Noodles",
+          "Desserts & Snacks",
+          "Beverages",
+          "Fresh Juices",
+          "Coffee",
+          "Fried Chicken",
+          "Pizza",
+          "Burgers",
+          "Sandwiches",
+          "Salads",
+          "Healthy"
+        ];
+        setAvailableCategories(defaultCategories);
       }
     };
 
@@ -346,6 +400,7 @@ export default function StallDashboard() {
         description: stallForm.description,
         categories: stallForm.categories,
         image: stallForm.image,
+        isActive: stallForm.isActive,
       };
 
       await updateDocument("stalls", stallId, stallData);
@@ -1905,6 +1960,7 @@ export default function StallDashboard() {
                             description: stallInfo.description || "",
                             categories: stallInfo.categories || (stallInfo.category ? [stallInfo.category] : []),
                             image: stallInfo.image || "",
+                            isActive: stallInfo.isActive !== undefined ? stallInfo.isActive : true,
                           });
                         }
                       }}
@@ -2079,24 +2135,42 @@ export default function StallDashboard() {
                   )}
                 </div>
 
-                {/* Current Status */}
+                {/* Stall Status */}
                 <div>
-                  <Label className="text-sm font-medium">Current Status</Label>
-                  <div className="mt-2 flex items-center gap-3">
-                    <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      stallInfo?.isActive 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {stallInfo?.isActive ? 'Active' : 'Inactive'}
+                  <Label className="text-sm font-medium">Stall Status</Label>
+                  {isEditingStall ? (
+                    <div className="mt-2 space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="stall-active"
+                          checked={stallForm.isActive}
+                          onCheckedChange={(checked) => setStallForm(prev => ({ ...prev, isActive: checked }))}
+                        />
+                        <Label htmlFor="stall-active" className="text-sm">
+                          {stallForm.isActive ? 'Active - Visible to customers' : 'Inactive - Hidden from customers'}
+                        </Label>
+                      </div>
+                      <p className="text-xs text-gray-600">
+                        Toggle this to control whether customers can see and order from your stall
+                      </p>
                     </div>
-                    <p className="text-xs text-gray-600">
-                      {stallInfo?.isActive 
-                        ? 'Your stall is visible to customers'
-                        : 'Your stall is hidden from customers'
-                      }
-                    </p>
-                  </div>
+                  ) : (
+                    <div className="mt-2 flex items-center gap-3">
+                      <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        stallInfo?.isActive 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {stallInfo?.isActive ? 'Active' : 'Inactive'}
+                      </div>
+                      <p className="text-xs text-gray-600">
+                        {stallInfo?.isActive 
+                          ? 'Your stall is visible to customers'
+                          : 'Your stall is hidden from customers'
+                        }
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

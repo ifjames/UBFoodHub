@@ -30,9 +30,10 @@ export default function LoyaltyDashboard() {
   const loadTransactions = async () => {
     try {
       const txns = await getLoyaltyTransactions(state.user.uid);
-      setTransactions(txns);
+      setTransactions(txns || []);
     } catch (error) {
-      console.error("Error loading transactions:", error);
+      // Silently handle errors and show empty state
+      setTransactions([]);
     }
   };
 

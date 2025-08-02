@@ -378,11 +378,8 @@ export const getLoyaltyTransactions = async (userId: string) => {
     const querySnapshot = await getDocs(transactionsQuery);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (error: any) {
-    console.error("Error getting loyalty transactions:", error);
-    
     // If it's a failed-precondition error (missing index), try without orderBy
     if (error.code === "failed-precondition") {
-      console.warn("Firestore index missing, falling back to simple query");
       try {
         const simpleQuery = query(
           collection(db, "loyalty_transactions"),

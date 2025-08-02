@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, Lock, Mail, User, Phone, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,50 @@ export default function LoginPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
+
+  // Stable particle configurations to prevent re-rendering on typing
+  const desktopParticles = useMemo(() => 
+    [...Array(30)].map((_, i) => ({
+      id: i,
+      className: i % 4 === 0 ? 'w-3 h-3 bg-white/20 animate-particle-float' :
+                  i % 4 === 1 ? 'w-2 h-2 bg-red-200/30 animate-wave-motion' :
+                  i % 4 === 2 ? 'w-1 h-1 bg-yellow-200/40 animate-magic-sparkle' :
+                  'w-2 h-2 bg-white/15 animate-float',
+      style: {
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 100}%`,
+        animationDelay: `${Math.random() * 5}s`,
+        animationDuration: `${4 + Math.random() * 6}s`,
+      }
+    })), []
+  );
+
+  const sparkleParticles = useMemo(() => 
+    [...Array(15)].map((_, i) => ({
+      id: i,
+      style: {
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 100}%`,
+        animationDelay: `${Math.random() * 3}s`,
+        animationDuration: `${2 + Math.random() * 3}s`,
+      }
+    })), []
+  );
+
+  const mobileParticles = useMemo(() => 
+    [...Array(25)].map((_, i) => ({
+      id: i,
+      className: i % 3 === 0 ? 'w-2 h-2 bg-white/15 animate-wave-motion' :
+                  i % 3 === 1 ? 'w-1 h-1 bg-red-200/25 animate-magic-sparkle' :
+                  'w-1.5 h-1.5 bg-white/10 animate-particle-float',
+      style: {
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 100}%`,
+        animationDelay: `${Math.random() * 4}s`,
+        animationDuration: `${3 + Math.random() * 5}s`,
+      }
+    })), []
+  );
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -178,35 +222,20 @@ export default function LoginPage() {
           
           {/* Enhanced Floating Particles */}
           <div className="absolute inset-0 overflow-hidden">
-            {[...Array(30)].map((_, i) => (
+            {desktopParticles.map((particle) => (
               <div
-                key={i}
-                className={`absolute rounded-full ${
-                  i % 4 === 0 ? 'w-3 h-3 bg-white/20 animate-particle-float' :
-                  i % 4 === 1 ? 'w-2 h-2 bg-red-200/30 animate-wave-motion' :
-                  i % 4 === 2 ? 'w-1 h-1 bg-yellow-200/40 animate-magic-sparkle' :
-                  'w-2 h-2 bg-white/15 animate-float'
-                }`}
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 5}s`,
-                  animationDuration: `${4 + Math.random() * 6}s`,
-                }}
+                key={particle.id}
+                className={`absolute rounded-full ${particle.className}`}
+                style={particle.style}
               ></div>
             ))}
             
             {/* Magic sparkles */}
-            {[...Array(15)].map((_, i) => (
+            {sparkleParticles.map((sparkle) => (
               <div
-                key={`sparkle-${i}`}
+                key={`sparkle-${sparkle.id}`}
                 className="absolute w-1 h-1 bg-gradient-to-r from-white to-yellow-200 rounded-full animate-magic-sparkle"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 3}s`,
-                  animationDuration: `${2 + Math.random() * 3}s`,
-                }}
+                style={sparkle.style}
               ></div>
             ))}
           </div>
@@ -215,6 +244,7 @@ export default function LoginPage() {
           <div className="relative z-10 text-center text-white">
             <div className="mb-8">
               <img
+                key={`logo-${authMode}-${isSignUp}`}
                 src="/logo.png"
                 alt="UB FoodHub"
                 className="w-32 h-32 mx-auto mb-4 animate-bounce-gentle"
@@ -238,20 +268,11 @@ export default function LoginPage() {
         <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-[#6d031e] via-[#8b0420] to-[#4a0115] lg:bg-white lg:bg-gradient-to-br lg:from-gray-50 lg:to-white relative overflow-hidden">
           {/* Mobile Background Particles */}
           <div className="absolute inset-0 overflow-hidden lg:hidden">
-            {[...Array(25)].map((_, i) => (
+            {mobileParticles.map((particle) => (
               <div
-                key={`mobile-${i}`}
-                className={`absolute rounded-full ${
-                  i % 3 === 0 ? 'w-2 h-2 bg-white/15 animate-wave-motion' :
-                  i % 3 === 1 ? 'w-1 h-1 bg-red-200/25 animate-magic-sparkle' :
-                  'w-1.5 h-1.5 bg-white/10 animate-particle-float'
-                }`}
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 4}s`,
-                  animationDuration: `${3 + Math.random() * 5}s`,
-                }}
+                key={`mobile-${particle.id}`}
+                className={`absolute rounded-full ${particle.className}`}
+                style={particle.style}
               ></div>
             ))}
           </div>
@@ -327,35 +348,20 @@ export default function LoginPage() {
         
         {/* Enhanced Floating Particles */}
         <div className="absolute inset-0 overflow-hidden">
-          {[...Array(30)].map((_, i) => (
+          {desktopParticles.map((particle) => (
             <div
-              key={i}
-              className={`absolute rounded-full ${
-                i % 4 === 0 ? 'w-3 h-3 bg-white/20 animate-particle-float' :
-                i % 4 === 1 ? 'w-2 h-2 bg-red-200/30 animate-wave-motion' :
-                i % 4 === 2 ? 'w-1 h-1 bg-yellow-200/40 animate-magic-sparkle' :
-                'w-2 h-2 bg-white/15 animate-float'
-              }`}
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 5}s`,
-                animationDuration: `${4 + Math.random() * 6}s`,
-              }}
+              key={particle.id}
+              className={`absolute rounded-full ${particle.className}`}
+              style={particle.style}
             ></div>
           ))}
           
           {/* Magic sparkles */}
-          {[...Array(15)].map((_, i) => (
+          {sparkleParticles.map((sparkle) => (
             <div
-              key={`sparkle-${i}`}
+              key={`sparkle-${sparkle.id}`}
               className="absolute w-1 h-1 bg-gradient-to-r from-white to-yellow-200 rounded-full animate-magic-sparkle"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${2 + Math.random() * 3}s`,
-              }}
+              style={sparkle.style}
             ></div>
           ))}
         </div>
@@ -364,6 +370,7 @@ export default function LoginPage() {
         <div className="relative z-10 text-center text-white">
           <div className="mb-8">
             <img
+              key={`desktop-logo-${authMode}-${isSignUp}`}
               src="/logo.png"
               alt="UB FoodHub"
               className="w-32 h-32 mx-auto mb-4 animate-bounce-gentle"
@@ -387,20 +394,11 @@ export default function LoginPage() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-[#6d031e] via-[#8b0420] to-[#4a0115] lg:bg-white lg:bg-gradient-to-br lg:from-gray-50 lg:to-white relative overflow-hidden">
         {/* Mobile Background Particles */}
         <div className="absolute inset-0 overflow-hidden lg:hidden">
-          {[...Array(25)].map((_, i) => (
+          {mobileParticles.map((particle) => (
             <div
-              key={`mobile-${i}`}
-              className={`absolute rounded-full ${
-                i % 3 === 0 ? 'w-2 h-2 bg-white/15 animate-wave-motion' :
-                i % 3 === 1 ? 'w-1 h-1 bg-red-200/25 animate-magic-sparkle' :
-                'w-1.5 h-1.5 bg-white/10 animate-particle-float'
-              }`}
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 4}s`,
-                animationDuration: `${3 + Math.random() * 5}s`,
-              }}
+              key={`mobile-${particle.id}`}
+              className={`absolute rounded-full ${particle.className}`}
+              style={particle.style}
             ></div>
           ))}
         </div>
@@ -409,6 +407,7 @@ export default function LoginPage() {
           {/* Enhanced Mobile Logo */}
           <div className="text-center lg:hidden">
             <img
+              key={`mobile-logo-${authMode}-${isSignUp}`}
               src="/logo.png"
               alt="UB FoodHub"
               className="w-24 h-24 mx-auto mb-4 animate-bounce-gentle"

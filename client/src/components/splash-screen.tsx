@@ -45,52 +45,75 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
               style={{ transform: "skewX(-15deg)", width: "120%" }}
             />
 
-            {/* Floating particles */}
+            {/* Gentle floating particles */}
             <div className="absolute inset-0 overflow-hidden">
-              {[...Array(25)].map((_, i) => (
+              {[...Array(20)].map((_, i) => (
                 <motion.div
                   key={i}
-                  className="absolute w-1 h-1 bg-white/30 rounded-full"
+                  className="absolute w-1 h-1 bg-white/25 rounded-full"
                   initial={{
                     x: Math.random() * (typeof window !== "undefined" ? window.innerWidth : 400),
-                    y: typeof window !== "undefined" ? window.innerHeight + 20 : 700,
-                    scale: 0,
+                    y: typeof window !== "undefined" ? window.innerHeight : 800,
+                    opacity: 0,
                   }}
                   animate={{
-                    y: -50,
-                    scale: [0, 1, 0.8, 0],
-                    opacity: [0, 0.8, 0.5, 0],
+                    y: -100,
+                    x: `+=${(Math.random() - 0.5) * 50}`,
+                    opacity: [0, 0.7, 0.4, 0],
                   }}
                   transition={{
-                    duration: 4 + Math.random() * 3,
+                    duration: 8 + Math.random() * 4,
                     repeat: Infinity,
-                    delay: Math.random() * 3,
-                    ease: "easeOut",
+                    delay: Math.random() * 6,
+                    ease: "linear",
                   }}
                 />
               ))}
               
-              {/* Larger floating particles */}
-              {[...Array(15)].map((_, i) => (
+              {/* Medium floating particles */}
+              {[...Array(12)].map((_, i) => (
                 <motion.div
-                  key={`large-${i}`}
-                  className="absolute w-1.5 h-1.5 bg-[hsl(345,82%,55%)]/20 rounded-full"
+                  key={`medium-${i}`}
+                  className="absolute w-1.5 h-1.5 bg-[hsl(345,82%,65%)]/15 rounded-full"
                   initial={{
                     x: Math.random() * (typeof window !== "undefined" ? window.innerWidth : 400),
-                    y: typeof window !== "undefined" ? window.innerHeight + 30 : 700,
-                    scale: 0,
+                    y: typeof window !== "undefined" ? window.innerHeight : 800,
+                    opacity: 0,
                   }}
                   animate={{
-                    y: -80,
-                    x: `+=${Math.random() * 100 - 50}`,
-                    scale: [0, 1.2, 1, 0],
-                    opacity: [0, 0.6, 0.4, 0],
+                    y: -120,
+                    x: `+=${(Math.random() - 0.5) * 80}`,
+                    opacity: [0, 0.5, 0.3, 0],
                   }}
                   transition={{
-                    duration: 5 + Math.random() * 4,
+                    duration: 10 + Math.random() * 5,
                     repeat: Infinity,
-                    delay: Math.random() * 4,
-                    ease: "easeOut",
+                    delay: Math.random() * 8,
+                    ease: "linear",
+                  }}
+                />
+              ))}
+
+              {/* Large floating particles */}
+              {[...Array(8)].map((_, i) => (
+                <motion.div
+                  key={`large-${i}`}
+                  className="absolute w-2 h-2 bg-[hsl(345,82%,70%)]/10 rounded-full"
+                  initial={{
+                    x: Math.random() * (typeof window !== "undefined" ? window.innerWidth : 400),
+                    y: typeof window !== "undefined" ? window.innerHeight : 800,
+                    opacity: 0,
+                  }}
+                  animate={{
+                    y: -150,
+                    x: `+=${(Math.random() - 0.5) * 100}`,
+                    opacity: [0, 0.4, 0.2, 0],
+                  }}
+                  transition={{
+                    duration: 12 + Math.random() * 6,
+                    repeat: Infinity,
+                    delay: Math.random() * 10,
+                    ease: "linear",
                   }}
                 />
               ))}
@@ -133,8 +156,9 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
                     alt="UB FoodHub"
                     className="relative z-10 w-32 h-32 md:w-40 md:h-40 lg:w-44 lg:h-44 drop-shadow-xl mx-auto"
                     style={{
-                      mixBlendMode: "multiply",
-                      filter: "brightness(1.1) contrast(1.1)"
+                      mixBlendMode: "screen",
+                      filter: "brightness(1.2) saturate(1.1)",
+                      background: "transparent"
                     }}
                   />
                 </div>

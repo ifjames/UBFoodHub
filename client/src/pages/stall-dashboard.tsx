@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Plus, 
@@ -87,6 +87,35 @@ export default function StallDashboard() {
     image: "",
     customizations: [{ name: "", price: 0 }] // For customizations like "Extra Rice +25", "Choice of Rice", etc.
   });
+
+  // Drag-to-scroll functionality
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // Multiply by 2 for faster scrolling
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
 
   useEffect(() => {
     if (state.user?.id) {
@@ -682,7 +711,17 @@ export default function StallDashboard() {
         <div className="mb-6">
           {/* Mobile Horizontal Scroll Navigation */}
           <div className="md:hidden">
-            <div className="flex space-x-2 bg-gray-100 rounded-lg p-1 overflow-x-auto scrollbar-hide">
+            <div 
+              ref={scrollContainerRef}
+              className={`flex space-x-2 bg-gray-100 rounded-lg p-1 overflow-x-auto scrollbar-hide select-none ${
+                isDragging ? 'cursor-grabbing' : 'cursor-grab'
+              }`}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
+              style={{ scrollBehavior: isDragging ? 'auto' : 'smooth' }}
+            >
               {[
                 { id: "overview", label: "Overview", icon: TrendingUp },
                 { id: "menu", label: "Menu", icon: Package },
@@ -694,7 +733,14 @@ export default function StallDashboard() {
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={(e) => {
+                    // Prevent click during drag
+                    if (isDragging) {
+                      e.preventDefault();
+                      return;
+                    }
+                    setActiveTab(tab.id);
+                  }}
                   className={`flex items-center justify-center gap-1 py-2 px-3 rounded-md text-xs font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                     activeTab === tab.id
                       ? "bg-[#6d031e] text-white shadow-sm"

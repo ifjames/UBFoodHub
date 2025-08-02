@@ -40,20 +40,23 @@ export default function Profile() {
   const userPoints = state.user?.loyaltyPoints || 0;
   const loyaltyTier = getUserLoyaltyTier(userPoints);
 
+  // Check if user is admin or stall owner
+  const isAdminOrStallOwner = state.user?.role === 'admin' || state.user?.role === 'stall_owner';
+
   const menuItems = [
     { 
       icon: Award, 
       title: "Loyalty Points", 
-      subtitle: `${userPoints} points • ${loyaltyTier.tier} member`,
+      subtitle: isAdminOrStallOwner ? "Admin/Staff access restricted" : `${userPoints} points • ${loyaltyTier.tier} member`,
       bgColor: "bg-maroon-50",
       iconColor: "text-maroon-600",
-      locked: false,
+      locked: isAdminOrStallOwner,
       action: () => setShowLoyalty(true)
     },
     { 
       icon: Ticket, 
       title: "Vouchers", 
-      subtitle: "Coming Soon",
+      subtitle: isAdminOrStallOwner ? "Admin/Staff access restricted" : "Coming Soon",
       bgColor: "bg-gray-50",
       iconColor: "text-gray-400",
       locked: true
@@ -64,13 +67,15 @@ export default function Profile() {
     { 
       icon: HelpCircle, 
       title: "Help center", 
-      subtitle: "FAQs and support",
+      subtitle: isAdminOrStallOwner ? "Admin/Staff access restricted" : "FAQs and support",
+      locked: isAdminOrStallOwner,
       action: () => setLocation("/help-center")
     },
     { 
       icon: FileText, 
       title: "Terms & policies", 
       subtitle: "Legal information",
+      locked: false,
       action: () => setLocation("/terms-policies")
     },
   ];
@@ -116,12 +121,15 @@ export default function Profile() {
             </button>
             <h1 className="text-lg font-semibold">Account</h1>
           </div>
-          <button 
-            onClick={() => setLocation("/settings")}
-            className="text-red-200 hover:text-white p-2 hover:bg-red-700 rounded-full transition-colors"
-          >
-            <Settings className="h-5 w-5" />
-          </button>
+          {/* Hide settings button for admin and stall owners */}
+          {!isAdminOrStallOwner && (
+            <button 
+              onClick={() => setLocation("/settings")}
+              className="text-red-200 hover:text-white p-2 hover:bg-red-700 rounded-full transition-colors"
+            >
+              <Settings className="h-5 w-5" />
+            </button>
+          )}
         </div>
       </header>
       <div className="p-4 space-y-6 pb-20 md:pb-8 max-w-4xl mx-auto">
@@ -189,7 +197,11 @@ export default function Profile() {
           <h4 className="font-medium text-gray-800 mb-3">General</h4>
           <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
             {generalItems.map((item, index) => (
-              <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow" onClick={item.action}>
+              <Card 
+                key={index} 
+                className={`${item.locked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-md'} transition-shadow`}
+                onClick={item.locked ? undefined : item.action}
+              >
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
@@ -201,7 +213,11 @@ export default function Profile() {
                         <p className="text-sm text-gray-600">{item.subtitle}</p>
                       </div>
                     </div>
-                    <ArrowLeft className="h-4 w-4 text-gray-400 rotate-180" />
+                    {item.locked ? (
+                      <Lock className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <ArrowLeft className="h-4 w-4 text-gray-400 rotate-180" />
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -212,8 +228,8 @@ export default function Profile() {
         {/* Order History and Settings for larger screens */}
         <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
           <Card 
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => setLocation("/orders")}
+            className={`${isAdminOrStallOwner ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-md'} transition-shadow`}
+            onClick={isAdminOrStallOwner ? undefined : () => setLocation("/orders")}
           >
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -223,34 +239,42 @@ export default function Profile() {
                   </div>
                   <div>
                     <p className="font-medium text-gray-800">Order History</p>
-                    <p className="text-sm text-gray-600">View all your past orders</p>
+                    <p className="text-sm text-gray-600">
+                      {isAdminOrStallOwner ? "Admin/Staff access restricted" : "View all your past orders"}
+                    </p>
                   </div>
                 </div>
-                <ArrowLeft className="h-4 w-4 text-gray-400 rotate-180" />
+                {isAdminOrStallOwner ? (
+                  <Lock className="h-4 w-4 text-gray-400" />
+                ) : (
+                  <ArrowLeft className="h-4 w-4 text-gray-400 rotate-180" />
+                )}
               </div>
             </CardContent>
           </Card>
           
-          {/* Additional Settings card for desktop */}
-          <Card 
-            className="cursor-pointer hover:shadow-md transition-shadow md:block hidden"
-            onClick={() => setLocation("/settings")}
-          >
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 rounded-lg bg-blue-50">
-                    <Settings className="h-5 w-5 text-blue-600" />
+          {/* Additional Settings card for desktop - hidden for admin/stall owners */}
+          {!isAdminOrStallOwner && (
+            <Card 
+              className="cursor-pointer hover:shadow-md transition-shadow md:block hidden"
+              onClick={() => setLocation("/settings")}
+            >
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 rounded-lg bg-blue-50">
+                      <Settings className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800">Settings</p>
+                      <p className="text-sm text-gray-600">Manage your account preferences</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-800">Settings</p>
-                    <p className="text-sm text-gray-600">Manage your account preferences</p>
-                  </div>
+                  <ArrowLeft className="h-4 w-4 text-gray-400 rotate-180" />
                 </div>
-                <ArrowLeft className="h-4 w-4 text-gray-400 rotate-180" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Logout Button */}

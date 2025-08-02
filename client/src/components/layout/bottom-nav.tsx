@@ -19,13 +19,6 @@ export default function BottomNav() {
           key: "admin-dashboard"
         },
         {
-          icon: Settings,
-          label: "Settings",
-          path: "/settings",
-          active: location === "/settings",
-          key: "admin-settings"
-        },
-        {
           icon: User,
           label: "Profile",
           path: "/profile",
@@ -43,13 +36,6 @@ export default function BottomNav() {
           path: "/stall-dashboard",
           active: location === "/stall-dashboard",
           key: "stall-dashboard"
-        },
-        {
-          icon: Settings,
-          label: "Settings",
-          path: "/settings",
-          active: location === "/settings",
-          key: "stall-settings"
         },
         {
           icon: User,

@@ -350,10 +350,15 @@ function App() {
       <StoreProvider>
         <AuthProvider>
           <TooltipProvider>
-            <div className="w-full bg-white min-h-screen relative md:max-w-none max-w-md mx-auto md:shadow-none shadow-xl">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="w-full bg-white min-h-screen relative md:max-w-none max-w-md mx-auto md:shadow-none shadow-xl"
+            >
               <Toaster />
               <Router />
-            </div>
+            </motion.div>
           </TooltipProvider>
         </AuthProvider>
       </StoreProvider>

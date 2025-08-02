@@ -11,8 +11,8 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
   useEffect(() => {
     const exitTimer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(onComplete, 800);
-    }, 3500); // Simpler timing
+      setTimeout(onComplete, 1000); // Slightly longer for smoother transition
+    }, 3500);
 
     return () => {
       clearTimeout(exitTimer);
@@ -52,11 +52,11 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
           {/* Main cinematic content - everything appears together */}
           <div className="relative z-10 h-full flex flex-col items-center justify-center text-center">
             
-            {/* Logo - smooth entrance */}
+            {/* Logo - ultra smooth entrance */}
             <motion.div
-              initial={{ scale: 1.5, opacity: 0 }}
+              initial={{ scale: 1.2, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 1.2, ease: [0.23, 1, 0.32, 1] }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
               className="mb-8"
             >
               <div className="relative">

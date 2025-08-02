@@ -9,6 +9,8 @@ import BottomNav from "@/components/layout/bottom-nav";
 import FloatingCart from "@/components/floating-cart";
 import LoadingIndicator from "@/components/loading-indicator";
 import LoadingOverlay from "@/components/loading-overlay";
+import StallLoadingScreen from "@/components/stall-loading-screen";
+import StallSkeleton, { FeaturedStallSkeleton } from "@/components/stall-skeleton";
 import NotificationCenter from "@/components/notifications/notification-center";
 import NotificationBell from "@/components/notifications/notification-bell";
 import { Search, MapPin, Clock, Star, Award, Bell } from "lucide-react";
@@ -22,6 +24,8 @@ export default function Home() {
   const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingRatings, setIsLoadingRatings] = useState(true);
+  const [showSkeletons, setShowSkeletons] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const [featuredStall, setFeaturedStall] = useState<any>(null);
@@ -130,27 +134,50 @@ export default function Home() {
     }
   };
 
-  // Calculate real ratings for all stalls
+  // Calculate real ratings for all stalls (optimized with parallel fetching)
   const calculateStallRatings = async (stallsData: any[]) => {
     try {
       const ratingsMap: {[key: string]: {rating: number, reviewCount: number}} = {};
       
-      for (const stall of stallsData) {
-        const reviews = await getDocuments("reviews", "stallId", "==", stall.id);
-        if (reviews.length > 0) {
-          const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
-          const averageRating = totalRating / reviews.length;
-          ratingsMap[stall.id] = {
-            rating: Math.round(averageRating * 10) / 10,
-            reviewCount: reviews.length
-          };
+      // Fetch all reviews in parallel for better performance
+      const reviewPromises = stallsData.map(stall => 
+        getDocuments("reviews", "stallId", "==", stall.id)
+          .then(reviews => ({ stallId: stall.id, reviews }))
+          .catch(error => {
+            console.error(`Error fetching reviews for stall ${stall.id}:`, error);
+            return { stallId: stall.id, reviews: [] };
+          })
+      );
+
+      const stallReviews = await Promise.allSettled(reviewPromises);
+      
+      stallReviews.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          const { stallId, reviews } = result.value;
+          if (reviews.length > 0) {
+            const totalRating = reviews.reduce((sum: number, review: any) => sum + review.rating, 0);
+            const averageRating = totalRating / reviews.length;
+            ratingsMap[stallId] = {
+              rating: Math.round(averageRating * 10) / 10,
+              reviewCount: reviews.length
+            };
+          } else {
+            ratingsMap[stallId] = {
+              rating: 0,
+              reviewCount: 0
+            };
+          }
         } else {
-          ratingsMap[stall.id] = {
-            rating: 0,
-            reviewCount: 0
-          };
+          // Fallback for failed requests
+          const stallId = stallsData[index]?.id;
+          if (stallId) {
+            ratingsMap[stallId] = {
+              rating: 0,
+              reviewCount: 0
+            };
+          }
         }
-      }
+      });
       
       setStallRatings(ratingsMap);
     } catch (error) {
@@ -166,13 +193,22 @@ export default function Home() {
       const activeStalls = stallsData.filter((stall) => stall.isActive);
       setStalls(activeStalls);
       
-      // Calculate featured stall and real ratings
-      await Promise.all([
-        calculateFeaturedStall(activeStalls),
-        calculateStallRatings(activeStalls)
-      ]);
-      
+      // Set loading to false immediately after stalls are loaded
       setIsLoading(false);
+      
+      // Show skeletons briefly then load additional data
+      setShowSkeletons(true);
+      setTimeout(() => setShowSkeletons(false), 800);
+      
+      // Optimized: Start these calculations in background after displaying stalls
+      setIsLoadingRatings(true);
+      setTimeout(async () => {
+        await Promise.all([
+          calculateFeaturedStall(activeStalls),
+          calculateStallRatings(activeStalls)
+        ]);
+        setIsLoadingRatings(false);
+      }, 100);
     });
 
     // Subscribe to categories from Firebase
@@ -344,13 +380,16 @@ export default function Home() {
         </div>
 
         {/* Featured Section */}
-        {activeFilter === "all" && featuredStall && (
+        {activeFilter === "all" && (
           <div>
             <h2 className="text-lg font-semibold text-gray-900 mb-3 md:text-xl">
               Featured Today
             </h2>
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              <Card
+            {isLoadingRatings && !featuredStall ? (
+              <FeaturedStallSkeleton />
+            ) : featuredStall ? (
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                <Card
                 key={featuredStall.id}
                 className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => window.location.href = `/restaurant/${featuredStall.id}`}
@@ -398,6 +437,13 @@ export default function Home() {
                 </CardContent>
               </Card>
             </div>
+            ) : (
+              <Card className="bg-gray-50 border-gray-200">
+                <CardContent className="p-4 text-center">
+                  <p className="text-gray-500">No featured stall today</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
 
@@ -410,13 +456,11 @@ export default function Home() {
           {isLoading ? (
             <Card className="bg-white border-gray-200">
               <CardContent className="p-8 text-center md:p-12">
-                <LoadingIndicator
-                  message="Fetching stalls..."
-                  variant="logo"
-                  size="lg"
-                />
+                <StallLoadingScreen message="Loading delicious stalls..." />
               </CardContent>
             </Card>
+          ) : showSkeletons ? (
+            <StallSkeleton count={6} />
           ) : filteredStalls.length === 0 ? (
             <Card className="bg-white border-gray-200">
               <CardContent className="p-8 text-center md:p-12">
@@ -445,6 +489,7 @@ export default function Home() {
                     deliveryTime: stall.deliveryTime || "15-30 min",
                     priceRange: stall.priceRange || "₱50-200",
                     category: stall.category,
+                    deliveryFee: stall.deliveryFee || "Free"
                   }}
                 />
               ))}

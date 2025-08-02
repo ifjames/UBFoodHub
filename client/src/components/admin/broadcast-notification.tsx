@@ -138,12 +138,15 @@ export default function BroadcastNotification() {
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby="broadcast-description">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="w-5 h-5 text-[#6d031e]" />
             Broadcast Notification
           </DialogTitle>
+          <p id="broadcast-description" className="text-sm text-gray-600">
+            Send notifications to selected users or groups
+          </p>
         </DialogHeader>
 
         <form onSubmit={handleSendNotification} className="space-y-4">

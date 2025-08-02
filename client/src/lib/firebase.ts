@@ -368,6 +368,7 @@ export const getUserLoyaltyTier = (points: number) => {
 
 export const getLoyaltyTransactions = async (userId: string) => {
   try {
+    // Try the optimized query first
     const transactionsQuery = query(
       collection(db, "loyalty_transactions"),
       where("userId", "==", userId),
@@ -376,9 +377,35 @@ export const getLoyaltyTransactions = async (userId: string) => {
     
     const querySnapshot = await getDocs(transactionsQuery);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error getting loyalty transactions:", error);
-    throw error;
+    
+    // If it's a failed-precondition error (missing index), try without orderBy
+    if (error.code === "failed-precondition") {
+      console.warn("Firestore index missing, falling back to simple query");
+      try {
+        const simpleQuery = query(
+          collection(db, "loyalty_transactions"),
+          where("userId", "==", userId)
+        );
+        
+        const fallbackSnapshot = await getDocs(simpleQuery);
+        const transactions = fallbackSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // Sort in memory as fallback
+        return transactions.sort((a: any, b: any) => {
+          const aTime = new Date(a.timestamp || 0).getTime();
+          const bTime = new Date(b.timestamp || 0).getTime();
+          return bTime - aTime; // desc order
+        });
+      } catch (fallbackError) {
+        console.error("Fallback query also failed:", fallbackError);
+        return []; // Return empty array instead of throwing
+      }
+    }
+    
+    // For other errors, return empty array to prevent app crashes
+    return [];
   }
 };
 

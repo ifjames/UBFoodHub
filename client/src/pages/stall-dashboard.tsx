@@ -910,7 +910,7 @@ export default function StallDashboard() {
                     </Button>
                   </div>
                   <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <span>Performance: {orders.length < 50 ? 'Optimal ⚡' : orders.length < 200 ? 'Good 👍' : 'High Volume 🚀'}</span>
+                    <span>Performance: {orders.length < 50 ? 'Optimal' : orders.length < 200 ? 'Good' : 'High Volume'}</span>
                     {(orderFilter !== "all" || orderSearchQuery) && (
                       <Button
                         variant="ghost"

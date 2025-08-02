@@ -86,10 +86,10 @@ class NotificationService {
 
   public async sendOrderNotification(orderId: string, status: string, customerName?: string, userId?: string): Promise<void> {
     const statusMessages: Record<string, string> = {
-      'preparing': 'Your order is now being prepared! 👨‍🍳',
-      'ready': 'Your order is ready for pickup! 🔔',
-      'cancelled': 'Your order has been cancelled 😔',
-      'completed': 'Order completed. Thank you for choosing UB FoodHub! ✅'
+      'preparing': 'Your order is now being prepared!',
+      'ready': 'Your order is ready for pickup!',
+      'cancelled': 'Your order has been cancelled',
+      'completed': 'Order completed. Thank you for choosing UB FoodHub!'
     };
 
     const title = `Order Update`;
@@ -146,7 +146,7 @@ class NotificationService {
 
   public async sendAnnouncementNotification(title: string, message: string): Promise<void> {
     await this.sendNotification({
-      title: `📢 ${title}`,
+      title: `Announcement: ${title}`,
       body: message,
       type: 'announcement'
     });
@@ -163,7 +163,7 @@ class NotificationService {
   public async sendTestNotification(): Promise<void> {
     await this.sendNotification({
       title: 'Test Notification',
-      body: 'This is a test notification from UB FoodHub! 🔔',
+      body: 'This is a test notification from UB FoodHub!',
       type: 'general'
     });
   }

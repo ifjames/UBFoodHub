@@ -118,7 +118,7 @@ export default function Orders() {
           if (updatedOrder.status === 'completed' && order.status !== 'completed') {
             setIsOrderCompleted(true);
             toast({
-              title: "Order Completed! 🎉",
+              title: "Order Completed!",
               description: "Your order has been successfully picked up. Thank you!",
             });
             

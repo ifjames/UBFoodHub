@@ -13,11 +13,12 @@ import { useStore } from "@/lib/store";
 import { subscribeToCollection, addDocument, updateDocument, deleteDocument, getCollection, signUp, createDocument } from "@/lib/firebase";
 import { logOut } from "@/lib/firebase";
 import { useLocation } from "wouter";
-import { Users, Store, Plus, Edit, Trash2, LogOut, Settings, BarChart3 } from "lucide-react";
+import { Users, Store, Plus, Edit, Trash2, LogOut, Settings, BarChart3, GripVertical } from "lucide-react";
 import PenaltyManagement from "@/components/penalties/penalty-management";
 import BroadcastNotification from "@/components/admin/broadcast-notification";
 import NotificationBell from "@/components/notifications/notification-bell";
 import BottomNav from "@/components/layout/bottom-nav";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 export default function AdminDashboard() {
   const { state, dispatch } = useStore();
@@ -86,11 +87,19 @@ export default function AdminDashboard() {
     const unsubscribeStalls = subscribeToCollection("stalls", setStalls);
     const unsubscribeOrders = subscribeToCollection("orders", setOrders);
     const unsubscribeCategories = subscribeToCollection("categories", (categoriesData) => {
-      const categoryNames = categoriesData.map(cat => cat.name);
-      // Always include default categories if they don't exist
-      const defaultCategories = ['Filipino', 'Asian', 'Western', 'Snacks', 'Beverages', 'Desserts'];
-      const allCategories = Array.from(new Set([...defaultCategories, ...categoryNames]));
-      setCategories(allCategories);
+      // Sort categories by order field, fallback to alphabetical if no order
+      const sortedCategories = categoriesData
+        .sort((a, b) => {
+          if (a.order !== undefined && b.order !== undefined) {
+            return a.order - b.order;
+          }
+          if (a.order !== undefined) return -1;
+          if (b.order !== undefined) return 1;
+          return a.name.localeCompare(b.name);
+        })
+        .map(cat => cat.name);
+      
+      setCategories(sortedCategories);
     });
 
     return () => {
@@ -265,16 +274,6 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteCategory = async (categoryName: string) => {
-    const defaultCategories = ['Filipino', 'Asian', 'Western', 'Snacks', 'Beverages', 'Desserts'];
-    if (defaultCategories.includes(categoryName)) {
-      toast({
-        title: "Cannot delete",
-        description: "Default categories cannot be deleted.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       // Find and delete the category document
       const categoryDocs = await getCollection("categories");
@@ -290,6 +289,42 @@ export default function AdminDashboard() {
     } catch (error: any) {
       toast({
         title: "Error removing category",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDragEnd = async (result: any) => {
+    if (!result.destination) return;
+
+    const items = Array.from(categories);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setCategories(items);
+
+    // Update the order in Firebase
+    try {
+      const categoryDocs = await getCollection("categories");
+      const updatePromises = items.map(async (categoryName, index) => {
+        const categoryDoc = categoryDocs.docs.find(doc => doc.data().name === categoryName);
+        if (categoryDoc) {
+          await updateDocument("categories", categoryDoc.id, { order: index });
+        }
+      });
+      
+      await Promise.all(updatePromises);
+      
+      toast({
+        title: "Categories reordered",
+        description: "Category order has been updated successfully.",
+      });
+    } catch (error: any) {
+      // Revert local change if Firebase update fails
+      loadCategories();
+      toast({
+        title: "Error reordering categories",
         description: error.message,
         variant: "destructive",
       });
@@ -707,25 +742,54 @@ export default function AdminDashboard() {
                     </Button>
                   </div>
                   
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {categories.map((category, index) => (
-                      <Card key={index} className="p-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">{category}</span>
-                          {!['Filipino', 'Asian', 'Western', 'Snacks', 'Beverages', 'Desserts'].includes(category) && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteCategory(category)}
-                              className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          )}
+                  <DragDropContext onDragEnd={handleDragEnd}>
+                    <Droppable droppableId="categories" direction="horizontal">
+                      {(provided) => (
+                        <div
+                          {...provided.droppableProps}
+                          ref={provided.innerRef}
+                          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"
+                        >
+                          {categories.map((category, index) => (
+                            <Draggable key={category} draggableId={category} index={index}>
+                              {(provided, snapshot) => (
+                                <Card
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  className={`p-3 transition-all duration-200 ${
+                                    snapshot.isDragging 
+                                      ? 'shadow-lg rotate-2 bg-blue-50 border-blue-300' 
+                                      : 'hover:shadow-md'
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                                      <div
+                                        {...provided.dragHandleProps}
+                                        className="flex-shrink-0 p-1 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 transition-colors"
+                                      >
+                                        <GripVertical className="w-3 h-3" />
+                                      </div>
+                                      <span className="text-sm font-medium truncate">{category}</span>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDeleteCategory(category)}
+                                      className="h-6 w-6 p-0 text-red-600 hover:text-red-700 flex-shrink-0"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                </Card>
+                              )}
+                            </Draggable>
+                          ))}
+                          {provided.placeholder}
                         </div>
-                      </Card>
-                    ))}
-                  </div>
+                      )}
+                    </Droppable>
+                  </DragDropContext>
                 </div>
               </CardContent>
             </Card>

@@ -18,7 +18,10 @@ import {
   Image as ImageIcon,
   Save,
   LogOut,
-  Camera
+  Camera,
+  BarChart3,
+  X,
+  MessageSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -723,12 +726,12 @@ export default function StallDashboard() {
               style={{ scrollBehavior: isDragging ? 'auto' : 'smooth' }}
             >
               {[
-                { id: "overview", label: "Overview", icon: TrendingUp },
+                { id: "overview", label: "Overview", icon: BarChart3 },
                 { id: "menu", label: "Menu", icon: Package },
                 { id: "orders", label: "Orders", icon: Clock },
                 { id: "settings", label: "Settings", icon: Settings },
-                { id: "cancellations", label: "Cancellations", icon: Settings },
-                { id: "reviews", label: "Reviews", icon: Star },
+                { id: "cancellations", label: "Cancellations", icon: X },
+                { id: "reviews", label: "Reviews", icon: MessageSquare },
                 { id: "statistics", label: "Statistics", icon: TrendingUp }
               ].map((tab) => (
                 <button
@@ -763,12 +766,12 @@ export default function StallDashboard() {
           {/* Desktop Grid Navigation */}
           <div className="hidden md:flex space-x-1 bg-gray-100 rounded-lg p-1">
             {[
-              { id: "overview", label: "Overview", icon: TrendingUp },
+              { id: "overview", label: "Overview", icon: BarChart3 },
               { id: "menu", label: "Menu", icon: Package },
               { id: "orders", label: "Orders", icon: Clock },
               { id: "settings", label: "Stall Settings", icon: Settings },
-              { id: "cancellations", label: "Cancellations", icon: Settings },
-              { id: "reviews", label: "Reviews", icon: Star },
+              { id: "cancellations", label: "Cancellations", icon: X },
+              { id: "reviews", label: "Reviews", icon: MessageSquare },
               { id: "statistics", label: "Statistics", icon: TrendingUp }
             ].map((tab) => (
               <button

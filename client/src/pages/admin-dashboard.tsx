@@ -13,7 +13,7 @@ import { useStore } from "@/lib/store";
 import { subscribeToCollection, addDocument, updateDocument, deleteDocument, getCollection, signUp, createDocument } from "@/lib/firebase";
 import { logOut } from "@/lib/firebase";
 import { useLocation } from "wouter";
-import { Users, Store, Plus, Edit, Trash2, LogOut, Settings, BarChart3, GripVertical, Check } from "lucide-react";
+import { Users, Store, Plus, Edit, Trash2, LogOut, Settings, BarChart3, GripVertical, Check, Tag, AlertTriangle, Bell } from "lucide-react";
 import PenaltyManagement from "@/components/penalties/penalty-management";
 import BroadcastNotification from "@/components/admin/broadcast-notification";
 import NotificationBell from "@/components/notifications/notification-bell";
@@ -682,9 +682,9 @@ export default function AdminDashboard() {
               {[
                 { id: "users", label: "Users", icon: Users },
                 { id: "stalls", label: "Stalls", icon: Store },
-                { id: "categories", label: "Categories", icon: Settings },
-                { id: "penalties", label: "Penalties", icon: Settings },
-                { id: "notifications", label: "Notify", icon: Settings }
+                { id: "categories", label: "Categories", icon: Tag },
+                { id: "penalties", label: "Penalties", icon: AlertTriangle },
+                { id: "notifications", label: "Notify", icon: Bell }
               ].map((tab) => (
                 <button
                   key={tab.id}

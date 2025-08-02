@@ -163,36 +163,60 @@ export default function StallDashboard() {
     // Fetch categories created by admin
     const fetchCategories = async () => {
       try {
-        // Get categories from the admin-created categories collection
-        const categoriesData = await getDocuments("categories", "isActive", "==", true);
-        if (categoriesData && categoriesData.length > 0) {
-          const categoryNames = categoriesData
-            .sort((a: any, b: any) => {
-              // Sort by order if available, then by name
-              if (a.order !== undefined && b.order !== undefined) {
-                return a.order - b.order;
-              }
-              if (a.order !== undefined) return -1;
-              if (b.order !== undefined) return 1;
-              return a.name.localeCompare(b.name);
-            })
-            .map((cat: any) => cat.name);
-          setAvailableCategories(categoryNames);
-          console.log("Admin-created categories loaded:", categoryNames);
-        } else {
-          console.log("No admin categories found, using fallback");
-          // Fallback to existing categories from current stall
-          if (stallInfo?.categories && Array.isArray(stallInfo.categories)) {
-            setAvailableCategories(stallInfo.categories);
-          } else if (stallInfo?.category) {
-            setAvailableCategories([stallInfo.category]);
-          } else {
-            setAvailableCategories(["Chinese", "Filipino"]);
+        console.log("Fetching admin categories from 'categories' collection...");
+        
+        // First, try to get ALL categories to see what exists
+        try {
+          console.log("Getting ALL categories to debug...");
+          const allCats = await getCollection("categories");
+          const allData = allCats.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+          console.log("ALL categories found:", allData);
+          
+          if (allData.length > 0) {
+            // If we found categories, try to filter active ones
+            const activeCategories = allData.filter((cat: any) => {
+              return cat.isActive === true || cat.active === true || cat.status === 'active' || cat.enabled === true;
+            });
+            console.log("Filtered active categories:", activeCategories);
+            
+            if (activeCategories.length > 0) {
+              const categoryNames = activeCategories
+                .sort((a: any, b: any) => {
+                  if (a.order !== undefined && b.order !== undefined) {
+                    return a.order - b.order;
+                  }
+                  if (a.order !== undefined) return -1;
+                  if (b.order !== undefined) return 1;
+                  return a.name.localeCompare(b.name);
+                })
+                .map((cat: any) => cat.name);
+              setAvailableCategories(categoryNames);
+              console.log("Admin-created categories loaded:", categoryNames);
+              return;
+            } else {
+              // If no active ones found, use all categories
+              console.log("No active categories found, using all categories");
+              const categoryNames = allData
+                .sort((a: any, b: any) => {
+                  if (a.order !== undefined && b.order !== undefined) {
+                    return a.order - b.order;
+                  }
+                  if (a.order !== undefined) return -1;
+                  if (b.order !== undefined) return 1;
+                  return a.name.localeCompare(b.name);
+                })
+                .map((cat: any) => cat.name);
+              setAvailableCategories(categoryNames);
+              console.log("All categories loaded:", categoryNames);
+              return;
+            }
           }
+        } catch (getAllError) {
+          console.error("Failed to get all categories:", getAllError);
         }
-      } catch (error) {
-        console.error("Error fetching admin categories:", error);
+        
         // Fallback to existing categories from current stall
+        console.log("Using fallback categories from stall info");
         if (stallInfo?.categories && Array.isArray(stallInfo.categories)) {
           setAvailableCategories(stallInfo.categories);
         } else if (stallInfo?.category) {
@@ -200,6 +224,10 @@ export default function StallDashboard() {
         } else {
           setAvailableCategories(["Chinese", "Filipino"]);
         }
+      } catch (error) {
+        console.error("Error fetching admin categories:", error);
+        // Final fallback
+        setAvailableCategories(["Chinese", "Filipino"]);
       }
     };
 

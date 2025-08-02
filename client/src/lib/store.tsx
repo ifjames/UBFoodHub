@@ -69,7 +69,9 @@ export function useStore() {
 export function useAuth() {
   const signIn = async (email: string, password: string) => {
     try {
-      const userCredential = await firebaseSignIn(email, password);
+      // Use secure sign-in that enforces email verification for students
+      const { secureSignIn } = await import("./firebase");
+      const userCredential = await secureSignIn(email, password);
       
       // Get user data from Firestore to determine role
       const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
@@ -90,11 +92,10 @@ export function useAuth() {
     studentId: string;
   }) => {
     try {
-      const userCredential = await firebaseSignUp(email, password);
+      // Use secure sign-up that includes email verification
+      const { secureSignUp } = await import("./firebase");
+      const userCredential = await secureSignUp(email, password);
       const user = userCredential.user;
-      
-      // Send email verification
-      await sendEmailVerification(user);
       
       // Create user document in Firestore
       await setDoc(doc(db, "users", user.uid), {

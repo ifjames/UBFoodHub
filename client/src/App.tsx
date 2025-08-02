@@ -110,6 +110,15 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChange(async (firebaseUser) => {
       try {
         if (firebaseUser) {
+          // Check if student email needs verification FIRST
+          const isStudent = firebaseUser.email?.endsWith('@ub.edu.ph');
+          if (isStudent && !firebaseUser.emailVerified) {
+            console.log("Student email not verified, signing out:", firebaseUser.email);
+            await logOut();
+            setIsAuthLoading(false);
+            return;
+          }
+
           // Ensure Firebase auth is ready before proceeding with timeout
           const authPromise = auth.authStateReady();
           const timeoutPromise = new Promise((_, reject) => {

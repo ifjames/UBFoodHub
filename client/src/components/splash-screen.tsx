@@ -33,8 +33,8 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.5, exit: { duration: 0.6 } }}
+          exit={{ opacity: 0, scale: 1.05 }}
+          transition={{ duration: 0.5, exit: { duration: 0.8, ease: "easeInOut" } }}
           className="fixed inset-0 z-50 overflow-hidden bg-gradient-to-b from-[hsl(345,82%,15%)] via-[hsl(345,82%,20%)] to-[hsl(345,82%,10%)]"
         >
           {/* Netflix-style animated background */}
@@ -59,38 +59,36 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
 
           {/* Main cinematic content */}
           <div className="relative z-10 h-full flex flex-col items-center justify-center">
-            {/* Phase 0: Logo entrance - Netflix style zoom */}
+            {/* Phase 0: Logo entrance - smooth cinematic */}
             <motion.div
-              initial={{ scale: 3, opacity: 0 }}
-              animate={{
-                scale: phase >= 1 ? 1 : 3,
+              initial={{ scale: 2, opacity: 0, y: 0 }}
+              animate={{ 
+                scale: 1,
                 opacity: 1,
+                y: phase >= 2 ? -30 : 0
               }}
-              transition={{
-                duration: 1.5,
-                ease: [0.25, 0.46, 0.45, 0.94], // Netflix-style easing
+              transition={{ 
+                scale: { duration: 1.2, ease: [0.23, 1, 0.32, 1] },
+                opacity: { duration: 1.2, ease: "easeOut" },
+                y: { duration: 0.8, ease: [0.23, 1, 0.32, 1] }
               }}
-              className="mb-8"
+              className={`${phase >= 2 ? 'mb-4' : 'mb-8'} transition-all duration-800`}
             >
               <div className="relative">
-                {/* Glowing background for logo */}
+                {/* Subtle glow without harsh borders */}
                 <motion.div
-                  className="absolute inset-0 bg-[hsl(345,82%,28%)] rounded-full blur-2xl opacity-60"
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    opacity: [0.6, 0.8, 0.6],
+                  className="absolute inset-0 bg-[hsl(345,82%,40%)] rounded-full blur-3xl opacity-30"
+                  animate={{ 
+                    scale: [1, 1.1, 1],
+                    opacity: [0.2, 0.4, 0.2]
                   }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                 />
-
+                
                 <img
                   src="/logo.png"
                   alt="UB FoodHub"
-                  className="relative z-10 w-28 h-28 md:w-36 md:h-36 lg:w-40 lg:h-40 drop-shadow-2xl"
+                  className="relative z-10 w-32 h-32 md:w-40 md:h-40 lg:w-44 lg:h-44 drop-shadow-2xl"
                 />
               </div>
             </motion.div>
@@ -129,53 +127,16 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
               >
                 <motion.p
                   className="text-base sm:text-lg md:text-xl text-gray-300 font-light tracking-wide px-4"
-                  initial={{ width: 0 }}
-                  animate={{ width: "auto" }}
-                  transition={{ duration: 1.2, delay: 0.3 }}
-                  style={{
-                    overflow: "hidden",
-                    whiteSpace: "nowrap",
-                    borderRight: "2px solid hsl(345,82%,55%)",
-                  }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
                 >
                   University of Batangas Food Experience
                 </motion.p>
-
-                {/* Remove blinking cursor after animation */}
-                <motion.div
-                  initial={{ opacity: 1 }}
-                  animate={{ opacity: 0 }}
-                  transition={{ delay: 2.5, duration: 0.3 }}
-                  className="inline-block w-0.5 h-6 bg-[hsl(345,82%,55%)] ml-1"
-                />
               </motion.div>
             )}
 
-            {/* Subtle loading indicator - Netflix style */}
-            <motion.div
-              className="absolute bottom-12 sm:bottom-16 left-1/2 transform -translate-x-1/2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: phase >= 3 ? 1 : 0 }}
-              transition={{ delay: 0.8 }}
-            >
-              <div className="flex space-x-1">
-                {[0, 1, 2].map((i) => (
-                  <motion.div
-                    key={i}
-                    className="w-2 h-2 bg-[hsl(345,82%,55%)] rounded-full"
-                    animate={{
-                      scale: [1, 1.5, 1],
-                      opacity: [0.5, 1, 0.5],
-                    }}
-                    transition={{
-                      duration: 1.5,
-                      repeat: Infinity,
-                      delay: i * 0.2,
-                    }}
-                  />
-                ))}
-              </div>
-            </motion.div>
+
           </div>
 
           {/* Lightened cinematic vignette */}

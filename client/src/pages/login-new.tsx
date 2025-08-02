@@ -1,4 +1,4 @@
-import { useState, FormEvent, useMemo } from "react";
+import { useState, FormEvent, useMemo, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, Lock, Mail, User, Phone, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,164 @@ export default function LoginPage() {
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
 
-  // Stable particle configurations to prevent re-rendering on typing
+  // Interactive particle system state
+  const [interactiveParticles, setInteractiveParticles] = useState<Array<{
+    id: number;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    size: number;
+    opacity: number;
+    type: string;
+    animationDelay: number;
+    animationDuration: number;
+  }>>([]);
+  
+  const animationFrameRef = useRef<number>();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const lastInteractionRef = useRef<{ x: number; y: number; time: number } | null>(null);
+
+  // Initialize particles on mount
+  useEffect(() => {
+    const initParticles = () => {
+      const particles = [];
+      const particleCount = window.innerWidth < 1024 ? 25 : 30;
+      
+      for (let i = 0; i < particleCount; i++) {
+        particles.push({
+          id: i,
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: (Math.random() - 0.5) * 0.5,
+          size: Math.random() * 3 + 1,
+          opacity: Math.random() * 0.6 + 0.2,
+          type: i % 4 === 0 ? 'particle-float' :
+                i % 4 === 1 ? 'wave-motion' :
+                i % 4 === 2 ? 'magic-sparkle' : 'float',
+          animationDelay: Math.random() * 5,
+          animationDuration: 4 + Math.random() * 6,
+        });
+      }
+      setInteractiveParticles(particles);
+    };
+
+    initParticles();
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []);
+
+  // Optimized particle animation loop with frame rate targeting
+  useEffect(() => {
+    let lastFrameTime = 0;
+    const targetFPS = 60;
+    const frameInterval = 1000 / targetFPS;
+    
+    const animate = (currentTime: number) => {
+      if (currentTime - lastFrameTime >= frameInterval) {
+        setInteractiveParticles(prevParticles => {
+          return prevParticles.map(particle => {
+            let { x, y, vx, vy } = particle;
+            
+            // Apply interaction force if recent interaction
+            if (lastInteractionRef.current && Date.now() - lastInteractionRef.current.time < 2000) {
+              const dx = x - lastInteractionRef.current.x;
+              const dy = y - lastInteractionRef.current.y;
+              const distance = Math.sqrt(dx * dx + dy * dy);
+              const force = Math.max(0, 150 - distance) / 150;
+              
+              if (force > 0) {
+                const repelStrength = 2;
+                vx += (dx / distance) * force * repelStrength;
+                vy += (dy / distance) * force * repelStrength;
+              }
+            }
+            
+            // Apply velocity with damping
+            x += vx;
+            y += vy;
+            vx *= 0.98;
+            vy *= 0.98;
+            
+            // Reset particle if it moves too far off screen
+            const margin = 100;
+            if (x < -margin || x > window.innerWidth + margin || 
+                y < -margin || y > window.innerHeight + margin) {
+              // Respawn from a random edge
+              const edge = Math.floor(Math.random() * 4);
+              switch (edge) {
+                case 0: // top
+                  x = Math.random() * window.innerWidth;
+                  y = -margin;
+                  break;
+                case 1: // right
+                  x = window.innerWidth + margin;
+                  y = Math.random() * window.innerHeight;
+                  break;
+                case 2: // bottom
+                  x = Math.random() * window.innerWidth;
+                  y = window.innerHeight + margin;
+                  break;
+                case 3: // left
+                  x = -margin;
+                  y = Math.random() * window.innerHeight;
+                  break;
+              }
+              vx = (Math.random() - 0.5) * 0.5;
+              vy = (Math.random() - 0.5) * 0.5;
+            }
+            
+            return { ...particle, x, y, vx, vy };
+          });
+        });
+        lastFrameTime = currentTime;
+      }
+      
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
+    
+    animate(0);
+    
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []);
+
+  // Handle user interactions
+  const handleInteraction = useCallback((clientX: number, clientY: number) => {
+    lastInteractionRef.current = {
+      x: clientX,
+      y: clientY,
+      time: Date.now()
+    };
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    // Throttle mouse events for performance
+    const now = Date.now();
+    if (!lastInteractionRef.current || now - lastInteractionRef.current.time > 16) { // ~60fps throttling
+      handleInteraction(e.clientX, e.clientY);
+    }
+  }, [handleInteraction]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    // Throttle touch events for performance
+    const now = Date.now();
+    if (!lastInteractionRef.current || now - lastInteractionRef.current.time > 32) { // ~30fps for touch
+      const touch = e.touches[0];
+      if (touch) {
+        handleInteraction(touch.clientX, touch.clientY);
+      }
+    }
+  }, [handleInteraction]);
+
+  // Static particle configurations for areas where interactive particles aren't used
   const desktopParticles = useMemo(() => 
     [...Array(30)].map((_, i) => ({
       id: i,
@@ -220,22 +377,33 @@ export default function LoginPage() {
         <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[#6d031e] via-[#8b0420] to-[#4a0115] items-center justify-center p-8">
           <div className="absolute inset-0 bg-black/20"></div>
           
-          {/* Enhanced Floating Particles */}
-          <div className="absolute inset-0 overflow-hidden">
-            {desktopParticles.map((particle) => (
+          {/* Interactive Floating Particles */}
+          <div 
+            ref={containerRef}
+            className="absolute inset-0 overflow-hidden"
+            onMouseMove={handleMouseMove}
+            onTouchMove={handleTouchMove}
+            style={{ touchAction: 'none' }}
+          >
+            {interactiveParticles.map((particle) => (
               <div
                 key={particle.id}
-                className={`absolute rounded-full ${particle.className}`}
-                style={particle.style}
-              ></div>
-            ))}
-            
-            {/* Magic sparkles */}
-            {sparkleParticles.map((sparkle) => (
-              <div
-                key={`sparkle-${sparkle.id}`}
-                className="absolute w-1 h-1 bg-gradient-to-r from-white to-yellow-200 rounded-full animate-magic-sparkle"
-                style={sparkle.style}
+                className={`absolute rounded-full pointer-events-none transition-all duration-100 ${
+                  particle.type === 'particle-float' ? 'bg-white/20 animate-particle-float' :
+                  particle.type === 'wave-motion' ? 'bg-red-200/30 animate-wave-motion' :
+                  particle.type === 'magic-sparkle' ? 'bg-yellow-200/40 animate-magic-sparkle' :
+                  'bg-white/15 animate-float'
+                }`}
+                style={{
+                  left: `${particle.x}px`,
+                  top: `${particle.y}px`,
+                  width: `${particle.size}px`,
+                  height: `${particle.size}px`,
+                  opacity: particle.opacity,
+                  animationDelay: `${particle.animationDelay}s`,
+                  animationDuration: `${particle.animationDuration}s`,
+                  transform: 'translate(-50%, -50%)',
+                }}
               ></div>
             ))}
           </div>
@@ -265,13 +433,34 @@ export default function LoginPage() {
 
         {/* Mobile/Desktop Right Panel */}
         <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-[#6d031e] via-[#8b0420] to-[#4a0115] lg:bg-white lg:bg-gradient-to-br lg:from-gray-50 lg:to-white relative overflow-hidden">
-          {/* Mobile Background Particles */}
-          <div className="absolute inset-0 overflow-hidden lg:hidden">
-            {mobileParticles.map((particle) => (
+          {/* Mobile Interactive Particles */}
+          <div 
+            className="absolute inset-0 overflow-hidden lg:hidden"
+            onTouchMove={handleTouchMove}
+            onTouchStart={(e) => {
+              const touch = e.touches[0];
+              if (touch) handleInteraction(touch.clientX, touch.clientY);
+            }}
+            style={{ touchAction: 'none' }}
+          >
+            {interactiveParticles.slice(0, 20).map((particle) => (
               <div
                 key={`mobile-${particle.id}`}
-                className={`absolute rounded-full ${particle.className}`}
-                style={particle.style}
+                className={`absolute rounded-full pointer-events-none transition-all duration-100 ${
+                  particle.type === 'particle-float' ? 'bg-white/15 animate-particle-float' :
+                  particle.type === 'wave-motion' ? 'bg-red-200/25 animate-wave-motion' :
+                  'bg-white/10 animate-float'
+                }`}
+                style={{
+                  left: `${particle.x}px`,
+                  top: `${particle.y}px`,
+                  width: `${Math.max(1, particle.size * 0.8)}px`,
+                  height: `${Math.max(1, particle.size * 0.8)}px`,
+                  opacity: particle.opacity * 0.8,
+                  animationDelay: `${particle.animationDelay}s`,
+                  animationDuration: `${particle.animationDuration}s`,
+                  transform: 'translate(-50%, -50%)',
+                }}
               ></div>
             ))}
           </div>
@@ -345,22 +534,32 @@ export default function LoginPage() {
       <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[#6d031e] via-[#8b0420] to-[#4a0115] items-center justify-center p-8">
         <div className="absolute inset-0 bg-black/20"></div>
         
-        {/* Enhanced Floating Particles */}
-        <div className="absolute inset-0 overflow-hidden">
-          {desktopParticles.map((particle) => (
+        {/* Interactive Floating Particles */}
+        <div 
+          className="absolute inset-0 overflow-hidden"
+          onMouseMove={handleMouseMove}
+          onTouchMove={handleTouchMove}
+          style={{ touchAction: 'none' }}
+        >
+          {interactiveParticles.map((particle) => (
             <div
               key={particle.id}
-              className={`absolute rounded-full ${particle.className}`}
-              style={particle.style}
-            ></div>
-          ))}
-          
-          {/* Magic sparkles */}
-          {sparkleParticles.map((sparkle) => (
-            <div
-              key={`sparkle-${sparkle.id}`}
-              className="absolute w-1 h-1 bg-gradient-to-r from-white to-yellow-200 rounded-full animate-magic-sparkle"
-              style={sparkle.style}
+              className={`absolute rounded-full pointer-events-none transition-all duration-100 ${
+                particle.type === 'particle-float' ? 'bg-white/20 animate-particle-float' :
+                particle.type === 'wave-motion' ? 'bg-red-200/30 animate-wave-motion' :
+                particle.type === 'magic-sparkle' ? 'bg-yellow-200/40 animate-magic-sparkle' :
+                'bg-white/15 animate-float'
+              }`}
+              style={{
+                left: `${particle.x}px`,
+                top: `${particle.y}px`,
+                width: `${particle.size}px`,
+                height: `${particle.size}px`,
+                opacity: particle.opacity,
+                animationDelay: `${particle.animationDelay}s`,
+                animationDuration: `${particle.animationDuration}s`,
+                transform: 'translate(-50%, -50%)',
+              }}
             ></div>
           ))}
         </div>
@@ -390,13 +589,34 @@ export default function LoginPage() {
 
       {/* Mobile/Desktop Right Panel */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-[#6d031e] via-[#8b0420] to-[#4a0115] lg:bg-white lg:bg-gradient-to-br lg:from-gray-50 lg:to-white relative overflow-hidden">
-        {/* Mobile Background Particles */}
-        <div className="absolute inset-0 overflow-hidden lg:hidden">
-          {mobileParticles.map((particle) => (
+        {/* Mobile Interactive Particles */}
+        <div 
+          className="absolute inset-0 overflow-hidden lg:hidden"
+          onTouchMove={handleTouchMove}
+          onTouchStart={(e) => {
+            const touch = e.touches[0];
+            if (touch) handleInteraction(touch.clientX, touch.clientY);
+          }}
+          style={{ touchAction: 'none' }}
+        >
+          {interactiveParticles.slice(0, 20).map((particle) => (
             <div
               key={`mobile-${particle.id}`}
-              className={`absolute rounded-full ${particle.className}`}
-              style={particle.style}
+              className={`absolute rounded-full pointer-events-none transition-all duration-100 ${
+                particle.type === 'particle-float' ? 'bg-white/15 animate-particle-float' :
+                particle.type === 'wave-motion' ? 'bg-red-200/25 animate-wave-motion' :
+                'bg-white/10 animate-float'
+              }`}
+              style={{
+                left: `${particle.x}px`,
+                top: `${particle.y}px`,
+                width: `${Math.max(1, particle.size * 0.8)}px`,
+                height: `${Math.max(1, particle.size * 0.8)}px`,
+                opacity: particle.opacity * 0.8,
+                animationDelay: `${particle.animationDelay}s`,
+                animationDuration: `${particle.animationDuration}s`,
+                transform: 'translate(-50%, -50%)',
+              }}
             ></div>
           ))}
         </div>

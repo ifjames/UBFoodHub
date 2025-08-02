@@ -60,7 +60,7 @@ export default function LoginPage() {
   useEffect(() => {
     const initParticles = () => {
       const particles = [];
-      const particleCount = window.innerWidth < 1024 ? 25 : 30;
+      const particleCount = window.innerWidth < 1024 ? 60 : 80;
       
       for (let i = 0; i < particleCount; i++) {
         particles.push({
@@ -69,8 +69,8 @@ export default function LoginPage() {
           y: Math.random() * window.innerHeight,
           vx: (Math.random() - 0.5) * 0.5,
           vy: (Math.random() - 0.5) * 0.5,
-          size: Math.random() * 3 + 1,
-          opacity: Math.random() * 0.6 + 0.2,
+          size: Math.random() * 4 + 2,
+          opacity: Math.random() * 0.8 + 0.3,
           type: i % 4 === 0 ? 'particle-float' :
                 i % 4 === 1 ? 'wave-motion' :
                 i % 4 === 2 ? 'magic-sparkle' : 'float',
@@ -106,10 +106,10 @@ export default function LoginPage() {
               const dx = x - lastInteractionRef.current.x;
               const dy = y - lastInteractionRef.current.y;
               const distance = Math.sqrt(dx * dx + dy * dy);
-              const force = Math.max(0, 150 - distance) / 150;
+              const force = Math.max(0, 200 - distance) / 200;
               
               if (force > 0) {
-                const repelStrength = 2;
+                const repelStrength = 3;
                 vx += (dx / distance) * force * repelStrength;
                 vy += (dy / distance) * force * repelStrength;
               }
@@ -443,7 +443,7 @@ export default function LoginPage() {
             }}
             style={{ touchAction: 'none' }}
           >
-            {interactiveParticles.slice(0, 20).map((particle) => (
+            {interactiveParticles.slice(0, 50).map((particle) => (
               <div
                 key={`mobile-${particle.id}`}
                 className={`absolute rounded-full pointer-events-none transition-all duration-100 ${
@@ -599,7 +599,7 @@ export default function LoginPage() {
           }}
           style={{ touchAction: 'none' }}
         >
-          {interactiveParticles.slice(0, 20).map((particle) => (
+          {interactiveParticles.slice(0, 50).map((particle) => (
             <div
               key={`mobile-${particle.id}`}
               className={`absolute rounded-full pointer-events-none transition-all duration-100 ${

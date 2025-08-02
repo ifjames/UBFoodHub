@@ -141,6 +141,35 @@ export const sendVerificationEmail = async (user: FirebaseUser) => {
   }
 };
 
+// Enhanced authentication functions with security checks
+export const secureSignIn = async (email: string, password: string) => {
+  if (!email.endsWith('@ub.edu.ph')) {
+    throw new Error('Only UB email addresses are allowed');
+  }
+  
+  const result = await signInWithEmailAndPassword(auth, email, password);
+  
+  if (!result.user.emailVerified) {
+    await signOut(auth);
+    throw new Error('Please verify your email before signing in');
+  }
+  
+  return result;
+};
+
+export const secureSignUp = async (email: string, password: string) => {
+  if (!email.endsWith('@ub.edu.ph')) {
+    throw new Error('Only UB email addresses are allowed');
+  }
+  
+  const result = await createUserWithEmailAndPassword(auth, email, password);
+  
+  // Send verification email immediately
+  await sendEmailVerification(result.user);
+  
+  return result;
+};
+
 export const onAuthStateChange = (
   callback: (user: FirebaseUser | null) => void,
 ) => onAuthStateChanged(auth, callback);

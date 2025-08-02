@@ -1,0 +1,51 @@
+Based on your UB FoodHub canteen app codebase, here's an MVP prompt for a Replit Agent focused on security-first improvements using only free services:
+
+MVP Security & Features Prompt for UB FoodHub
+SECURITY PRIORITIES (Free Tier)
+Authentication & Access Control:
+
+Implement Firebase Security Rules for Firestore collections (users, orders, stalls, menu_items)
+Add input validation and sanitization for all user inputs
+Implement rate limiting for API endpoints to prevent abuse
+Add email verification enforcement before allowing orders
+
+Data Protection:
+
+Sanitize all Firebase queries to prevent injection attacks
+Add client-side form validation with server-side verification
+Implement proper error handling without exposing sensitive data
+Add HTTPS enforcement and secure headers
+
+Role-Based Security:
+
+Enforce strict role permissions (student, stall_owner, admin)
+Add middleware to verify user roles on protected routes
+Implement order ownership verification
+Add admin-only access controls for sensitive operations
+FEATURE ENHANCEMENTS (Free Tier)
+Order Security:
+
+Add order verification system with unique tokens
+Implement order tampering detection
+Add automatic order cancellation for suspicious activity
+Create order audit logs for accountability
+User Management:
+
+Add account lockout after failed login attempts
+Implement session timeout and automatic logout
+Create user activity logging
+System Monitoring:
+
+Add error logging and monitoring using browser console
+Implement client-side error boundaries
+Add performance monitoring for slow queries
+Create basic analytics for order patterns
+
+IMPLEMENTATION REQUIREMENTS:
+Use only Firebase free tier features
+Implement all security measures client-side with Firebase Security Rules
+No paid third-party services or APIs
+Focus on preventing common web vulnerabilities (XSS, CSRF, injection attacks)
+Ensure mobile responsiveness is maintained
+Keep existing UI/UX intact while adding security layers
+Priority Order: Authentication hardening → Data validation → Role enforcement → Audit logging → Performance optimization

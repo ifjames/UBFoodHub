@@ -73,6 +73,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Stall management routes
+  app.put("/api/restaurants/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const restaurant = await storage.getRestaurant(id);
+      
+      if (!restaurant) {
+        return res.status(404).json({ message: "Restaurant not found" });
+      }
+      
+      // Update restaurant with new data
+      const updatedData = req.body;
+      const updatedRestaurant = await storage.updateRestaurant(id, updatedData);
+      
+      res.json(updatedRestaurant);
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Menu item management routes
+  app.post("/api/menu-items", async (req, res) => {
+    try {
+      const menuItemData = req.body;
+      const menuItem = await storage.createMenuItem(menuItemData);
+      res.json(menuItem);
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.put("/api/menu-items/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const menuItemData = req.body;
+      const menuItem = await storage.updateMenuItem(id, menuItemData);
+      
+      if (!menuItem) {
+        return res.status(404).json({ message: "Menu item not found" });
+      }
+      
+      res.json(menuItem);
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.delete("/api/menu-items/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteMenuItem(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Menu item not found" });
+      }
+      
+      res.json({ message: "Menu item deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Categories route
+  app.get("/api/categories", async (req, res) => {
+    try {
+      const categories = [
+        "Filipino",
+        "Chinese", 
+        "Japanese",
+        "Korean",
+        "American",
+        "Italian",
+        "Fast Food",
+        "BBQ & Grilled",
+        "Rice Meals",
+        "Noodles",
+        "Desserts & Snacks",
+        "Beverages",
+        "Fresh Juices",
+        "Coffee",
+        "Fried Chicken",
+        "Pizza",
+        "Burgers",
+        "Sandwiches",
+        "Salads",
+        "Healthy"
+      ];
+      res.json(categories);
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   app.get("/api/menu/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);

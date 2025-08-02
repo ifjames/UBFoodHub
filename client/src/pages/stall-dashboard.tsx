@@ -680,7 +680,42 @@ export default function StallDashboard() {
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
         {/* Navigation Tabs */}
         <div className="mb-6">
-          <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+          {/* Mobile Horizontal Scroll Navigation */}
+          <div className="md:hidden">
+            <div className="flex space-x-2 bg-gray-100 rounded-lg p-1 overflow-x-auto scrollbar-hide">
+              {[
+                { id: "overview", label: "Overview", icon: TrendingUp },
+                { id: "menu", label: "Menu", icon: Package },
+                { id: "orders", label: "Orders", icon: Clock },
+                { id: "settings", label: "Settings", icon: Settings },
+                { id: "cancellations", label: "Cancellations", icon: Settings },
+                { id: "reviews", label: "Reviews", icon: Star },
+                { id: "statistics", label: "Statistics", icon: TrendingUp }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center justify-center gap-1 py-2 px-3 rounded-md text-xs font-medium transition-all whitespace-nowrap flex-shrink-0 ${
+                    activeTab === tab.id
+                      ? "bg-[#6d031e] text-white shadow-sm"
+                      : "text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">
+                    {tab.id === "settings" ? "Settings" : 
+                     tab.id === "cancellations" ? "Cancel" :
+                     tab.id === "statistics" ? "Stats" :
+                     tab.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Desktop Grid Navigation */}
+          <div className="hidden md:flex space-x-1 bg-gray-100 rounded-lg p-1">
             {[
               { id: "overview", label: "Overview", icon: TrendingUp },
               { id: "menu", label: "Menu", icon: Package },

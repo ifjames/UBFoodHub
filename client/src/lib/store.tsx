@@ -152,7 +152,9 @@ export function useAuth() {
         await setDoc(doc(db, "users", userCredential.user.uid), userData);
         return { userCredential, role: "student" };
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Enhanced error handling for Google Sign-In
+      console.error("Google sign-in error in store:", error);
       throw error;
     }
   };

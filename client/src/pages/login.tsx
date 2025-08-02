@@ -653,17 +653,31 @@ function SocialLoginForm({ onEmailLogin }: { onEmailLogin: () => void }) {
   
   const handleGoogleLogin = async () => {
     try {
-      // Import Google sign-in function
+      // Import Google sign-in function and auth store
       const { signInWithGoogle } = await import("../lib/firebase");
-      await signInWithGoogle();
+      const { useAuth } = await import("../lib/store");
+      
+      const { signInWithGoogle: authSignInWithGoogle } = useAuth();
+      const result = await authSignInWithGoogle();
+      
       toast({
         title: "Welcome!",
         description: "You've successfully signed in with Google.",
       });
+      
+      // Redirect based on user role
+      if (result.role === "admin") {
+        window.location.href = "/admin";
+      } else if (result.role === "stall_owner") {
+        window.location.href = "/stall-dashboard";
+      } else {
+        window.location.href = "/";
+      }
     } catch (error: any) {
+      console.error("Google auth error:", error);
       toast({
         title: "Google Sign-In Failed",
-        description: error.message || "Failed to sign in with Google",
+        description: error.message || "Failed to sign in with Google. Please try email login instead.",
         variant: "destructive",
       });
     }

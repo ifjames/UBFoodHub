@@ -58,12 +58,13 @@ export const db = getFirestore(app);
 import { getStorage } from "firebase/storage";
 export const storage = getStorage(app);
 
-// Google Auth Provider
+// Google Auth Provider with enhanced configuration
 const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope('email');
 googleProvider.addScope('profile');
 googleProvider.setCustomParameters({
-  hd: 'ub.edu.ph' // Restrict to UB domain
+  hd: 'ub.edu.ph', // Restrict to UB domain
+  prompt: 'select_account' // Always show account selection
 });
 
 // Auth functions
@@ -83,9 +84,14 @@ export const logOut = async () => {
   }
 };
 
-// Google Sign-In functions with email domain validation
+// Google Sign-In functions with email domain validation and enhanced error handling
 export const signInWithGoogle = async () => {
   try {
+    // Check if we're in development and warn about potential issues
+    if (import.meta.env.DEV && !import.meta.env.VITE_FIREBASE_API_KEY) {
+      console.warn("Firebase environment variables not configured for development");
+    }
+    
     const result = await signInWithPopup(auth, googleProvider);
     const email = result.user.email || "";
     
@@ -99,6 +105,18 @@ export const signInWithGoogle = async () => {
     return result;
   } catch (error: any) {
     console.error("Google sign-in error:", error);
+    
+    // Provide more specific error messages
+    if (error.code === 'auth/internal-error') {
+      throw new Error("Google Sign-In is not properly configured. Please use email login instead.");
+    } else if (error.code === 'auth/popup-blocked') {
+      throw new Error("Popup was blocked. Please allow popups and try again.");
+    } else if (error.code === 'auth/popup-closed-by-user') {
+      throw new Error("Sign-in was cancelled. Please try again.");
+    } else if (error.code === 'auth/operation-not-allowed') {
+      throw new Error("Google Sign-In is not enabled. Please use email login.");
+    }
+    
     throw error;
   }
 };

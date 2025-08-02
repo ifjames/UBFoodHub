@@ -16,11 +16,14 @@ export interface IStorage {
   getRestaurants(): Promise<Restaurant[]>;
   getRestaurant(id: number): Promise<Restaurant | undefined>;
   createRestaurant(restaurant: InsertRestaurant): Promise<Restaurant>;
+  updateRestaurant(id: number, restaurant: Partial<InsertRestaurant>): Promise<Restaurant | undefined>;
   
   // Menu Items
   getMenuItems(restaurantId: number): Promise<MenuItem[]>;
   getMenuItem(id: number): Promise<MenuItem | undefined>;
   createMenuItem(menuItem: InsertMenuItem): Promise<MenuItem>;
+  updateMenuItem(id: number, menuItem: Partial<InsertMenuItem>): Promise<MenuItem | undefined>;
+  deleteMenuItem(id: number): Promise<boolean>;
   
   // Orders
   getOrders(userId: number): Promise<Order[]>;
@@ -232,6 +235,16 @@ export class MemStorage implements IStorage {
     return restaurant;
   }
 
+  async updateRestaurant(id: number, restaurant: Partial<InsertRestaurant>): Promise<Restaurant | undefined> {
+    const existingRestaurant = this.restaurants.get(id);
+    if (existingRestaurant) {
+      const updatedRestaurant = { ...existingRestaurant, ...restaurant };
+      this.restaurants.set(id, updatedRestaurant);
+      return updatedRestaurant;
+    }
+    return undefined;
+  }
+
   // Menu item methods
   async getMenuItems(restaurantId: number): Promise<MenuItem[]> {
     return Array.from(this.menuItems.values()).filter(item => 
@@ -256,6 +269,20 @@ export class MemStorage implements IStorage {
     };
     this.menuItems.set(id, menuItem);
     return menuItem;
+  }
+
+  async updateMenuItem(id: number, menuItem: Partial<InsertMenuItem>): Promise<MenuItem | undefined> {
+    const existingMenuItem = this.menuItems.get(id);
+    if (existingMenuItem) {
+      const updatedMenuItem = { ...existingMenuItem, ...menuItem };
+      this.menuItems.set(id, updatedMenuItem);
+      return updatedMenuItem;
+    }
+    return undefined;
+  }
+
+  async deleteMenuItem(id: number): Promise<boolean> {
+    return this.menuItems.delete(id);
   }
 
   // Order methods

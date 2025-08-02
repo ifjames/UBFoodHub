@@ -100,7 +100,7 @@ function Router() {
   );
 }
 
-function AuthProvider({ children }) {
+function AuthProvider({ children }: { children: React.ReactNode }) {
   const { dispatch } = useStore();
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
@@ -127,15 +127,15 @@ function AuthProvider({ children }) {
             const userPayload = {
               id: firebaseUser.uid,
               uid: firebaseUser.uid,
-              email: firebaseUser.email,
-              fullName: userData.fullName,
-              studentId: userData.studentId,
-              phoneNumber: userData.phoneNumber,
-              role: userData.role,
+              email: firebaseUser.email || '',
+              fullName: userData.fullName || '',
+              studentId: userData.studentId || null,
+              phoneNumber: userData.phoneNumber || null,
+              role: userData.role || 'student',
               loyaltyPoints: userData.loyaltyPoints || 0,
-              photoURL: userData.photoURL || firebaseUser.photoURL,
-              emailVerified: userData.emailVerified || firebaseUser.emailVerified,
-              createdAt: userData.createdAt,
+              photoURL: userData.photoURL || firebaseUser.photoURL || null,
+              emailVerified: userData.emailVerified || firebaseUser.emailVerified || false,
+              createdAt: userData.createdAt || new Date(),
             };
 
             dispatch({
@@ -178,7 +178,7 @@ function AuthProvider({ children }) {
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
-        if (error.message === 'Auth timeout') {
+        if (error instanceof Error && error.message === 'Auth timeout') {
           console.warn("Firebase auth took too long, continuing with fallback");
         }
       } finally {

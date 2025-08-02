@@ -57,6 +57,7 @@
     "express-session": "^1.18.1",
     "firebase": "^11.10.0",
     "framer-motion": "^11.18.2",
+    "gsap": "^3.13.0",
     "input-otp": "^1.4.2",
     "jsqr": "^1.4.0",
     "lucide-react": "^0.453.0",

@@ -45,74 +45,50 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
               style={{ transform: "skewX(-15deg)", width: "120%" }}
             />
 
-            {/* Gentle floating particles */}
+            {/* Visible floating particles */}
             <div className="absolute inset-0 overflow-hidden">
-              {[...Array(20)].map((_, i) => (
+              {[...Array(25)].map((_, i) => (
                 <motion.div
                   key={i}
-                  className="absolute w-1 h-1 bg-white/25 rounded-full"
+                  className="absolute w-2 h-2 bg-white/60 rounded-full"
                   initial={{
                     x: Math.random() * (typeof window !== "undefined" ? window.innerWidth : 400),
-                    y: typeof window !== "undefined" ? window.innerHeight : 800,
+                    y: typeof window !== "undefined" ? window.innerHeight + 50 : 800,
                     opacity: 0,
                   }}
                   animate={{
                     y: -100,
-                    x: `+=${(Math.random() - 0.5) * 50}`,
-                    opacity: [0, 0.7, 0.4, 0],
+                    x: `+=${(Math.random() - 0.5) * 60}`,
+                    opacity: [0, 0.8, 0.6, 0],
                   }}
                   transition={{
-                    duration: 8 + Math.random() * 4,
+                    duration: 6 + Math.random() * 3,
                     repeat: Infinity,
-                    delay: Math.random() * 6,
+                    delay: Math.random() * 4,
                     ease: "linear",
                   }}
                 />
               ))}
               
-              {/* Medium floating particles */}
-              {[...Array(12)].map((_, i) => (
+              {/* Larger particles */}
+              {[...Array(15)].map((_, i) => (
                 <motion.div
-                  key={`medium-${i}`}
-                  className="absolute w-1.5 h-1.5 bg-[hsl(345,82%,65%)]/15 rounded-full"
+                  key={`large-${i}`}
+                  className="absolute w-3 h-3 bg-[hsl(345,82%,75%)]/40 rounded-full"
                   initial={{
                     x: Math.random() * (typeof window !== "undefined" ? window.innerWidth : 400),
-                    y: typeof window !== "undefined" ? window.innerHeight : 800,
+                    y: typeof window !== "undefined" ? window.innerHeight + 80 : 800,
                     opacity: 0,
                   }}
                   animate={{
                     y: -120,
                     x: `+=${(Math.random() - 0.5) * 80}`,
-                    opacity: [0, 0.5, 0.3, 0],
+                    opacity: [0, 0.6, 0.4, 0],
                   }}
                   transition={{
-                    duration: 10 + Math.random() * 5,
+                    duration: 8 + Math.random() * 4,
                     repeat: Infinity,
-                    delay: Math.random() * 8,
-                    ease: "linear",
-                  }}
-                />
-              ))}
-
-              {/* Large floating particles */}
-              {[...Array(8)].map((_, i) => (
-                <motion.div
-                  key={`large-${i}`}
-                  className="absolute w-2 h-2 bg-[hsl(345,82%,70%)]/10 rounded-full"
-                  initial={{
-                    x: Math.random() * (typeof window !== "undefined" ? window.innerWidth : 400),
-                    y: typeof window !== "undefined" ? window.innerHeight : 800,
-                    opacity: 0,
-                  }}
-                  animate={{
-                    y: -150,
-                    x: `+=${(Math.random() - 0.5) * 100}`,
-                    opacity: [0, 0.4, 0.2, 0],
-                  }}
-                  transition={{
-                    duration: 12 + Math.random() * 6,
-                    repeat: Infinity,
-                    delay: Math.random() * 10,
+                    delay: Math.random() * 6,
                     ease: "linear",
                   }}
                 />
@@ -141,24 +117,13 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
                 className="mb-8 flex justify-center items-center"
               >
                 <div className="relative flex justify-center items-center">
-                  {/* Very subtle glow */}
-                  <motion.div
-                    className="absolute inset-0 bg-[hsl(345,82%,50%)] rounded-full blur-2xl opacity-20"
-                    animate={{ 
-                      scale: [1, 1.05, 1],
-                      opacity: [0.15, 0.25, 0.15]
-                    }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                  
                   <img
                     src="/logo.png"
                     alt="UB FoodHub"
-                    className="relative z-10 w-32 h-32 md:w-40 md:h-40 lg:w-44 lg:h-44 drop-shadow-xl mx-auto"
+                    className="w-32 h-32 md:w-40 md:h-40 lg:w-44 lg:h-44 mx-auto"
                     style={{
-                      mixBlendMode: "screen",
-                      filter: "brightness(1.2) saturate(1.1)",
-                      background: "transparent"
+                      background: "none",
+                      filter: "none"
                     }}
                   />
                 </div>

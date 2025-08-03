@@ -33,14 +33,6 @@ Preferred communication style: Simple, everyday language.
 - **Security**: Email domain restriction, email verification, mandatory fields (Student ID, phone number), Philippine phone validation, and Terms of Service agreement.
 - **Loyalty Points System**: Complete functional system with point earning (1 point per ₱10), redemption (100 points = ₱10 discount), tier system (Bronze/Silver/Gold), transaction history, and checkout integration. Includes bonus rewards for trying new stalls.
 
-### Enterprise Security Implementation
-- **Email Verification Enforcement**: Students (@ub.edu.ph) must verify emails before access; admin/stall owners exempt
-- **Multi-Layer Authentication Security**: Client-side rate limiting (5 attempts/5min), account lockout (15min after 5 failed attempts), comprehensive input validation with Zod schemas
-- **Advanced Security Headers**: CSP, HSTS, X-Frame-Options, X-Content-Type-Options, referrer policy, permissions policy configured for both development and production
-- **Activity Monitoring**: Complete user activity logging, error monitoring with categorization, authentication event tracking
-- **Input Security**: XSS prevention, CSRF protection, SQL injection prevention, comprehensive sanitization
-- **Production Security**: Firebase hosting configured with security headers, robots.txt blocking sensitive areas, proper cache control directives
-
 ### Deployment
 - **Development**: Vite dev server, Neon PostgreSQL, Node.js environment.
 - **Production**: Vite build for client, `esbuild` for server, Express.js serving static files and API, PostgreSQL with connection pooling. Deployed via Replit hosting.

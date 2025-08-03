@@ -69,9 +69,7 @@ export function useStore() {
 export function useAuth() {
   const signIn = async (email: string, password: string) => {
     try {
-      // Use secure sign-in that enforces email verification for students
-      const { secureSignIn } = await import("./firebase");
-      const userCredential = await secureSignIn(email, password);
+      const userCredential = await firebaseSignIn(email, password);
       
       // Get user data from Firestore to determine role
       const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
@@ -92,10 +90,11 @@ export function useAuth() {
     studentId: string;
   }) => {
     try {
-      // Use secure sign-up that includes email verification
-      const { secureSignUp } = await import("./firebase");
-      const userCredential = await secureSignUp(email, password);
+      const userCredential = await firebaseSignUp(email, password);
       const user = userCredential.user;
+      
+      // Send email verification
+      await sendEmailVerification(user);
       
       // Create user document in Firestore
       await setDoc(doc(db, "users", user.uid), {
@@ -152,9 +151,7 @@ export function useAuth() {
         await setDoc(doc(db, "users", userCredential.user.uid), userData);
         return { userCredential, role: "student" };
       }
-    } catch (error: any) {
-      // Enhanced error handling for Google Sign-In
-      console.error("Google sign-in error in store:", error);
+    } catch (error) {
       throw error;
     }
   };

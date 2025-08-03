@@ -1,319 +1,261 @@
-# UB FoodHub - Secure Mobile Web Application
+# 🍽️ UB FoodHub - University of Batangas Digital Canteen Platform
 
-A comprehensive, security-first mobile web application for the University of Batangas canteen ecosystem, designed to streamline food ordering with enterprise-grade security measures.
+[![Version](https://img.shields.io/badge/version-2.0-brightgreen)](https://github.com/ubfoodhub/app)
+[![Status](https://img.shields.io/badge/status-production%20ready-success)](https://ubfoodhub.replit.app)
+[![Platform](https://img.shields.io/badge/platform-mobile%20web%20app-blue)](https://ubfoodhub.replit.app)
 
-## 🔒 Security-First Architecture
+> **Revolutionizing university food service** - A comprehensive mobile web application that transforms how students order food at the University of Batangas canteen ecosystem.
 
-UB FoodHub implements multiple layers of security to protect user data and prevent common web vulnerabilities:
+## 🎯 Overview
 
-### Authentication & Access Control
-- **Multi-layered Authentication**: Firebase Auth with UB domain restrictions (`@ub.edu.ph` only)
-- **Email Verification Enforcement**: Users must verify their email before accessing core features
-- **Role-Based Access Control**: Strict permissions for Students, Stall Owners, and Admins
-- **Session Management**: Auto-logout after 30 minutes with 5-minute warnings
-- **Account Lockout**: 5 failed login attempts trigger 15-minute lockout
-- **Password Strength Validation**: Enforced strong passwords with complexity requirements
+UB FoodHub is a cutting-edge mobile web application designed specifically for the University of Batangas canteen ecosystem. Built to address the challenges students face during limited break periods, it provides a seamless digital food ordering platform with advanced features like pre-ordering, QR code-based pickup, real-time order tracking, and comprehensive stall management.
 
-### Data Protection & Validation
-- **Input Sanitization**: All user inputs are validated and sanitized on both client and server
-- **Firebase Security Rules**: Comprehensive Firestore rules preventing unauthorized data access
-- **Rate Limiting**: API endpoints protected against abuse (100 req/min production, 500 req/min dev)
-- **CSRF Protection**: Token-based protection against cross-site request forgery
-- **XSS Prevention**: All user content is escaped and sanitized
+### 🚀 Key Benefits
 
-### Order Security & Integrity
-- **Order Verification System**: Unique tokens and checksums prevent order tampering
-- **Velocity Limits**: Anti-fraud measures limiting order frequency and amounts
-- **Ownership Verification**: Orders can only be modified by owners or authorized staff
-- **Audit Logging**: Complete trail of all order modifications and status changes
-- **Suspicious Activity Detection**: Automated detection of unusual ordering patterns
-
-### System Monitoring & Logging
-- **Real-time Error Monitoring**: Comprehensive error tracking with categorization
-- **Performance Monitoring**: Page load times, API response times, and render performance
-- **Security Event Logging**: All authentication events and security incidents logged
-- **User Activity Tracking**: Complete audit trail of user actions
-- **Automated Alerts**: Pattern detection for suspicious activities
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Node.js 20+
-- Firebase project with Firestore enabled
-- UB email domain (`@ub.edu.ph`) for testing
-
-### Installation
-```bash
-# Clone the repository
-git clone <repository-url>
-cd ub-foodhub
-
-# Install dependencies
-npm install
-
-# Configure environment variables
-cp .env.example .env.local
-# Add your Firebase configuration
-
-# Start development server
-npm run dev
-```
-
-### Firebase Setup
-1. Create a Firebase project
-2. Enable Authentication with Google provider
-3. Enable Firestore Database
-4. Deploy security rules: `firebase deploy --only firestore:rules`
-5. Configure domain restrictions for Google Auth
-
-## 🏗️ Architecture
-
-### Frontend Security Stack
-- **React 18** with TypeScript for type safety
-- **Tailwind CSS** with Content Security Policy compliance
-- **TanStack Query** for secure data fetching with caching
-- **Wouter** for client-side routing with route protection
-- **Custom Security Layer** with input validation and sanitization
-
-### Backend Security Stack
-- **Express.js** with comprehensive security middleware
-- **Firebase Admin SDK** for server-side authentication
-- **Rate Limiting** with configurable thresholds
-- **Input Validation** using Zod schemas
-- **Security Headers** (HSTS, CSP, X-Frame-Options, etc.)
-
-### Database Security
-- **Firestore** with granular security rules
-- **Role-based data access** with ownership verification
-- **Data encryption** in transit and at rest
-- **Audit logging** for all database operations
-
-## 🔐 Security Features
-
-### 1. Authentication Security
-```typescript
-// Enhanced sign-in with domain and verification checks
-export const secureSignIn = async (email: string, password: string) => {
-  if (!email.endsWith('@ub.edu.ph')) {
-    throw new Error('Only UB email addresses are allowed');
-  }
-  
-  const result = await signInWithEmailAndPassword(auth, email, password);
-  
-  if (!result.user.emailVerified) {
-    await signOut(auth);
-    throw new Error('Please verify your email before signing in');
-  }
-  
-  return result;
-};
-```
-
-### 2. Input Validation
-```typescript
-// Comprehensive validation schemas
-export const emailSchema = z.string()
-  .email('Invalid email format')
-  .regex(/@ub\.edu\.ph$/, 'Must be a valid UB email address')
-  .max(100, 'Email must be less than 100 characters');
-
-export const passwordSchema = z.string()
-  .min(8, 'Password must be at least 8 characters')
-  .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/, 
-    'Password must contain uppercase, lowercase, number, and special character');
-```
-
-### 3. Order Security
-```typescript
-// Secure order creation with integrity checks
-export function createSecureOrder(orderData: OrderData): SecureOrder {
-  const token = generateOrderToken();
-  const order = { ...orderData, token, createdAt: Date.now() };
-  const checksum = generateOrderChecksum(order);
-  
-  return { ...order, checksum };
-}
-```
-
-### 4. Rate Limiting
-```typescript
-// Configurable rate limiting middleware
-app.use(createRateLimit(60000, 100)); // 100 requests per minute
-
-// Different limits for different endpoints
-app.use('/api/auth', createRateLimit(300000, 5)); // 5 auth attempts per 5 minutes
-app.use('/api/orders', createRateLimit(60000, 20)); // 20 orders per minute
-```
-
-## 📊 Monitoring & Analytics
-
-### Error Monitoring
-- **Global Error Handling**: Catches and categorizes all JavaScript errors
-- **Performance Tracking**: Monitors page load times and API response times
-- **User Activity Logging**: Tracks user interactions for security analysis
-- **Automated Alerting**: Detects error spikes and performance issues
-
-### Security Monitoring
-- **Login Attempt Tracking**: Monitors failed login attempts and suspicious patterns
-- **Order Velocity Monitoring**: Prevents fraud through velocity checks
-- **Session Security**: Tracks concurrent sessions and unusual access patterns
-- **Data Export/Import Auditing**: Logs all data operations for compliance
-
-## 🛡️ Security Compliance
-
-### Web Security Standards
-- ✅ **OWASP Top 10** protection implemented
-- ✅ **Content Security Policy** (CSP) configured
-- ✅ **HTTP Strict Transport Security** (HSTS) enabled
-- ✅ **X-Frame-Options** and **X-Content-Type-Options** set
-- ✅ **CSRF Protection** with token validation
-- ✅ **XSS Prevention** through content escaping
-
-### Data Protection
-- ✅ **Input Validation** on all user inputs
-- ✅ **Data Sanitization** before storage
-- ✅ **Audit Logging** for all sensitive operations
-- ✅ **Access Control** with role-based permissions
-- ✅ **Session Security** with timeout and renewal
-
-### Firebase Security
-- ✅ **Security Rules** for Firestore collections
-- ✅ **Domain Restrictions** for authentication
-- ✅ **Email Verification** enforcement
-- ✅ **Role-based Database Access** with ownership validation
-
-## 📱 Features
-
-### For Students
-- **Secure Account Creation** with UB email verification
-- **Browse Restaurants** with real-time availability
-- **Shopping Cart** with secure checkout process
-- **Order Tracking** with QR code pickup system
-- **Loyalty Points** with secure transaction history
-- **Account Security** with password management and 2FA setup
-
-### For Stall Owners
-- **Stall Dashboard** with comprehensive order management
-- **Menu Management** with secure item updates
-- **Order Processing** with status tracking and customer notifications
-- **Revenue Analytics** with secure financial data
-- **Customer Management** with privacy protection
-
-### For Administrators
-- **System Administration** with full audit capabilities
-- **User Management** with role assignment and security monitoring
-- **Security Dashboard** with threat detection and incident response
-- **Performance Monitoring** with system health metrics
-- **Data Management** with backup and recovery tools
-
-## 🔧 Development
-
-### Security Development Practices
-- **Input Validation**: All inputs validated on both client and server
-- **Error Handling**: Secure error messages that don't expose sensitive data
-- **Logging**: Comprehensive logging without exposing secrets
-- **Testing**: Security-focused testing including penetration testing
-- **Code Review**: Security-focused code review process
-
-### Environment Configuration
-```bash
-# Production environment variables
-VITE_FIREBASE_API_KEY=your_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_domain
-VITE_FIREBASE_PROJECT_ID=your_project_id
-NODE_ENV=production
-
-# Security configuration
-RATE_LIMIT_WINDOW_MS=60000
-RATE_LIMIT_MAX_REQUESTS=100
-SESSION_TIMEOUT_MS=1800000
-```
-
-## 🚦 Deployment
-
-### Security Checklist
-- [ ] Firebase Security Rules deployed
-- [ ] Environment variables configured
-- [ ] HTTPS enabled
-- [ ] CSP headers configured
-- [ ] Rate limiting enabled
-- [ ] Error monitoring configured
-- [ ] Backup systems tested
-- [ ] Security testing completed
-
-### Production Deployment
-```bash
-# Build for production
-npm run build
-
-# Deploy to Firebase (if using Firebase Hosting)
-firebase deploy
-
-# Or deploy to Replit
-# Push to main branch for automatic deployment
-```
-
-## 📈 Performance
-
-### Optimization Features
-- **Code Splitting**: Automatic bundle splitting for faster loads
-- **Image Optimization**: Lazy loading and responsive images
-- **Caching Strategy**: Aggressive caching with cache invalidation
-- **Performance Monitoring**: Real-time performance metrics
-- **Bundle Analysis**: Regular bundle size monitoring
-
-### Performance Metrics
-- **First Contentful Paint**: < 1.5s
-- **Largest Contentful Paint**: < 2.5s
-- **Time to Interactive**: < 3.5s
-- **API Response Time**: < 500ms average
-- **Error Rate**: < 0.1%
-
-## 🤝 Contributing
-
-### Security Guidelines
-1. **Never commit secrets** or sensitive configuration
-2. **Validate all inputs** on both client and server
-3. **Follow security coding standards** outlined in our guidelines
-4. **Test security features** thoroughly before submission
-5. **Document security implications** of all changes
-
-### Code Review Process
-- All changes require security review
-- Automated security scanning on pull requests
-- Manual penetration testing for security-related changes
-- Performance impact assessment for all changes
-
-## 📞 Support
-
-### Security Issues
-- **Report security vulnerabilities** through secure channels only
-- **Do not disclose** security issues publicly
-- **Provide detailed information** for faster resolution
-- **Follow responsible disclosure** practices
-
-### General Support
-- Check documentation first
-- Use issue templates for bug reports
-- Provide reproduction steps for issues
-- Include error logs and system information
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🏆 Security Achievements
-
-- ✅ **Zero known vulnerabilities** in production
-- ✅ **100% input validation** coverage
-- ✅ **Comprehensive audit logging** implemented
-- ✅ **Multi-layer authentication** system
-- ✅ **Real-time threat detection** active
-- ✅ **GDPR compliance** ready
-- ✅ **SOC 2 Type II** controls implemented
+- **⏰ Time-Saving**: Pre-order meals and skip the lunch rush lines
+- **📱 Mobile-First**: Optimized for smartphones with PWA capabilities
+- **🔒 Secure**: University domain restrictions (@ub.edu.ph) and role-based access
+- **⚡ Real-Time**: Live order tracking and instant notifications
+- **🎨 Intuitive**: Modern UI with University of Batangas branding
 
 ---
 
-**Built with ❤️ and 🔒 by the UB FoodHub Team**
+## 🌟 Core Features
 
-*Securing the future of campus dining, one order at a time.*
+### 👨‍🎓 **Student Experience**
+
+#### 🏆 **Loyalty Points System**
+- **Earn Points**: 1 point per ₱10 spent on every order
+- **New Stall Bonus**: Double points when trying restaurants for the first time
+- **Redeem Rewards**: 100 points = ₱10 discount during checkout
+- **Tier Benefits**: Bronze/Silver/Gold tiers with increasing bonus percentages
+- **Smart Tracking**: Automatic point calculations and tier upgrades
+- **Transaction History**: Complete record of all point activities
+
+#### 🏪 Restaurant Discovery & Browsing
+- **Visual Restaurant Cards** with ratings, delivery times, and cuisine types
+- **Advanced Search & Filtering** with category-based organization
+- **Recent Search History** with localStorage persistence
+- **Real-Time Menu Updates** showing item availability
+- **Comprehensive Review System** with ratings and feedback
+
+#### 🛒 Smart Shopping Cart
+- **Multi-Stall Ordering** - Order from multiple restaurants simultaneously
+- **Real-Time Cart Synchronization** across all devices
+- **Advanced Customization Options** (Extra Rice, No Onions, Spice Levels)
+- **Special Instructions** for personalized orders
+- **Group Ordering** functionality for class representatives
+- **Automatic Delivery Fee Calculation** based on location
+
+#### 📱 Order Management & Tracking
+- **QR Code Generation** with structured JSON data for secure verification
+- **Real-Time Status Updates** (Pending → Preparing → Ready → Completed)
+- **Push Notifications** for order status changes and promotions
+- **Order History** with detailed transaction records
+- **One-Click Reordering** from previous purchases
+- **Scheduled Pickup Times** for advance ordering
+
+### 🏪 **Stall Owner Dashboard**
+
+#### 📋 Comprehensive Order Management
+- **Chronological Order Display** - First ordered appears first
+- **High-Volume Order Handling** with pagination (20 orders per page)
+- **Advanced Search Functionality** by order ID, customer name, and menu items
+- **Quick Action Buttons** for status updates and order processing
+- **QR Code Scanner** with manual entry and camera scanning options
+- **Real-Time Order Verification** with automatic completion for ready orders
+
+#### 🍽️ Menu Item Management
+- **Full CRUD Operations** for menu items (Create, Read, Update, Delete)
+- **Dynamic Customization Options** (size variations, add-ons, dietary preferences)
+- **Image Upload Support** with Cloudinary integration
+- **Popularity Tracking** and trending item identification
+- **Category Assignment** with real-time updates
+- **Availability Toggle** for out-of-stock items
+
+#### 📊 Business Analytics
+- **Daily Revenue Tracking** with detailed breakdowns
+- **Order Volume Analytics** with trend analysis
+- **Popular Items Dashboard** with performance metrics
+- **Customer Insights** and ordering patterns
+- **Peak Hours Analysis** for operational optimization
+
+### 👨‍💼 **Admin Control Panel**
+
+#### 👥 User Management System
+- **Role-Based User Filtering** (Students, Stall Owners, Admins)
+- **Account Creation & Deletion** with proper authorization
+- **Student ID Verification** and profile management
+- **Bulk User Operations** for administrative efficiency
+- **Activity Monitoring** and user behavior analytics
+
+#### 🏪 Stall Management
+- **Complete Stall Lifecycle Management** (Create, Edit, Activate, Deactivate)
+- **Owner Assignment System** with notification alerts
+- **Category Management** with custom category creation
+- **Operational Hours Configuration** per stall
+- **Performance Monitoring** and compliance tracking
+
+---
+
+## 🔧 Technical Architecture
+
+### 🎨 **Frontend Stack**
+- **React 18** with TypeScript for type-safe development
+- **Vite** for lightning-fast development and optimized builds
+- **Tailwind CSS** with custom University of Batangas maroon branding (#6d031e)
+- **Radix UI Primitives** with shadcn/ui components for accessibility
+- **Framer Motion** for smooth animations and transitions
+- **Wouter** for lightweight client-side routing
+- **TanStack Query** for advanced server state management and caching
+
+### ⚙️ **Backend Infrastructure**
+- **Node.js + Express.js** with TypeScript and ESM modules
+- **Firebase Firestore** for real-time NoSQL database
+- **Firebase Authentication** with Google OAuth integration
+- **Service Workers** for push notifications and offline support
+
+### 🔐 **Security & Authentication**
+- **Domain Restrictions** - Only @ub.edu.ph email addresses allowed
+- **Role-Based Access Control** (Student, Stall Owner, Admin)
+- **Session Management** with secure token handling
+- **Email Verification** required for account activation
+- **Terms of Service** and Privacy Policy compliance
+
+### 📱 **Mobile-First Design**
+- **Progressive Web App (PWA)** capabilities with offline support
+- **Responsive Design** optimized for all screen sizes
+- **Touch-Optimized Interfaces** with proper spacing and gestures
+- **Bottom Navigation** for thumb-friendly mobile navigation
+- **Desktop Enhancement** with split-screen layouts and extended functionality
+
+---
+
+## 🆕 Latest Updates & Enhancements
+
+### 🏆 **January 2025 - Loyalty Points System**
+- ✅ **Complete Points System** - Earn 1 point per ₱10 spent, double points for new stalls
+- ✅ **Point Redemption** - 100 points = ₱10 discount, flexible checkout integration
+- ✅ **Tier System** - Bronze/Silver/Gold tiers with increasing benefits
+- ✅ **Transaction History** - Complete audit trail of all point activities
+- ✅ **Smart Detection** - Automatic new stall bonuses and tier upgrades
+- ✅ **Dashboard Integration** - Comprehensive loyalty management in profile
+
+### 🎯 **August 2025 - Migration & Stability Improvements**
+- ✅ **Enhanced Security Practices** - Implemented robust client/server separation
+- ✅ **Performance Optimization** - Improved loading times and responsiveness
+- ✅ **Stability Enhancements** - Fixed authentication state management and session handling
+
+### 🔔 **July 2025 - QR Code System & Notifications**
+- ✅ **Functional QR Code Generation** - Real QR codes with structured JSON data
+- ✅ **QR Scanner for Stall Owners** - Camera access and manual entry options
+- ✅ **Enhanced Push Notifications** - Order status changes and promotional alerts
+- ✅ **Service Worker Implementation** - Offline notification support with action buttons
+- ✅ **Real-Time Order Processing** - Instant status updates and completion workflow
+
+### 🎨 **July 2025 - Desktop UI Enhancement**
+- ✅ **Responsive Desktop Layouts** - Two-column designs with sidebar navigation
+- ✅ **Enhanced Checkout Experience** - Sticky order summary and improved flow
+- ✅ **Desktop-Friendly Menu Pages** - Grid layouts with larger imagery
+- ✅ **Pagination System** - Handle 200+ orders efficiently with search functionality
+- ✅ **Improved Navigation** - Desktop logout functionality and consistent branding
+
+### 🍴 **July 2025 - Authentic Restaurant Data**
+- ✅ **10 Popular Batangas Restaurants** - Jollibee, McDonald's, KFC, Chowking, Greenwich
+- ✅ **Comprehensive Menu Systems** - 100+ authentic menu items with proper pricing
+- ✅ **Stall Owner Accounts** - Pre-configured accounts for each restaurant
+- ✅ **High-Quality Food Images** - Professional imagery for all menu items
+- ✅ **Realistic Data Integration** - Authentic delivery times, ratings, and reviews
+
+### 📋 **July 2025 - Terms of Service & Legal Compliance**
+- ✅ **Interactive Terms & Privacy Policy** - Comprehensive legal documentation
+- ✅ **Signup Flow Enhancement** - Terms acceptance during registration only
+- ✅ **Legal Compliance** - University-specific content and GDPR considerations
+- ✅ **Enhanced UX** - Clickable terms links and proper validation
+
+---
+
+## 🚀 How It Works
+
+### For Students:
+1. **Register** with @ub.edu.ph email and verify account
+2. **Browse** restaurants and menus with real-time availability
+3. **Customize** orders with special instructions and add-ons
+4. **Schedule** pickup times or order for immediate preparation
+5. **Track** orders in real-time with push notifications
+6. **Pickup** using generated QR codes for quick verification
+
+### For Stall Owners:
+1. **Access** dashboard with provided credentials
+2. **Manage** menu items, prices, and availability
+3. **Process** incoming orders with status updates
+4. **Scan** QR codes for order verification and completion
+5. **Monitor** sales analytics and customer feedback
+6. **Configure** stall settings and operating hours
+
+### For Administrators:
+1. **Oversee** entire platform with system-wide analytics
+2. **Manage** users, stalls, and categories
+3. **Monitor** performance and compliance
+4. **Configure** system settings and policies
+
+---
+
+## 🎨 Design System
+
+### Color Palette
+- **Primary**: #6d031e (University Maroon)
+- **Secondary**: Red-700 variants for hover states
+- **Background**: Red-50, Red-100 for subtle accents
+- **Text**: High contrast ratios for accessibility compliance
+
+### Typography & Components
+- **Consistent branding** throughout all interfaces
+- **Liquid glass effects** and floating animations
+- **Smooth transitions** with Framer Motion
+- **Accessible design** following WCAG guidelines
+
+---
+
+## 📊 System Statistics
+
+- **10 Restaurant Partners** with comprehensive menus
+- **100+ Menu Items** with authentic pricing and descriptions
+- **3 User Roles** with granular permission systems
+- **Real-Time Updates** across all connected devices
+- **QR Code Integration** for secure order verification
+- **Push Notifications** for enhanced user engagement
+
+---
+
+## 📱 Download & Access
+
+**Web App**: [ubianfoodhub.web.app](https://ubianfoodhub.web.app)
+
+**PWA Installation**: Visit the web app and click "Add to Home Screen" for native app experience.
+
+---
+
+## 👥 Development Team
+
+**Team 17** - University of Batangas Computer Science Program
+- **James Matthew C. Castillo** - Lead Developer
+
+---
+
+## 📄 License & Legal
+
+- **Privacy Policy**: Compliant with university data protection policies
+- **Terms of Service**: University-specific terms and conditions
+- **Open Source**: MIT License for educational and research purposes
+
+---
+
+**Version**: 2.0.1  
+**Last Updated**: August 01, 2025  
+**Status**: Production Ready   
+**Compatibility**: All modern mobile browsers, PWA-enabled
+
+---
+
+*Transforming university dining, one order at a time. 🍽️*

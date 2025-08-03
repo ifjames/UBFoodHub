@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Ticket, Gift, Calendar, Clock, Tag, Copy, Check } from "lucide-react";
+import { ArrowLeft, Ticket, Gift, Calendar, Clock, Tag, Copy, Check, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { useStore } from "@/lib/store";
-import { getUserVouchers } from "@/lib/firebase";
+import { getUserVouchers, validateVoucher } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -37,6 +38,8 @@ export default function StudentVoucherDashboard({ onBack }: StudentVoucherDashbo
   const [loading, setLoading] = useState(true);
   const [copiedCode, setCopiedCode] = useState<string>("");
   const [activeTab, setActiveTab] = useState<'available' | 'used' | 'expired'>('available');
+  const [manualCode, setManualCode] = useState("");
+  const [isValidating, setIsValidating] = useState(false);
 
   useEffect(() => {
     if (state.user?.uid) {
@@ -74,6 +77,56 @@ export default function StudentVoucherDashboard({ onBack }: StudentVoucherDashbo
         description: "Could not copy voucher code",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleValidateManualCode = async () => {
+    if (!manualCode.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a voucher code",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsValidating(true);
+    try {
+      // Find voucher by code in existing vouchers
+      const existingVoucher = vouchers.find(v => v.code.toLowerCase() === manualCode.toLowerCase());
+      
+      if (existingVoucher) {
+        const result = await validateVoucher(state.user?.uid || "", existingVoucher.id);
+        if (result.success) {
+          toast({
+            title: "Voucher found!",
+            description: `Valid voucher: ${existingVoucher.title || existingVoucher.code}`,
+          });
+          setManualCode("");
+          // Refresh vouchers to show any updates
+          loadVouchers();
+        } else {
+          toast({
+            title: "Invalid voucher",
+            description: result.error,
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Voucher not found",
+          description: "This voucher code is not available for your account",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to validate voucher code",
+        variant: "destructive",
+      });
+    } finally {
+      setIsValidating(false);
     }
   };
 
@@ -165,9 +218,37 @@ export default function StudentVoucherDashboard({ onBack }: StudentVoucherDashbo
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
+      {/* Desktop Layout Container */}
+      <div className="max-w-4xl mx-auto p-4 space-y-4">
+        {/* Manual Voucher Code Entry */}
+        <Card className="bg-white">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Plus className="w-5 h-5" />
+              Enter Voucher Code
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-3">
+              <Input
+                placeholder="Enter your voucher code here"
+                value={manualCode}
+                onChange={(e) => setManualCode(e.target.value)}
+                className="flex-1"
+              />
+              <Button
+                onClick={handleValidateManualCode}
+                disabled={isValidating || !manualCode.trim()}
+                className="bg-[#820d2a] hover:bg-[#6d031e]"
+              >
+                {isValidating ? "Validating..." : "Validate"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Summary Cards */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <Card className="text-center">
             <CardContent className="p-3">
               <div className="text-lg font-bold text-green-600">{tabCounts.available}</div>
@@ -207,7 +288,7 @@ export default function StudentVoucherDashboard({ onBack }: StudentVoucherDashbo
         </div>
 
         {/* Vouchers List */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           {loading ? (
             <div className="text-center py-8">
               <div className="text-gray-500">Loading vouchers...</div>
@@ -223,9 +304,10 @@ export default function StudentVoucherDashboard({ onBack }: StudentVoucherDashbo
               </div>
             </div>
           ) : (
-            <AnimatePresence>
-              {filteredVouchers.map((voucher, index) => {
-                const voucherStatus = getVoucherStatus(voucher);
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <AnimatePresence>
+                {filteredVouchers.map((voucher, index) => {
+                  const voucherStatus = getVoucherStatus(voucher);
                 
                 return (
                   <motion.div
@@ -310,8 +392,9 @@ export default function StudentVoucherDashboard({ onBack }: StudentVoucherDashbo
                     </Card>
                   </motion.div>
                 );
-              })}
-            </AnimatePresence>
+                })}
+              </AnimatePresence>
+            </div>
           )}
         </div>
       </div>

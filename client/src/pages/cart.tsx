@@ -44,7 +44,6 @@ function VoucherSection({ userId, appliedVoucher, onVoucherApplied, onVoucherRem
   const [showVouchers, setShowVouchers] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [manualCode, setManualCode] = useState("");
-  const [showManualEntry, setShowManualEntry] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -71,7 +70,6 @@ function VoucherSection({ userId, appliedVoucher, onVoucherApplied, onVoucherRem
       if (result.success) {
         onVoucherApplied(result.discountAmount, voucherId, voucherCode || result.code);
         setShowVouchers(false);
-        setShowManualEntry(false);
         setManualCode("");
       } else {
         toast({
@@ -163,61 +161,45 @@ function VoucherSection({ userId, appliedVoucher, onVoucherApplied, onVoucherRem
       
       {showVouchers && (
         <div className="space-y-2 border rounded-lg p-3 bg-gray-50">
-          {/* Manual voucher code entry */}
+          {/* Manual voucher code entry - always visible */}
           <div className="space-y-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start text-blue-600"
-              onClick={() => setShowManualEntry(!showManualEntry)}
-            >
-              Enter voucher code manually
-            </Button>
-            
-            {showManualEntry && (
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Enter voucher code"
-                  value={manualCode}
-                  onChange={(e) => setManualCode(e.target.value)}
-                  className="flex-1"
-                />
-                <Button
-                  size="sm"
-                  onClick={handleManualVoucherApply}
-                  disabled={isLoading || !manualCode.trim()}
-                >
-                  Apply
-                </Button>
-              </div>
-            )}
+            <p className="text-xs text-gray-600 font-medium">Enter voucher code:</p>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Enter voucher code"
+                value={manualCode}
+                onChange={(e) => setManualCode(e.target.value)}
+                className="flex-1"
+              />
+              <Button
+                size="sm"
+                onClick={handleManualVoucherApply}
+                disabled={isLoading || !manualCode.trim()}
+              >
+                Apply
+              </Button>
+            </div>
           </div>
 
           {vouchers.length > 0 && (
-            <>
-              <div className="border-t pt-2">
-                <p className="text-xs text-gray-500 mb-2">Your available vouchers:</p>
-                {vouchers.map((voucher) => (
-                  <div key={voucher.id} className="flex items-center justify-between p-2 bg-white rounded border mb-2">
-                    <div>
-                      <p className="font-medium text-sm">{voucher.code}</p>
-                      <p className="text-xs text-gray-600">₱{voucher.discountAmount || voucher.discountValue} discount</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={() => handleApplyVoucher(voucher.id)}
-                      disabled={isLoading}
-                    >
-                      Apply
-                    </Button>
+            <div className="border-t pt-2">
+              <p className="text-xs text-gray-500 mb-2">Your available vouchers:</p>
+              {vouchers.map((voucher) => (
+                <div key={voucher.id} className="flex items-center justify-between p-2 bg-white rounded border mb-2">
+                  <div>
+                    <p className="font-medium text-sm">{voucher.code}</p>
+                    <p className="text-xs text-gray-600">₱{voucher.discountAmount || voucher.discountValue} discount</p>
                   </div>
-                ))}
-              </div>
-            </>
-          )}
-          
-          {vouchers.length === 0 && !showManualEntry && (
-            <p className="text-xs text-gray-500 text-center py-2">No vouchers available</p>
+                  <Button
+                    size="sm"
+                    onClick={() => handleApplyVoucher(voucher.id)}
+                    disabled={isLoading}
+                  >
+                    Apply
+                  </Button>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}

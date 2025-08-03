@@ -456,22 +456,62 @@ export const checkIfFavorite = async (userId: string, stallId: string) => {
 // Voucher Management Functions
 export const getUserVouchers = async (userId: string) => {
   try {
-    const vouchersQuery = query(
+    const now = new Date();
+    
+    // Get user's loyalty point redeemed vouchers
+    const loyaltyVouchersQuery = query(
       collection(db, "vouchers"),
       where("userId", "==", userId),
       where("isUsed", "==", false)
     );
+    const loyaltySnapshot = await getDocs(loyaltyVouchersQuery);
+    const loyaltyVouchers = loyaltySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     
-    const querySnapshot = await getDocs(vouchersQuery);
-    const vouchers = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Get admin-created vouchers that this user can access
+    const adminVouchersQuery = query(
+      collection(db, "vouchers"),
+      where("isActive", "==", true)
+    );
+    const adminSnapshot = await getDocs(adminVouchersQuery);
+    const allAdminVouchers = adminSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     
-    // Filter out expired vouchers
-    const validVouchers = vouchers.filter((voucher: any) => {
-      if (!voucher.expiresAt) return true;
-      return new Date(voucher.expiresAt) > new Date();
+    // Filter admin vouchers based on user targeting
+    const availableAdminVouchers = allAdminVouchers.filter((voucher: any) => {
+      // Skip loyalty redemption vouchers (they're already included above)
+      if (voucher.type === 'loyalty_redemption') return false;
+      
+      // Check user targeting
+      if (voucher.userTargeting === 'all') {
+        return true;
+      } else if (voucher.userTargeting === 'selected') {
+        // Get user email and check if it's in the target list
+        const user = auth.currentUser;
+        return user && voucher.targetUserEmails?.includes(user.email);
+      }
+      return false;
     });
     
-    return validVouchers;
+    // Combine loyalty vouchers and available admin vouchers
+    const combinedVouchers = [...loyaltyVouchers, ...availableAdminVouchers];
+    
+    // Filter out expired vouchers and remove duplicates
+    const validVouchers = combinedVouchers.filter((voucher: any) => {
+      // Check if expired
+      if (voucher.expiresAt && new Date(voucher.expiresAt) <= now) return false;
+      if (voucher.validUntil && new Date(voucher.validUntil) <= now) return false;
+      return true;
+    });
+    
+    // Remove duplicates based on voucher code
+    const uniqueVouchers = validVouchers.reduce((acc: any[], voucher: any) => {
+      const exists = acc.find(v => v.code === voucher.code);
+      if (!exists) {
+        acc.push(voucher);
+      }
+      return acc;
+    }, []);
+    
+    return uniqueVouchers;
   } catch (error) {
     console.error("Error getting user vouchers:", error);
     return [];

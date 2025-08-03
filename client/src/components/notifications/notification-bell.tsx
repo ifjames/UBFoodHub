@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, X, Check, CheckCheck } from "lucide-react";
+import { Bell, X, Check, CheckCheck, Shield, ShoppingBag, Megaphone, AlertTriangle, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -97,17 +97,17 @@ export default function NotificationBell() {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "account":
-        return "🔐";
+        return <Shield className="w-4 h-4" />;
       case "order":
-        return "🍽️";
+        return <ShoppingBag className="w-4 h-4" />;
       case "admin":
-        return "📢";
+        return <Megaphone className="w-4 h-4" />;
       case "penalty":
-        return "⚠️";
+        return <AlertTriangle className="w-4 h-4" />;
       case "security":
-        return "🛡️";
+        return <Shield className="w-4 h-4" />;
       default:
-        return "📩";
+        return <Mail className="w-4 h-4" />;
     }
   };
 
@@ -210,7 +210,7 @@ export default function NotificationBell() {
                 >
                   <CardContent className="p-3">
                     <div className="flex items-start gap-3">
-                      <div className="text-lg flex-shrink-0 mt-0.5">
+                      <div className="flex-shrink-0 mt-0.5">
                         {getNotificationIcon(notification.type)}
                       </div>
                       

@@ -34,13 +34,17 @@ import LoadingOverlay from "@/components/loading-overlay";
 // Voucher Section Component
 interface VoucherSectionProps {
   userId: string;
-  onVoucherApplied: (discount: number, voucherId: string) => void;
+  appliedVoucher: { discount: number; voucherId: string; code: string } | null;
+  onVoucherApplied: (discount: number, voucherId: string, code: string) => void;
+  onVoucherRemoved: () => void;
 }
 
-function VoucherSection({ userId, onVoucherApplied }: VoucherSectionProps) {
+function VoucherSection({ userId, appliedVoucher, onVoucherApplied, onVoucherRemoved }: VoucherSectionProps) {
   const [vouchers, setVouchers] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [showVouchers, setShowVouchers] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [manualCode, setManualCode] = useState("");
+  const [showManualEntry, setShowManualEntry] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -60,14 +64,15 @@ function VoucherSection({ userId, onVoucherApplied }: VoucherSectionProps) {
     }
   };
 
-  const handleApplyVoucher = async (voucherId: string) => {
+  const handleApplyVoucher = async (voucherId: string, voucherCode?: string) => {
     setIsLoading(true);
     try {
       const result = await validateVoucher(userId, voucherId);
       if (result.success) {
-        onVoucherApplied(result.discountAmount, voucherId);
+        onVoucherApplied(result.discountAmount, voucherId, voucherCode || result.code);
         setShowVouchers(false);
-        // Don't reload vouchers since we're not marking as used yet
+        setShowManualEntry(false);
+        setManualCode("");
       } else {
         toast({
           title: "Error",
@@ -86,16 +91,62 @@ function VoucherSection({ userId, onVoucherApplied }: VoucherSectionProps) {
     }
   };
 
-  if (vouchers.length === 0) {
+  const handleManualVoucherApply = async () => {
+    if (!manualCode.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a voucher code",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Find voucher by code
+      const voucher = vouchers.find(v => v.code.toLowerCase() === manualCode.toLowerCase());
+      if (voucher) {
+        await handleApplyVoucher(voucher.id, voucher.code);
+      } else {
+        toast({
+          title: "Error",
+          description: "Voucher code not found or invalid",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to apply voucher code",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // If voucher is applied, show applied state
+  if (appliedVoucher) {
     return (
-      <Button
-        variant="outline"
-        className="w-full justify-start text-gray-400 cursor-not-allowed"
-        disabled
-      >
-        <Lock className="w-4 h-4 mr-2" />
-        No vouchers available
-      </Button>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-center gap-2">
+            <Tag className="w-4 h-4 text-green-600" />
+            <div>
+              <p className="font-medium text-sm text-green-800">{appliedVoucher.code}</p>
+              <p className="text-xs text-green-600">₱{appliedVoucher.discount.toFixed(2)} discount applied</p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onVoucherRemoved}
+            className="text-red-600 hover:text-red-700"
+          >
+            Remove
+          </Button>
+        </div>
+      </div>
     );
   }
 
@@ -107,26 +158,67 @@ function VoucherSection({ userId, onVoucherApplied }: VoucherSectionProps) {
         onClick={() => setShowVouchers(!showVouchers)}
       >
         <Tag className="w-4 h-4 mr-2" />
-        Apply Voucher ({vouchers.length} available)
+        Apply Voucher {vouchers.length > 0 && `(${vouchers.length} available)`}
       </Button>
       
       {showVouchers && (
         <div className="space-y-2 border rounded-lg p-3 bg-gray-50">
-          {vouchers.map((voucher) => (
-            <div key={voucher.id} className="flex items-center justify-between p-2 bg-white rounded border">
-              <div>
-                <p className="font-medium text-sm">{voucher.code}</p>
-                <p className="text-xs text-gray-600">₱{voucher.discountAmount} discount</p>
+          {/* Manual voucher code entry */}
+          <div className="space-y-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start text-blue-600"
+              onClick={() => setShowManualEntry(!showManualEntry)}
+            >
+              Enter voucher code manually
+            </Button>
+            
+            {showManualEntry && (
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter voucher code"
+                  value={manualCode}
+                  onChange={(e) => setManualCode(e.target.value)}
+                  className="flex-1"
+                />
+                <Button
+                  size="sm"
+                  onClick={handleManualVoucherApply}
+                  disabled={isLoading || !manualCode.trim()}
+                >
+                  Apply
+                </Button>
               </div>
-              <Button
-                size="sm"
-                onClick={() => handleApplyVoucher(voucher.id)}
-                disabled={isLoading}
-              >
-                Apply
-              </Button>
-            </div>
-          ))}
+            )}
+          </div>
+
+          {vouchers.length > 0 && (
+            <>
+              <div className="border-t pt-2">
+                <p className="text-xs text-gray-500 mb-2">Your available vouchers:</p>
+                {vouchers.map((voucher) => (
+                  <div key={voucher.id} className="flex items-center justify-between p-2 bg-white rounded border mb-2">
+                    <div>
+                      <p className="font-medium text-sm">{voucher.code}</p>
+                      <p className="text-xs text-gray-600">₱{voucher.discountAmount || voucher.discountValue} discount</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => handleApplyVoucher(voucher.id)}
+                      disabled={isLoading}
+                    >
+                      Apply
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+          
+          {vouchers.length === 0 && !showManualEntry && (
+            <p className="text-xs text-gray-500 text-center py-2">No vouchers available</p>
+          )}
         </div>
       )}
     </div>
@@ -150,6 +242,7 @@ export default function Cart() {
   const [groupOrderEmails, setGroupOrderEmails] = useState<string[]>([]);
   const [newEmailInput, setNewEmailInput] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
+  const [appliedVoucher, setAppliedVoucher] = useState<{ discount: number; voucherId: string; code: string } | null>(null);
 
   useEffect(() => {
     if (state.user?.id) {
@@ -163,6 +256,21 @@ export default function Cart() {
       return () => unsubscribe();
     }
   }, [state.user?.id]);
+
+  // Load applied voucher from localStorage on mount
+  useEffect(() => {
+    const savedDiscount = localStorage.getItem('appliedVoucherDiscount');
+    const savedVoucherId = localStorage.getItem('appliedVoucherId');
+    const savedVoucherCode = localStorage.getItem('appliedVoucherCode');
+    
+    if (savedDiscount && savedVoucherId && savedVoucherCode) {
+      setAppliedVoucher({
+        discount: parseFloat(savedDiscount),
+        voucherId: savedVoucherId,
+        code: savedVoucherCode
+      });
+    }
+  }, []);
 
   const updateQuantity = async (itemId: string, newQuantity: number) => {
     try {
@@ -216,9 +324,38 @@ export default function Cart() {
     return sum + (itemPrice + customizationPrice) * item.quantity;
   }, 0);
   
-  const voucherDiscount = parseFloat(localStorage.getItem('appliedVoucherDiscount') || '0');
+  const voucherDiscount = appliedVoucher ? appliedVoucher.discount : 0;
   const subtotal = Math.max(0, baseSubtotal - voucherDiscount);
   const total = subtotal;
+
+  const handleVoucherApplied = (discount: number, voucherId: string, code: string) => {
+    const voucherData = { discount, voucherId, code };
+    setAppliedVoucher(voucherData);
+    
+    // Store in localStorage
+    localStorage.setItem('appliedVoucherDiscount', discount.toString());
+    localStorage.setItem('appliedVoucherId', voucherId);
+    localStorage.setItem('appliedVoucherCode', code);
+    
+    toast({
+      title: "Voucher applied!",
+      description: `₱${discount.toFixed(2)} discount will be applied at checkout`,
+    });
+  };
+
+  const handleVoucherRemoved = () => {
+    setAppliedVoucher(null);
+    
+    // Remove from localStorage
+    localStorage.removeItem('appliedVoucherDiscount');
+    localStorage.removeItem('appliedVoucherId');
+    localStorage.removeItem('appliedVoucherCode');
+    
+    toast({
+      title: "Voucher removed",
+      description: "Discount has been removed from your cart",
+    });
+  };
 
   const addGroupEmail = () => {
     const email = newEmailInput.trim();
@@ -546,17 +683,9 @@ export default function Cart() {
           {/* Apply Voucher */}
           <VoucherSection 
             userId={state.user?.id || ""} 
-            onVoucherApplied={(discount: number, voucherId: string) => {
-              // Handle voucher application
-              localStorage.setItem('appliedVoucherDiscount', discount.toString());
-              localStorage.setItem('appliedVoucherId', voucherId);
-              toast({
-                title: "Voucher applied!",
-                description: `₱${discount.toFixed(2)} discount will be applied at checkout`,
-              });
-              // Force re-render to update totals
-              window.location.reload();
-            }}
+            appliedVoucher={appliedVoucher}
+            onVoucherApplied={handleVoucherApplied}
+            onVoucherRemoved={handleVoucherRemoved}
           />
 
           {/* Cutlery Option - Information for stall owner */}

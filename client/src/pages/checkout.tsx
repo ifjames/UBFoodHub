@@ -224,6 +224,7 @@ export default function Checkout() {
       localStorage.removeItem('noCutlery');
       localStorage.removeItem('appliedVoucherDiscount');
       localStorage.removeItem('appliedVoucherId');
+      localStorage.removeItem('appliedVoucherCode');
 
       const stallCount = Object.keys(itemsByStall).length;
       const hasGroupOrder = groupOrderEmails.length > 0;

@@ -139,7 +139,7 @@ export default function StallDashboard() {
         } else {
           console.log("No stall found with user ID as doc ID, searching by ownerId...");
           // If not found, search for stall where ownerId matches the user's Auth UID
-          subscribeToQuery("stalls", "ownerId", "==", state.user.id, (stalls) => {
+          subscribeToQuery("stalls", "ownerId", "==", state.user?.id || "", (stalls) => {
             console.log("Stalls found by ownerId:", stalls);
             if (stalls.length > 0) {
               const stall = stalls[0];
@@ -155,7 +155,7 @@ export default function StallDashboard() {
               });
               console.log("Found stall by ownerId:", stall);
             } else {
-              console.log("No stall found for user:", state.user.id);
+              console.log("No stall found for user:", state.user?.id);
               // No stall found - user needs to wait for admin to create their stall
             }
           });
@@ -207,10 +207,10 @@ export default function StallDashboard() {
           } else {
             console.log("Categories collection is empty");
           }
-        } catch (directError) {
+        } catch (directError: any) {
           console.error("Direct Firebase query failed:", directError);
-          console.error("Error code:", directError.code);
-          console.error("Error message:", directError.message);
+          console.error("Error code:", directError?.code);
+          console.error("Error message:", directError?.message);
         }
         
         // Fallback: try using the getCollection wrapper function
@@ -433,7 +433,7 @@ export default function StallDashboard() {
       await updateDocument("stalls", stallId, stallData);
       
       // Update local state
-      setStallInfo(prev => ({ ...prev, ...stallData }));
+      setStallInfo(prev => prev ? { ...prev, ...stallData } : null);
       
       toast({
         title: "Success",
@@ -626,7 +626,7 @@ export default function StallDashboard() {
   // Smart filtering functions
   const getUniqueCategories = () => {
     const categories = menuItems.map(item => item.category).filter(Boolean);
-    return [...new Set(categories)];
+    return Array.from(new Set(categories));
   };
 
   const filteredMenuItems = menuItems.filter(item => {
@@ -641,7 +641,7 @@ export default function StallDashboard() {
       const matchesSearch = !orderSearchQuery || 
         order.qrCode?.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
         order.customerName?.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
-        order.items?.some(item => 
+        order.items?.some((item: any) => 
           item.name?.toLowerCase().includes(orderSearchQuery.toLowerCase())
         );
       return matchesStatus && matchesSearch;
@@ -710,7 +710,7 @@ export default function StallDashboard() {
   }, {} as Record<string, {count: number, revenue: number}>);
 
   const popularItems = Object.entries(itemPopularity)
-    .sort(([,a], [,b]) => b.count - a.count)
+    .sort(([,a], [,b]) => (b as any).count - (a as any).count)
     .slice(0, 5);
 
   return (
@@ -989,17 +989,17 @@ export default function StallDashboard() {
                       <div className="mb-3">
                         <h4 className="text-sm font-medium text-gray-700 mb-2">Items Ordered:</h4>
                         <div className="space-y-2">
-                          {order.items?.map((item, index) => (
+                          {order.items?.map((item: any, index: number) => (
                             <div key={index} className="flex justify-between items-start">
                               <div className="flex-1">
                                 <p className="font-medium">{item.name} x{item.quantity}</p>
                                 {item.customizations && item.customizations.length > 0 && (
                                   <p className="text-sm text-gray-600 ml-2">
-                                    Add-ons: {item.customizations.map(c => c.name).join(', ')}
+                                    Add-ons: {item.customizations.map((c: any) => c.name).join(', ')}
                                   </p>
                                 )}
                               </div>
-                              <span className="text-sm font-medium">₱{((item.price + (item.customizations?.reduce((sum, c) => sum + c.price, 0) || 0)) * item.quantity).toFixed(2)}</span>
+                              <span className="text-sm font-medium">₱{((item.price + (item.customizations?.reduce((sum: number, c: any) => sum + c.price, 0) || 0)) * item.quantity).toFixed(2)}</span>
                             </div>
                           ))}
                         </div>
@@ -1246,7 +1246,7 @@ export default function StallDashboard() {
                       <div className="mb-3">
                         <h4 className="text-sm font-medium text-gray-700 mb-2">Items ({order.items?.length || 0}):</h4>
                         <div className="text-sm text-gray-600">
-                          {order.items?.slice(0, 2).map((item, index) => (
+                          {order.items?.slice(0, 2).map((item: any, index: number) => (
                             <span key={index}>
                               {item.name} x{item.quantity}
                               {index < Math.min(1, order.items.length - 1) && ', '}
@@ -1783,7 +1783,7 @@ export default function StallDashboard() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
           >
-            <VoucherUsageView stallId={stallId} />
+            <VoucherUsageView stallId={stallId || ""} />
           </motion.div>
         )}
 
@@ -1857,11 +1857,11 @@ export default function StallDashboard() {
                           </div>
                           <div>
                             <p className="font-medium text-gray-900">{itemName}</p>
-                            <p className="text-sm text-gray-600">{stats.count} orders</p>
+                            <p className="text-sm text-gray-600">{(stats as any).count} orders</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-semibold text-[#6d031e]">₱{stats.revenue.toFixed(2)}</p>
+                          <p className="font-semibold text-[#6d031e]">₱{(stats as any).revenue.toFixed(2)}</p>
                           <p className="text-xs text-gray-500">Revenue</p>
                         </div>
                       </div>

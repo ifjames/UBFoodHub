@@ -97,6 +97,7 @@ export default function Restaurant() {
                 const userDoc = await getDocument("users", review.userId);
                 if (userDoc.exists()) {
                   userProfile = userDoc.data();
+                  console.log("User profile fetched:", userProfile);
                 }
               } catch (error) {
                 console.log("Error fetching user profile:", error);
@@ -441,21 +442,25 @@ export default function Restaurant() {
                   <div className="flex items-center gap-3">
                     {/* Profile Picture or Initial */}
                     <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-[#6d031e]">
-                      {review.userProfile?.profilePicture ? (
+                      {(review.userProfile?.photoURL || review.userProfile?.profilePicture) ? (
                         <img 
-                          src={review.userProfile.profilePicture} 
+                          src={review.userProfile?.photoURL || review.userProfile?.profilePicture} 
                           alt="Profile"
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            console.log("Image failed to load:", e.currentTarget.src);
+                            e.currentTarget.style.display = 'none';
+                          }}
                         />
                       ) : (
                         <span className="text-white font-medium text-sm">
-                          {(review.userProfile?.name || review.userName || review.studentName || review.userEmail || 'S').charAt(0).toUpperCase()}
+                          {(review.userProfile?.fullName || review.userProfile?.name || review.userName || review.studentName || review.userEmail || 'S').charAt(0).toUpperCase()}
                         </span>
                       )}
                     </div>
                     <div>
                       <p className="font-medium text-sm">
-                        {review.userProfile?.name || review.userName || review.studentName || review.userEmail || 'Student'}
+                        {review.userProfile?.fullName || review.userProfile?.name || review.userName || review.studentName || review.userEmail || 'Student'}
                       </p>
                       <p className="text-xs text-gray-500">
                         {review.userProfile?.studentId || review.studentId ? `ID: ${review.userProfile?.studentId || review.studentId}` : 'UB Student'}

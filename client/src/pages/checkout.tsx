@@ -14,7 +14,7 @@ import { subscribeToQuery, addDocument, deleteDocument, getDocument, awardLoyalt
 
 export default function Checkout() {
   const [, setLocation] = useLocation();
-  const { state } = useStore();
+  const { state, dispatch } = useStore();
   const { toast } = useToast();
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [paymentMethod, setPaymentMethod] = useState("cash");
@@ -36,7 +36,7 @@ export default function Checkout() {
         setCartItems(items);
         
         // Get all unique stall info for multi-stall support
-        const uniqueStallIds = [...new Set(items.map(item => item.stallId))].filter(Boolean);
+        const uniqueStallIds = Array.from(new Set(items.map(item => item.stallId))).filter(Boolean);
         const stallsData = [];
         
         for (const stallId of uniqueStallIds) {
@@ -113,9 +113,9 @@ export default function Checkout() {
       }, {} as { [key: string]: any[] });
 
       // Create separate orders for each stall if multi-stall
-      const orderPromises = Object.entries(itemsByStall).map(async ([stallId, stallItems], index) => {
+      const orderPromises = Object.entries(itemsByStall).map(async ([stallId, stallItems]: [string, any[]], index) => {
         const stallOrderId = Object.keys(itemsByStall).length > 1 ? `${orderId}-${index + 1}` : orderId;
-        const stallSubtotal = stallItems.reduce((sum, item) => {
+        const stallSubtotal = stallItems.reduce((sum: number, item: any) => {
           const itemPrice = item.price || 0;
           const customizationPrice = item.customizations?.reduce((sum: number, custom: any) => sum + (custom.price || 0), 0) || 0;
           return sum + ((itemPrice + customizationPrice) * item.quantity);
@@ -151,7 +151,7 @@ export default function Checkout() {
           noCutlery: noCutlery,
           isMultiStallOrder: Object.keys(itemsByStall).length > 1,
           mainOrderId: orderId,
-          items: stallItems.map(item => ({
+          items: stallItems.map((item: any) => ({
             menuItemId: item.menuItemId,
             name: item.name,
             quantity: item.quantity,
@@ -169,41 +169,45 @@ export default function Checkout() {
         let finalPointsTotal = state.user?.loyaltyPoints || 0;
         
         // Redeem points if used
-        if (usePoints && pointsToUse > 0) {
+        if (usePoints && pointsToUse > 0 && state.user?.uid) {
           const redeemResult = await redeemLoyaltyPoints(state.user.uid, pointsToUse);
           if (redeemResult.success) {
-            finalPointsTotal = redeemResult.newTotal;
+            finalPointsTotal = redeemResult.newTotal || 0;
             toast({
               title: `${pointsToUse} points redeemed!`,
-              description: `Saved ₱${redeemResult.discountAmount.toFixed(2)} on this order`,
+              description: `Saved ₱${redeemResult.discountAmount?.toFixed(2)} on this order`,
             });
           }
         }
         
         // Award points for the order (based on actual amount paid, after discount)
-        const userFavorites = await getUserFavorites(state.user.uid);
-        const stallIds = Object.keys(itemsByStall);
-        const isNewStall = stallIds.some(stallId => !userFavorites.includes(stallId));
-        
-        const pointsResult = await awardLoyaltyPoints(state.user.uid, subtotal, isNewStall);
-        
-        if (pointsResult.pointsAwarded > 0) {
-          finalPointsTotal = pointsResult.newTotal;
+        if (state.user?.uid) {
+          const userFavorites = await getUserFavorites(state.user.uid);
+          const stallIds = Object.keys(itemsByStall);
+          const isNewStall = stallIds.some(stallId => !userFavorites.includes(stallId));
           
-          toast({
-            title: `+${pointsResult.pointsAwarded} loyalty points earned!`,
-            description: isNewStall ? "Double points for trying a new stall!" : `You now have ${finalPointsTotal} points total`,
-          });
+          const pointsResult = await awardLoyaltyPoints(state.user.uid, subtotal, isNewStall);
+        
+          if (pointsResult.pointsAwarded > 0) {
+            finalPointsTotal = pointsResult.newTotal;
+            
+            toast({
+              title: `+${pointsResult.pointsAwarded} loyalty points earned!`,
+              description: isNewStall ? "Double points for trying a new stall!" : `You now have ${finalPointsTotal} points total`,
+            });
+          }
         }
         
         // Update user points in store
-        dispatch({
-          type: "SET_USER",
-          payload: {
-            ...state.user,
-            loyaltyPoints: finalPointsTotal
-          }
-        });
+        if (state.user) {
+          dispatch({
+            type: "SET_USER",
+            payload: {
+              ...state.user,
+              loyaltyPoints: finalPointsTotal
+            }
+          });
+        }
         
       } catch (error) {
         console.error("Error handling loyalty points:", error);

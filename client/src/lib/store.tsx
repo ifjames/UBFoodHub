@@ -165,19 +165,30 @@ export function useAuth() {
         // Sync Google account data with existing account (name, photo, email verification)
         const shouldUpdate = 
           userData.emailVerified !== userCredential.user.emailVerified ||
-          userData.fullName !== userCredential.user.displayName ||
-          userData.photoURL !== userCredential.user.photoURL;
+          (userCredential.user.displayName && userData.fullName !== userCredential.user.displayName) ||
+          (userCredential.user.photoURL && userData.photoURL !== userCredential.user.photoURL);
           
         if (shouldUpdate) {
           console.log("Syncing Google account data for existing user:", userCredential.user.email);
-          await setDoc(doc(db, "users", userCredential.user.uid), {
+          console.log("Current name:", userData.fullName, "-> Google name:", userCredential.user.displayName);
+          
+          const updatedData = {
             ...userData,
-            fullName: userCredential.user.displayName || userData.fullName, // Use Google name if available
-            photoURL: userCredential.user.photoURL || userData.photoURL, // Use Google photo if available
             emailVerified: userCredential.user.emailVerified,
-            // Keep existing data: password, studentId, phoneNumber, loyaltyPoints, etc.
-          }, { merge: true });
-          console.log("Account data synced from Google for:", userCredential.user.email);
+          };
+          
+          // Always use Google name if available (override existing name)
+          if (userCredential.user.displayName) {
+            updatedData.fullName = userCredential.user.displayName;
+          }
+          
+          // Always use Google photo if available (override existing photo)
+          if (userCredential.user.photoURL) {
+            updatedData.photoURL = userCredential.user.photoURL;
+          }
+          
+          await setDoc(doc(db, "users", userCredential.user.uid), updatedData, { merge: true });
+          console.log("Account data synced from Google. New name:", updatedData.fullName);
         }
       } else {
         // Check if there's an existing account with the same email but different UID
@@ -199,11 +210,21 @@ export function useAuth() {
           const mergedUserData = {
             ...existingUserData,
             uid: userCredential.user.uid, // Use new Google UID
-            fullName: userCredential.user.displayName || existingUserData.fullName, // Prefer Google name
-            photoURL: userCredential.user.photoURL || existingUserData.photoURL, // Prefer Google photo
             emailVerified: userCredential.user.emailVerified, // Use Google verification status
             // Keep existing: password, studentId, phoneNumber, loyaltyPoints, role, etc.
           };
+          
+          // Always override with Google name if available
+          if (userCredential.user.displayName) {
+            mergedUserData.fullName = userCredential.user.displayName;
+          }
+          
+          // Always override with Google photo if available
+          if (userCredential.user.photoURL) {
+            mergedUserData.photoURL = userCredential.user.photoURL;
+          }
+          
+          console.log("Merging accounts - Old name:", existingUserData.fullName, "-> Google name:", userCredential.user.displayName);
           
           await setDoc(doc(db, "users", userCredential.user.uid), mergedUserData);
           

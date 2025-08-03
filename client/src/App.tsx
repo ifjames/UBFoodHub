@@ -128,7 +128,9 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
             const isEmailVerified = userData.emailVerified || firebaseUser.emailVerified || false;
             
             // Check email verification for students - block authentication completely
-            if (userRole === "student" && !isEmailVerified) {
+            // But skip this check if we're currently creating an account
+            const isCreatingAccount = sessionStorage.getItem('creatingAccount') === 'true';
+            if (userRole === "student" && !isEmailVerified && !isCreatingAccount) {
               console.log("Student account not verified, signing out:", firebaseUser.email);
               await logOut();
               dispatch({ type: "SET_USER", payload: null });

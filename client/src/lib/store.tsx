@@ -104,6 +104,9 @@ export function useAuth() {
     studentId: string;
   }) => {
     try {
+      // Set a flag to indicate we're creating a new account
+      sessionStorage.setItem('creatingAccount', 'true');
+      
       const userCredential = await firebaseSignUp(email, password);
       const user = userCredential.user;
       
@@ -127,8 +130,13 @@ export function useAuth() {
       // This prevents the email verification enforcement from causing issues
       await logOut();
       
+      // Clear the flag after successful account creation
+      sessionStorage.removeItem('creatingAccount');
+      
       return userCredential;
     } catch (error) {
+      // Clear the flag if there's an error
+      sessionStorage.removeItem('creatingAccount');
       throw error;
     }
   };

@@ -47,6 +47,7 @@ export default function Restaurant() {
   const [actualRating, setActualRating] = useState<number>(0);
   const [actualReviewCount, setActualReviewCount] = useState<number>(0);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewsWithOrderDetails, setReviewsWithOrderDetails] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   // Debug effect to track reviews state changes
@@ -67,12 +68,52 @@ export default function Restaurant() {
 
       // Subscribe to reviews for real-time updates
       console.log("Setting up reviews subscription for restaurant:", restaurantId);
-      const reviewsUnsubscribe = subscribeToQuery("reviews", "stallId", "==", restaurantId, (reviewsData) => {
+      const reviewsUnsubscribe = subscribeToQuery("reviews", "stallId", "==", restaurantId, async (reviewsData) => {
         console.log("Reviews callback triggered for restaurant:", restaurantId, reviewsData);
         console.log("Setting reviews state to:", reviewsData);
         
+        // Fetch order details and user profiles for each review
+        const reviewsWithDetails = await Promise.all(
+          reviewsData.map(async (review) => {
+            let orderItems = [];
+            let userProfile = null;
+            
+            // Fetch order details if orderId exists
+            if (review.orderId) {
+              try {
+                const orderDoc = await getDocument("orders", review.orderId);
+                if (orderDoc.exists()) {
+                  const orderData = orderDoc.data();
+                  orderItems = orderData.items || [];
+                }
+              } catch (error) {
+                console.log("Error fetching order details:", error);
+              }
+            }
+            
+            // Fetch user profile for profile picture and latest name
+            if (review.userId) {
+              try {
+                const userDoc = await getDocument("users", review.userId);
+                if (userDoc.exists()) {
+                  userProfile = userDoc.data();
+                }
+              } catch (error) {
+                console.log("Error fetching user profile:", error);
+              }
+            }
+            
+            return {
+              ...review,
+              orderItems,
+              userProfile
+            };
+          })
+        );
+        
         // Force state update with a new array reference
         setReviews([...reviewsData]);
+        setReviewsWithOrderDetails([...reviewsWithDetails]);
         setIsLoading(false);
         
         if (reviewsData.length > 0) {
@@ -104,6 +145,7 @@ export default function Restaurant() {
       // Reset state when no restaurant ID
       console.log("No restaurant ID, resetting state");
       setReviews([]);
+      setReviewsWithOrderDetails([]);
       setActualRating(0);
       setActualReviewCount(0);
       setIsLoading(true);
@@ -388,23 +430,36 @@ export default function Restaurant() {
           <div className="text-center py-4">
             <p className="text-gray-600">Loading reviews...</p>
           </div>
-        ) : reviews && reviews.length > 0 ? (
+        ) : reviewsWithOrderDetails && reviewsWithOrderDetails.length > 0 ? (
           <div className="space-y-4">
-            {reviews.map((review) => (
+            {reviewsWithOrderDetails.map((review) => (
               <div
                 key={review.id}
                 className="border-b pb-4 last:border-b-0"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#6d031e] rounded-full flex items-center justify-center">
-                      <span className="text-white font-medium text-sm">
-                        {review.userName?.charAt(0) || review.studentName?.charAt(0) || review.userEmail?.charAt(0) || 'S'}
-                      </span>
+                    {/* Profile Picture or Initial */}
+                    <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-[#6d031e]">
+                      {review.userProfile?.profilePicture ? (
+                        <img 
+                          src={review.userProfile.profilePicture} 
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-white font-medium text-sm">
+                          {(review.userProfile?.name || review.userName || review.studentName || review.userEmail || 'S').charAt(0).toUpperCase()}
+                        </span>
+                      )}
                     </div>
                     <div>
-                      <p className="font-medium text-sm">{review.userName || review.studentName || review.userEmail || 'Student'}</p>
-                      <p className="text-xs text-gray-500">{review.studentId ? `ID: ${review.studentId}` : 'UB Student'}</p>
+                      <p className="font-medium text-sm">
+                        {review.userProfile?.name || review.userName || review.studentName || review.userEmail || 'Student'}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {review.userProfile?.studentId || review.studentId ? `ID: ${review.userProfile?.studentId || review.studentId}` : 'UB Student'}
+                      </p>
                       <div className="flex items-center gap-1 mt-1">
                         {Array.from({ length: 5 }, (_, i) => (
                           <Star
@@ -427,10 +482,21 @@ export default function Restaurant() {
                 {review.comment && (
                   <p className="text-sm text-gray-700 ml-13">{review.comment}</p>
                 )}
-                {review.orderId && (
-                  <p className="text-xs text-gray-500 mt-2 ml-13">
-                    Order: {review.orderId}
-                  </p>
+                {/* Show order items instead of just order ID */}
+                {review.orderItems && review.orderItems.length > 0 && (
+                  <div className="mt-2 ml-13">
+                    <p className="text-xs text-gray-500 mb-1">Ordered:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {review.orderItems.map((item: any, index: number) => (
+                        <span
+                          key={index}
+                          className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full"
+                        >
+                          {item.quantity}x {item.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
             ))}

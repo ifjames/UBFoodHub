@@ -386,7 +386,7 @@ export const redeemLoyaltyPoints = async (userId: string, pointsToRedeem: number
           targetUserEmails: [auth.currentUser?.email],
           stallTargeting: 'all',
           maxUsage: 1,
-          currentUsage: 0,
+          usageCount: 0, // Use consistent field name
           type: "loyalty_redemption",
           createdAt: new Date().toISOString(),
           createdBy: userId
@@ -471,14 +471,14 @@ export const getUserVouchers = async (userId: string) => {
   try {
     const now = new Date();
     
-    // Get user's loyalty point redeemed vouchers
+    // Get user's loyalty point redeemed vouchers (all of them, not just unused)
     const loyaltyVouchersQuery = query(
       collection(db, "vouchers"),
-      where("userId", "==", userId),
-      where("isUsed", "==", false)
+      where("userId", "==", userId)
     );
     const loyaltySnapshot = await getDocs(loyaltyVouchersQuery);
     const loyaltyVouchers = loyaltySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    console.log("Loyalty vouchers found:", loyaltyVouchers.length, loyaltyVouchers);
     
     // Get admin-created vouchers that this user can access
     const adminVouchersQuery = query(
@@ -515,15 +515,23 @@ export const getUserVouchers = async (userId: string) => {
       return true;
     });
     
-    // Remove duplicates based on voucher code
+    // Remove duplicates based on voucher code and normalize field names
     const uniqueVouchers = validVouchers.reduce((acc: any[], voucher: any) => {
       const exists = acc.find(v => v.code === voucher.code);
       if (!exists) {
-        acc.push(voucher);
+        // Normalize field names for backward compatibility
+        const normalizedVoucher = {
+          ...voucher,
+          usageCount: voucher.usageCount ?? voucher.currentUsage ?? 0,
+          maxUsage: voucher.maxUsage ?? 1,
+          discountValue: voucher.discountValue ?? voucher.discountAmount ?? 0
+        };
+        acc.push(normalizedVoucher);
       }
       return acc;
     }, []);
     
+    console.log("Final vouchers being returned:", uniqueVouchers.length, uniqueVouchers);
     return uniqueVouchers;
   } catch (error) {
     console.error("Error getting user vouchers:", error);

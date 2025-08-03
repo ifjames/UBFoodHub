@@ -30,7 +30,7 @@ Preferred communication style: Simple, everyday language.
 - **Order Management**: Pre-ordering with scheduled pickup times, QR code system for order verification, real-time status tracking, and group ordering.
 - **Stall Dashboard**: Comprehensive order management (view, cancel), customer info display, smart filtering, and analytics (revenue, popular items, order status breakdown).
 - **Notifications**: Push notification system for order status changes, penalties, email verification reminders, and announcements.
-- **Security**: Email domain restriction, email verification, mandatory fields (Student ID, phone number), Philippine phone validation, and Terms of Service agreement.
+- **Security**: Email domain restriction, email verification enforcement (blocks unverified student logins), mandatory fields (Student ID, phone number), Philippine phone validation, and Terms of Service agreement.
 - **Loyalty Points System**: Complete functional system with point earning (1 point per ₱10), redemption (100 points = ₱10 discount), tier system (Bronze/Silver/Gold), transaction history, and checkout integration. Includes bonus rewards for trying new stalls.
 
 ### Deployment

@@ -73,12 +73,22 @@ export function useAuth() {
       
       // Get user data from Firestore to determine role
       const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+      let userData = null;
+      let userRole = "student"; // Default role
+      
       if (userDoc.exists()) {
-        const userData = userDoc.data();
-        return { userCredential, role: userData.role };
+        userData = userDoc.data();
+        userRole = userData.role;
       }
       
-      return { userCredential, role: "student" }; // Default role
+      // Check email verification for students only
+      if (userRole === "student" && !userCredential.user.emailVerified) {
+        // Sign out the user immediately
+        await logOut();
+        throw new Error("Please verify your email address before signing in. Check your inbox for a verification email.");
+      }
+      
+      return { userCredential, role: userRole };
     } catch (error) {
       throw error;
     }
@@ -130,9 +140,11 @@ export function useAuth() {
       
       // Get user data from Firestore to determine role
       const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+      let userRole = "student"; // Default role
+      
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        return { userCredential, role: userData.role };
+        userRole = userData.role;
       } else {
         // Create new user document for Google sign-in
         const userData = {
@@ -149,8 +161,31 @@ export function useAuth() {
         };
         
         await setDoc(doc(db, "users", userCredential.user.uid), userData);
-        return { userCredential, role: "student" };
       }
+      
+      // Check email verification for students only
+      if (userRole === "student" && !userCredential.user.emailVerified) {
+        // Sign out the user immediately
+        await logOut();
+        throw new Error("Please verify your email address before signing in. Check your inbox for a verification email.");
+      }
+      
+      return { userCredential, role: userRole };
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const resendVerificationEmail = async () => {
+    try {
+      const { sendVerificationEmail } = await import("./firebase");
+      const { auth } = await import("./firebase");
+      
+      if (auth.currentUser) {
+        await sendVerificationEmail(auth.currentUser);
+        return true;
+      }
+      throw new Error("No user is currently signed in");
     } catch (error) {
       throw error;
     }
@@ -161,5 +196,6 @@ export function useAuth() {
     signUp,
     signOut,
     signInWithGoogle,
+    resendVerificationEmail,
   };
 }

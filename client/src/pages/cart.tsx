@@ -24,10 +24,111 @@ import {
   updateDocument,
   deleteDocument,
   addDocument,
+  getUserVouchers,
+  applyVoucher,
 } from "@/lib/firebase";
 import BottomNav from "@/components/layout/bottom-nav";
 import LoadingIndicator from "@/components/loading-indicator";
 import LoadingOverlay from "@/components/loading-overlay";
+
+// Voucher Section Component
+interface VoucherSectionProps {
+  userId: string;
+  onVoucherApplied: (discount: number) => void;
+}
+
+function VoucherSection({ userId, onVoucherApplied }: VoucherSectionProps) {
+  const [vouchers, setVouchers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showVouchers, setShowVouchers] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (userId) {
+      loadVouchers();
+    }
+  }, [userId]);
+
+  const loadVouchers = async () => {
+    try {
+      const userVouchers = await getUserVouchers(userId);
+      setVouchers(userVouchers);
+    } catch (error) {
+      console.error("Error loading vouchers:", error);
+    }
+  };
+
+  const handleApplyVoucher = async (voucherId: string) => {
+    setIsLoading(true);
+    try {
+      const result = await applyVoucher(userId, voucherId);
+      if (result.success) {
+        onVoucherApplied(result.discountAmount);
+        setShowVouchers(false);
+      } else {
+        toast({
+          title: "Error",
+          description: result.error,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to apply voucher",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (vouchers.length === 0) {
+    return (
+      <Button
+        variant="outline"
+        className="w-full justify-start text-gray-400 cursor-not-allowed"
+        disabled
+      >
+        <Lock className="w-4 h-4 mr-2" />
+        No vouchers available
+      </Button>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <Button
+        variant="outline"
+        className="w-full justify-start"
+        onClick={() => setShowVouchers(!showVouchers)}
+      >
+        <Tag className="w-4 h-4 mr-2" />
+        Apply Voucher ({vouchers.length} available)
+      </Button>
+      
+      {showVouchers && (
+        <div className="space-y-2 border rounded-lg p-3 bg-gray-50">
+          {vouchers.map((voucher) => (
+            <div key={voucher.id} className="flex items-center justify-between p-2 bg-white rounded border">
+              <div>
+                <p className="font-medium text-sm">{voucher.code}</p>
+                <p className="text-xs text-gray-600">₱{voucher.discountAmount} discount</p>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => handleApplyVoucher(voucher.id)}
+                disabled={isLoading}
+              >
+                Apply
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Cart() {
   const [, setLocation] = useLocation();
@@ -110,7 +211,7 @@ export default function Cart() {
     }
   };
 
-  const subtotal = cartItems.reduce((sum, item) => {
+  const baseSubtotal = cartItems.reduce((sum, item) => {
     const itemPrice = item.price || 0;
     const customizationPrice =
       item.customizations?.reduce(
@@ -119,6 +220,9 @@ export default function Cart() {
       ) || 0;
     return sum + (itemPrice + customizationPrice) * item.quantity;
   }, 0);
+  
+  const voucherDiscount = parseFloat(localStorage.getItem('appliedVoucherDiscount') || '0');
+  const subtotal = Math.max(0, baseSubtotal - voucherDiscount);
   const total = subtotal;
 
   const addGroupEmail = () => {
@@ -444,18 +548,30 @@ export default function Cart() {
         >
           <div className="flex justify-between">
             <span>Subtotal</span>
-            <span>₱{subtotal.toFixed(2)}</span>
+            <span>₱{baseSubtotal.toFixed(2)}</span>
           </div>
+          
+          {voucherDiscount > 0 && (
+            <div className="flex justify-between text-green-600">
+              <span>Voucher Discount</span>
+              <span>-₱{voucherDiscount.toFixed(2)}</span>
+            </div>
+          )}
 
-          {/* Apply Voucher - Locked */}
-          <Button
-            variant="outline"
-            className="w-full justify-start text-gray-400 cursor-not-allowed"
-            disabled
-          >
-            <Lock className="w-4 h-4 mr-2" />
-            Apply a voucher
-          </Button>
+          {/* Apply Voucher */}
+          <VoucherSection 
+            userId={state.user?.id || ""} 
+            onVoucherApplied={(discount: number) => {
+              // Handle voucher application
+              localStorage.setItem('appliedVoucherDiscount', discount.toString());
+              toast({
+                title: "Voucher applied!",
+                description: `₱${discount.toFixed(2)} discount will be applied at checkout`,
+              });
+              // Force re-render to update totals
+              window.location.reload();
+            }}
+          />
 
           {/* Cutlery Option - Information for stall owner */}
           <div className="flex items-center justify-between py-2">

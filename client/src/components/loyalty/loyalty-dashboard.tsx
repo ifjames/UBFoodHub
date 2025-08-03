@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Award, Star, Gift, Clock, TrendingUp } from "lucide-react";
 import { useStore } from "@/lib/store";
-import { getUserLoyaltyTier, redeemLoyaltyPoints, getLoyaltyTransactions } from "@/lib/firebase";
+import { getUserLoyaltyTier, redeemLoyaltyPoints, getLoyaltyTransactions, getUserVouchers } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
@@ -14,6 +14,7 @@ export default function LoyaltyDashboard() {
   const { state, dispatch } = useStore();
   const { toast } = useToast();
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [vouchers, setVouchers] = useState<any[]>([]);
   const [pointsToRedeem, setPointsToRedeem] = useState("");
   const [isRedeeming, setIsRedeeming] = useState(false);
   const [showRedeemDialog, setShowRedeemDialog] = useState(false);
@@ -24,6 +25,7 @@ export default function LoyaltyDashboard() {
   useEffect(() => {
     if (state.user?.uid) {
       loadTransactions();
+      loadVouchers();
     }
   }, [state.user?.uid]);
 
@@ -34,6 +36,16 @@ export default function LoyaltyDashboard() {
     } catch (error) {
       // Silently handle errors and show empty state
       setTransactions([]);
+    }
+  };
+
+  const loadVouchers = async () => {
+    try {
+      const userVouchers = await getUserVouchers(state.user.uid);
+      setVouchers(userVouchers || []);
+    } catch (error) {
+      // Silently handle errors and show empty state
+      setVouchers([]);
     }
   };
 
@@ -72,12 +84,13 @@ export default function LoyaltyDashboard() {
 
         toast({
           title: "Points Redeemed!",
-          description: `You've received ₱${result.discountAmount.toFixed(2)} discount for your next order`,
+          description: `You've received ₱${result.discountAmount.toFixed(2)} discount voucher (Code: ${result.voucherCode})`,
         });
 
         setPointsToRedeem("");
         setShowRedeemDialog(false);
         loadTransactions();
+        loadVouchers();
       } else {
         toast({
           title: "Redemption Failed",

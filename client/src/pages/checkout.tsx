@@ -84,7 +84,8 @@ export default function Checkout() {
   }, 0);
   
   const pointsDiscount = usePoints ? (pointsToUse / 100) * 10 : 0;
-  const subtotal = Math.max(0, baseSubtotal - pointsDiscount);
+  const voucherDiscount = parseFloat(localStorage.getItem('appliedVoucherDiscount') || '0');
+  const subtotal = Math.max(0, baseSubtotal - pointsDiscount - voucherDiscount);
 
   const placeOrder = async () => {
     if (cartItems.length === 0) return;
@@ -223,6 +224,8 @@ export default function Checkout() {
       localStorage.removeItem('scheduledTime');
       localStorage.removeItem('deliveryInstructions');
       localStorage.removeItem('noCutlery');
+      localStorage.removeItem('appliedVoucherDiscount');
+      localStorage.removeItem('appliedVoucherDiscount');
 
       const stallCount = Object.keys(itemsByStall).length;
       const hasGroupOrder = groupOrderEmails.length > 0;

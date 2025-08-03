@@ -367,7 +367,19 @@ export const redeemLoyaltyPoints = async (userId: string, pointsToRedeem: number
           timestamp: new Date().toISOString()
         });
         
-        return { success: true, discountAmount, newTotal };
+        // Create a discount voucher
+        const voucherCode = `DISCOUNT${pointsToRedeem}`;
+        await addDocument("vouchers", {
+          userId,
+          code: voucherCode,
+          discountAmount,
+          isUsed: false,
+          createdAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+          type: "loyalty_redemption"
+        });
+        
+        return { success: true, discountAmount, newTotal, voucherCode };
       } else {
         return { success: false, error: "Insufficient points" };
       }
@@ -438,5 +450,69 @@ export const checkIfFavorite = async (userId: string, stallId: string) => {
   } catch (error) {
     console.error("Error checking favorite:", error);
     return false;
+  }
+};
+
+// Voucher Management Functions
+export const getUserVouchers = async (userId: string) => {
+  try {
+    const vouchersQuery = query(
+      collection(db, "vouchers"),
+      where("userId", "==", userId),
+      where("isUsed", "==", false)
+    );
+    
+    const querySnapshot = await getDocs(vouchersQuery);
+    const vouchers = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    // Filter out expired vouchers
+    const validVouchers = vouchers.filter((voucher: any) => {
+      if (!voucher.expiresAt) return true;
+      return new Date(voucher.expiresAt) > new Date();
+    });
+    
+    return validVouchers;
+  } catch (error) {
+    console.error("Error getting user vouchers:", error);
+    return [];
+  }
+};
+
+export const applyVoucher = async (userId: string, voucherId: string) => {
+  try {
+    const voucherDoc = await getDocument("vouchers", voucherId);
+    if (voucherDoc.exists()) {
+      const voucherData = voucherDoc.data();
+      
+      // Validate voucher
+      if (voucherData.userId !== userId) {
+        return { success: false, error: "Voucher does not belong to this user" };
+      }
+      
+      if (voucherData.isUsed) {
+        return { success: false, error: "Voucher has already been used" };
+      }
+      
+      if (voucherData.expiresAt && new Date(voucherData.expiresAt) < new Date()) {
+        return { success: false, error: "Voucher has expired" };
+      }
+      
+      // Mark voucher as used
+      await updateDocument("vouchers", voucherId, {
+        isUsed: true,
+        usedAt: new Date().toISOString()
+      });
+      
+      return { 
+        success: true, 
+        discountAmount: voucherData.discountAmount,
+        code: voucherData.code
+      };
+    }
+    
+    return { success: false, error: "Voucher not found" };
+  } catch (error) {
+    console.error("Error applying voucher:", error);
+    throw error;
   }
 };

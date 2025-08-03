@@ -31,7 +31,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
@@ -2393,6 +2393,9 @@ export default function StallDashboard() {
             <DialogTitle className="text-[#6d031e]">
               Order Details - {selectedOrder?.qrCode}
             </DialogTitle>
+            <DialogDescription>
+              Complete order information and management options
+            </DialogDescription>
           </DialogHeader>
           
           {selectedOrder && (
@@ -2405,17 +2408,18 @@ export default function StallDashboard() {
                   <p><span className="font-medium">Student ID:</span> {selectedOrder.studentId || 'Not provided'}</p>
                   <p><span className="font-medium">Email:</span> {selectedOrder.customerEmail || 'Not provided'}</p>
                   <p><span className="font-medium">Order Date:</span> {new Date(selectedOrder.createdAt?.toDate ? selectedOrder.createdAt.toDate() : selectedOrder.createdAt).toLocaleString()}</p>
-                  <p><span className="font-medium">Status:</span> 
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Status:</span>
                     <Badge className={
-                      selectedOrder.status === 'pending' ? 'bg-yellow-100 text-yellow-800 ml-2' :
-                      selectedOrder.status === 'preparing' ? 'bg-blue-100 text-blue-800 ml-2' :
-                      selectedOrder.status === 'ready' ? 'bg-green-100 text-green-800 ml-2' :
-                      selectedOrder.status === 'completed' ? 'bg-gray-100 text-gray-800 ml-2' :
-                      'bg-red-100 text-red-800 ml-2'
+                      selectedOrder.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      selectedOrder.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
+                      selectedOrder.status === 'ready' ? 'bg-green-100 text-green-800' :
+                      selectedOrder.status === 'completed' ? 'bg-gray-100 text-gray-800' :
+                      'bg-red-100 text-red-800'
                     }>
                       {selectedOrder.status?.toUpperCase()}
                     </Badge>
-                  </p>
+                  </div>
                 </div>
               </div>
 

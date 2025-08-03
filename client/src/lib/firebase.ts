@@ -718,11 +718,10 @@ export const getVoucherStats = async (voucherId: string) => {
 // Get orders with voucher usage for stall owners
 export const getOrdersWithVouchers = async (stallId: string) => {
   try {
+    // Use simpler query to avoid compound index requirements
     const ordersQuery = query(
       collection(db, "orders"),
-      where("stallId", "==", stallId),
-      where("voucherId", "!=", null),
-      orderBy("createdAt", "desc")
+      where("stallId", "==", stallId)
     );
     
     const ordersSnapshot = await getDocs(ordersQuery);
@@ -730,6 +729,9 @@ export const getOrdersWithVouchers = async (stallId: string) => {
     
     for (const docRef of ordersSnapshot.docs) {
       const orderData = docRef.data();
+      
+      // Filter client-side for orders with vouchers
+      if (!orderData.voucherId) continue;
       
       // Get voucher details
       let voucherData = null;
@@ -753,7 +755,12 @@ export const getOrdersWithVouchers = async (stallId: string) => {
       });
     }
     
-    return ordersWithVouchers;
+    // Sort by creation date descending on client side
+    return ordersWithVouchers.sort((a: any, b: any) => {
+      const dateA = new Date(a.createdAt?.toDate ? a.createdAt.toDate() : a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt?.toDate ? b.createdAt.toDate() : b.createdAt || 0).getTime();
+      return dateB - dateA;
+    });
   } catch (error) {
     console.error("Error getting orders with vouchers:", error);
     return [];

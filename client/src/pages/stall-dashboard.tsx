@@ -852,7 +852,7 @@ export default function StallDashboard() {
               { id: "overview", label: "Overview", icon: BarChart3 },
               { id: "menu", label: "Menu", icon: Package },
               { id: "orders", label: "Orders", icon: Clock },
-              { id: "vouchers", label: "Voucher Usage", icon: Ticket },
+              { id: "vouchers", label: "Vouchers", icon: Ticket },
               { id: "settings", label: "Stall Settings", icon: Settings },
               { id: "cancellations", label: "Cancellations", icon: X },
               { id: "reviews", label: "Reviews", icon: MessageSquare },

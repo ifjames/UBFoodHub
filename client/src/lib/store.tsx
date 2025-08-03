@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer, ReactNode } from "react";
 import { signIn as firebaseSignIn, signUp as firebaseSignUp, logOut } from "./firebase";
 import { auth, db } from "./firebase";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, collection, query, where, getDocs, deleteDoc } from "firebase/firestore";
 import { sendEmailVerification } from "firebase/auth";
 
 interface User {
@@ -162,31 +162,75 @@ export function useAuth() {
         const userData = userDoc.data();
         userRole = userData.role;
         
-        // Update email verification status if it has changed
-        if (userData.emailVerified !== userCredential.user.emailVerified) {
+        // Sync Google account data with existing account (name, photo, email verification)
+        const shouldUpdate = 
+          userData.emailVerified !== userCredential.user.emailVerified ||
+          userData.fullName !== userCredential.user.displayName ||
+          userData.photoURL !== userCredential.user.photoURL;
+          
+        if (shouldUpdate) {
+          console.log("Syncing Google account data for existing user:", userCredential.user.email);
           await setDoc(doc(db, "users", userCredential.user.uid), {
             ...userData,
-            emailVerified: userCredential.user.emailVerified
+            fullName: userCredential.user.displayName || userData.fullName, // Use Google name if available
+            photoURL: userCredential.user.photoURL || userData.photoURL, // Use Google photo if available
+            emailVerified: userCredential.user.emailVerified,
+            // Keep existing data: password, studentId, phoneNumber, loyaltyPoints, etc.
           }, { merge: true });
+          console.log("Account data synced from Google for:", userCredential.user.email);
         }
       } else {
-        // Create new user document for Google sign-in with UB email
-        console.log("Creating new user document for Google sign-in:", userCredential.user.email);
-        const userData = {
-          uid: userCredential.user.uid,
-          email: userCredential.user.email,
-          fullName: userCredential.user.displayName || "",
-          phoneNumber: "",
-          studentId: "",
-          role: "student",
-          emailVerified: userCredential.user.emailVerified,
-          createdAt: new Date(),
-          loyaltyPoints: 0,
-          photoURL: userCredential.user.photoURL,
-        };
+        // Check if there's an existing account with the same email but different UID
+        // This can happen if user created account manually then logged in with Google
+        const existingUserQuery = query(
+          collection(db, "users"),
+          where("email", "==", userCredential.user.email)
+        );
+        const existingUserSnapshot = await getDocs(existingUserQuery);
         
-        await setDoc(doc(db, "users", userCredential.user.uid), userData);
-        console.log("New student account created automatically for:", userCredential.user.email);
+        if (!existingUserSnapshot.empty) {
+          // Found existing account with same email - merge the accounts
+          const existingUserDoc = existingUserSnapshot.docs[0];
+          const existingUserData = existingUserDoc.data();
+          
+          console.log("Found existing account with same email, merging accounts:", userCredential.user.email);
+          
+          // Create new document with Google UID but keep existing data
+          const mergedUserData = {
+            ...existingUserData,
+            uid: userCredential.user.uid, // Use new Google UID
+            fullName: userCredential.user.displayName || existingUserData.fullName, // Prefer Google name
+            photoURL: userCredential.user.photoURL || existingUserData.photoURL, // Prefer Google photo
+            emailVerified: userCredential.user.emailVerified, // Use Google verification status
+            // Keep existing: password, studentId, phoneNumber, loyaltyPoints, role, etc.
+          };
+          
+          await setDoc(doc(db, "users", userCredential.user.uid), mergedUserData);
+          
+          // Delete the old document
+          await deleteDoc(doc(db, "users", existingUserDoc.id));
+          
+          console.log("Account merged successfully for:", userCredential.user.email);
+          userRole = existingUserData.role || "student";
+        } else {
+          // Create new user document for Google sign-in with UB email
+          console.log("Creating new user document for Google sign-in:", userCredential.user.email);
+          const userData = {
+            uid: userCredential.user.uid,
+            email: userCredential.user.email,
+            fullName: userCredential.user.displayName || "",
+            phoneNumber: "",
+            studentId: "",
+            role: "student",
+            emailVerified: userCredential.user.emailVerified,
+            createdAt: new Date(),
+            loyaltyPoints: 0,
+            photoURL: userCredential.user.photoURL,
+          };
+          
+          await setDoc(doc(db, "users", userCredential.user.uid), userData);
+          console.log("New student account created automatically for:", userCredential.user.email);
+        }
       }
       
       // Check email verification for students only - prevent login completely

@@ -10,7 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/lib/store";
-import { subscribeToCollection, addDocument, updateDocument, deleteDocument, getCollection, signUp, createDocument } from "@/lib/firebase";
+import { subscribeToCollection, addDocument, updateDocument, deleteDocument, getCollection, signUp, createDocument, queryCollection } from "@/lib/firebase";
 import { logOut } from "@/lib/firebase";
 import { useLocation } from "wouter";
 import { Users, Store, Plus, Edit, Trash2, LogOut, Settings, BarChart3, GripVertical, Check, Tag, AlertTriangle, Bell } from "lucide-react";
@@ -381,7 +381,7 @@ export default function AdminDashboard() {
       });
     } catch (error: any) {
       // Revert local change if Firebase update fails
-      loadCategories();
+      // loadCategories(); // This function doesn't exist, removing
       toast({
         title: "Error reordering categories",
         description: error.message,
@@ -402,9 +402,9 @@ export default function AdminDashboard() {
       
       // Delete all related documents
       const deletePromises = [
-        ...userOrders.docs.map(doc => deleteDocument("orders", doc.id)),
-        ...userNotifications.docs.map(doc => deleteDocument("notifications", doc.id)),
-        ...userFavorites.docs.map(doc => deleteDocument("favorites", doc.id)),
+        ...userOrders.docs.map((doc: any) => deleteDocument("orders", doc.id)),
+        ...userNotifications.docs.map((doc: any) => deleteDocument("notifications", doc.id)),
+        ...userFavorites.docs.map((doc: any) => deleteDocument("favorites", doc.id)),
       ];
       
       await Promise.all(deletePromises);

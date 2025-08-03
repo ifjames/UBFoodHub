@@ -13,6 +13,7 @@ Preferred communication style: Simple, everyday language.
 - **Automatic Account Creation**: Google sign-in with UB email (@ub.edu.ph) now automatically creates student accounts, eliminating manual registration requirement.
 - **Email Verification Sync**: Fixed email verification status syncing from Firebase Auth to Firestore when students verify their email.
 - **Enhanced User Deletion**: Admin user deletion now removes all related user data (orders, notifications, favorites) for complete cleanup.
+- **Account Syncing**: Google sign-in now automatically syncs account data (name, profile picture) when students login with existing email accounts, merging manual and Google accounts seamlessly.
 
 ## System Architecture
 

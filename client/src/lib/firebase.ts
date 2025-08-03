@@ -539,7 +539,8 @@ export const getUserVouchers = async (userId: string) => {
   }
 };
 
-export const applyVoucher = async (userId: string, voucherId: string) => {
+// Validate voucher without marking as used (for cart application)
+export const validateVoucher = async (userId: string, voucherId: string) => {
   try {
     const voucherDoc = await getDocument("vouchers", voucherId);
     if (voucherDoc.exists()) {
@@ -558,24 +559,40 @@ export const applyVoucher = async (userId: string, voucherId: string) => {
         return { success: false, error: "Voucher has expired" };
       }
       
-      // Mark voucher as used
-      await updateDocument("vouchers", voucherId, {
-        isUsed: true,
-        usedAt: new Date().toISOString()
-      });
-      
+      // Return voucher data without marking as used
       return { 
         success: true, 
-        discountAmount: voucherData.discountAmount,
-        code: voucherData.code
+        discountAmount: voucherData.discountAmount || voucherData.discountValue || 0,
+        code: voucherData.code,
+        id: voucherId,
+        voucherData
       };
     }
     
     return { success: false, error: "Voucher not found" };
   } catch (error) {
-    console.error("Error applying voucher:", error);
+    console.error("Error validating voucher:", error);
     throw error;
   }
+};
+
+// Mark voucher as used (for order placement)
+export const useVoucher = async (voucherId: string) => {
+  try {
+    await updateDocument("vouchers", voucherId, {
+      isUsed: true,
+      usedAt: new Date().toISOString()
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Error using voucher:", error);
+    throw error;
+  }
+};
+
+// Legacy function for backward compatibility
+export const applyVoucher = async (userId: string, voucherId: string) => {
+  return validateVoucher(userId, voucherId);
 };
 
 // Additional Voucher Management Functions

@@ -25,7 +25,7 @@ import {
   deleteDocument,
   addDocument,
   getUserVouchers,
-  applyVoucher,
+  validateVoucher,
 } from "@/lib/firebase";
 import BottomNav from "@/components/layout/bottom-nav";
 import LoadingIndicator from "@/components/loading-indicator";
@@ -34,7 +34,7 @@ import LoadingOverlay from "@/components/loading-overlay";
 // Voucher Section Component
 interface VoucherSectionProps {
   userId: string;
-  onVoucherApplied: (discount: number) => void;
+  onVoucherApplied: (discount: number, voucherId: string) => void;
 }
 
 function VoucherSection({ userId, onVoucherApplied }: VoucherSectionProps) {
@@ -52,7 +52,9 @@ function VoucherSection({ userId, onVoucherApplied }: VoucherSectionProps) {
   const loadVouchers = async () => {
     try {
       const userVouchers = await getUserVouchers(userId);
-      setVouchers(userVouchers);
+      // Filter out used vouchers for cart display
+      const availableVouchers = userVouchers.filter(voucher => !voucher.isUsed);
+      setVouchers(availableVouchers);
     } catch (error) {
       console.error("Error loading vouchers:", error);
     }
@@ -61,10 +63,11 @@ function VoucherSection({ userId, onVoucherApplied }: VoucherSectionProps) {
   const handleApplyVoucher = async (voucherId: string) => {
     setIsLoading(true);
     try {
-      const result = await applyVoucher(userId, voucherId);
+      const result = await validateVoucher(userId, voucherId);
       if (result.success) {
-        onVoucherApplied(result.discountAmount);
+        onVoucherApplied(result.discountAmount, voucherId);
         setShowVouchers(false);
+        // Don't reload vouchers since we're not marking as used yet
       } else {
         toast({
           title: "Error",
@@ -162,9 +165,6 @@ export default function Cart() {
   }, [state.user?.id]);
 
   const updateQuantity = async (itemId: string, newQuantity: number) => {
-    const loadingKey = `update-${itemId}`;
-    setLoadingStates((prev) => ({ ...prev, [loadingKey]: true }));
-
     try {
       if (newQuantity <= 0) {
         await deleteDocument("cartItems", itemId);
@@ -174,10 +174,7 @@ export default function Cart() {
         });
       } else {
         await updateDocument("cartItems", itemId, { quantity: newQuantity });
-        toast({
-          title: "Cart updated",
-          description: "Item quantity has been updated",
-        });
+        // No toast needed for quantity updates to reduce UI noise
       }
     } catch (error) {
       toast({
@@ -185,8 +182,6 @@ export default function Cart() {
         description: "Failed to update cart item",
         variant: "destructive",
       });
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, [loadingKey]: false }));
     }
   };
 
@@ -451,16 +446,11 @@ export default function Cart() {
                         variant="outline"
                         size="icon"
                         className="w-8 h-8 rounded-full"
-                        disabled={loadingStates[`update-${item.id}`]}
                         onClick={() =>
                           updateQuantity(item.id, item.quantity - 1)
                         }
                       >
-                        {loadingStates[`update-${item.id}`] ? (
-                          <LoadingIndicator variant="dots" size="sm" />
-                        ) : (
-                          <Minus className="w-3 h-3" />
-                        )}
+                        <Minus className="w-3 h-3" />
                       </Button>
                       <span className="w-8 text-center font-medium">
                         {item.quantity}
@@ -469,16 +459,11 @@ export default function Cart() {
                         variant="outline"
                         size="icon"
                         className="w-8 h-8 rounded-full"
-                        disabled={loadingStates[`update-${item.id}`]}
                         onClick={() =>
                           updateQuantity(item.id, item.quantity + 1)
                         }
                       >
-                        {loadingStates[`update-${item.id}`] ? (
-                          <LoadingIndicator variant="dots" size="sm" />
-                        ) : (
-                          <Plus className="w-3 h-3" />
-                        )}
+                        <Plus className="w-3 h-3" />
                       </Button>
                     </div>
                     <div className="flex items-center gap-2">
@@ -561,9 +546,10 @@ export default function Cart() {
           {/* Apply Voucher */}
           <VoucherSection 
             userId={state.user?.id || ""} 
-            onVoucherApplied={(discount: number) => {
+            onVoucherApplied={(discount: number, voucherId: string) => {
               // Handle voucher application
               localStorage.setItem('appliedVoucherDiscount', discount.toString());
+              localStorage.setItem('appliedVoucherId', voucherId);
               toast({
                 title: "Voucher applied!",
                 description: `₱${discount.toFixed(2)} discount will be applied at checkout`,

@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
-import { subscribeToQuery, addDocument, deleteDocument, getDocument, awardLoyaltyPoints, getUserFavorites, redeemLoyaltyPoints } from "@/lib/firebase";
+import { subscribeToQuery, addDocument, deleteDocument, getDocument, awardLoyaltyPoints, getUserFavorites, redeemLoyaltyPoints, useVoucher } from "@/lib/firebase";
 
 export default function Checkout() {
   const [, setLocation] = useLocation();
@@ -27,8 +27,7 @@ export default function Checkout() {
   const [deliveryInstructions, setDeliveryInstructions] = useState("");
   const [noCutlery, setNoCutlery] = useState(false);
   const [stallsInfo, setStallsInfo] = useState<any[]>([]);
-  const [usePoints, setUsePoints] = useState(false);
-  const [pointsToUse, setPointsToUse] = useState(0);
+
 
   useEffect(() => {
     if (state.user?.id) {
@@ -83,9 +82,8 @@ export default function Checkout() {
     return sum + ((itemPrice + customizationPrice) * item.quantity);
   }, 0);
   
-  const pointsDiscount = usePoints ? (pointsToUse / 100) * 10 : 0;
   const voucherDiscount = parseFloat(localStorage.getItem('appliedVoucherDiscount') || '0');
-  const subtotal = Math.max(0, baseSubtotal - pointsDiscount - voucherDiscount);
+  const subtotal = Math.max(0, baseSubtotal - voucherDiscount);
 
   const placeOrder = async () => {
     if (cartItems.length === 0) return;
@@ -114,9 +112,9 @@ export default function Checkout() {
       }, {} as { [key: string]: any[] });
 
       // Create separate orders for each stall if multi-stall
-      const orderPromises = Object.entries(itemsByStall).map(async ([stallId, stallItems]: [string, any[]], index) => {
+      const orderPromises = Object.entries(itemsByStall).map(async ([stallId, stallItems], index) => {
         const stallOrderId = Object.keys(itemsByStall).length > 1 ? `${orderId}-${index + 1}` : orderId;
-        const stallSubtotal = stallItems.reduce((sum: number, item: any) => {
+        const stallSubtotal = (stallItems as any[]).reduce((sum: number, item: any) => {
           const itemPrice = item.price || 0;
           const customizationPrice = item.customizations?.reduce((sum: number, custom: any) => sum + (custom.price || 0), 0) || 0;
           return sum + ((itemPrice + customizationPrice) * item.quantity);
@@ -124,10 +122,10 @@ export default function Checkout() {
 
         const stallData = stallsInfo.find(s => s.id === stallId);
 
-        // Calculate discount proportion for this stall
+        // Calculate voucher discount proportion for this stall  
         const stallDiscountProportion = stallSubtotal / baseSubtotal;
-        const stallPointsDiscount = pointsDiscount * stallDiscountProportion;
-        const stallFinalAmount = stallSubtotal - stallPointsDiscount;
+        const stallVoucherDiscount = voucherDiscount * stallDiscountProportion;
+        const stallFinalAmount = stallSubtotal - stallVoucherDiscount;
 
         return addDocument("orders", {
           userId: state.user?.id,
@@ -139,8 +137,7 @@ export default function Checkout() {
           status: "pending",
           totalAmount: stallFinalAmount,
           originalAmount: stallSubtotal,
-          pointsUsed: usePoints ? Math.floor(pointsToUse * stallDiscountProportion) : 0,
-          pointsDiscount: stallPointsDiscount,
+          voucherDiscount: stallVoucherDiscount,
           paymentMethod,
           cashAmount: paymentMethod === "cash" ? parseFloat(cashAmount) : null,
           changeRequired: paymentMethod === "cash" ? parseFloat(cashAmount) - stallFinalAmount : 0,
@@ -152,7 +149,7 @@ export default function Checkout() {
           noCutlery: noCutlery,
           isMultiStallOrder: Object.keys(itemsByStall).length > 1,
           mainOrderId: orderId,
-          items: stallItems.map((item: any) => ({
+          items: (stallItems as any[]).map((item: any) => ({
             menuItemId: item.menuItemId,
             name: item.name,
             quantity: item.quantity,
@@ -165,21 +162,22 @@ export default function Checkout() {
 
       await Promise.all(orderPromises);
 
+      // Mark applied voucher as used after successful order
+      const appliedVoucherId = localStorage.getItem('appliedVoucherId');
+      if (appliedVoucherId) {
+        try {
+          await useVoucher(appliedVoucherId);
+          localStorage.removeItem('appliedVoucherId');
+        } catch (error) {
+          console.error("Error marking voucher as used:", error);
+        }
+      }
+
       // Handle loyalty points
       try {
         let finalPointsTotal = state.user?.loyaltyPoints || 0;
         
-        // Redeem points if used
-        if (usePoints && pointsToUse > 0 && state.user?.uid) {
-          const redeemResult = await redeemLoyaltyPoints(state.user.uid, pointsToUse);
-          if (redeemResult.success) {
-            finalPointsTotal = redeemResult.newTotal || 0;
-            toast({
-              title: `${pointsToUse} points redeemed!`,
-              description: `Saved ₱${redeemResult.discountAmount?.toFixed(2)} on this order`,
-            });
-          }
-        }
+
         
         // Award points for the order (based on actual amount paid, after discount)
         if (state.user?.uid) {
@@ -225,7 +223,7 @@ export default function Checkout() {
       localStorage.removeItem('deliveryInstructions');
       localStorage.removeItem('noCutlery');
       localStorage.removeItem('appliedVoucherDiscount');
-      localStorage.removeItem('appliedVoucherDiscount');
+      localStorage.removeItem('appliedVoucherId');
 
       const stallCount = Object.keys(itemsByStall).length;
       const hasGroupOrder = groupOrderEmails.length > 0;
@@ -326,18 +324,7 @@ export default function Checkout() {
                 </span>
               </div>
             ))}
-            {usePoints && pointsDiscount > 0 && (
-              <>
-                <div className="flex justify-between text-gray-600">
-                  <span>Subtotal</span>
-                  <span>₱{baseSubtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-green-600">
-                  <span>Points Discount ({pointsToUse} pts)</span>
-                  <span>-₱{pointsDiscount.toFixed(2)}</span>
-                </div>
-              </>
-            )}
+
             <div className="border-t pt-3 md:pt-4">
               <div className="flex justify-between font-semibold text-lg md:text-xl">
                 <span>Total</span>
@@ -427,96 +414,7 @@ export default function Checkout() {
           </motion.div>
         )}
 
-        {/* Loyalty Points Section */}
-        {(state.user?.loyaltyPoints || 0) >= 100 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            className="bg-white rounded-lg p-4"
-          >
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Award className="w-5 h-5 text-maroon-600" />
-              Use Loyalty Points
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Available Points:</span>
-                <span className="font-medium">{state.user?.loyaltyPoints || 0} pts</span>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="usePoints"
-                  checked={usePoints}
-                  onChange={(e) => {
-                    setUsePoints(e.target.checked);
-                    if (!e.target.checked) {
-                      setPointsToUse(0);
-                    }
-                  }}
-                  className="rounded border-gray-300"
-                />
-                <Label htmlFor="usePoints" className="text-sm cursor-pointer">
-                  Use points for discount (100 pts = ₱10 off)
-                </Label>
-              </div>
 
-              {usePoints && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Points to use:</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="number"
-                      value={pointsToUse}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value) || 0;
-                        const maxPoints = Math.min(
-                          state.user?.loyaltyPoints || 0,
-                          Math.floor(baseSubtotal / 10) * 100 // Can't discount more than order total
-                        );
-                        setPointsToUse(Math.min(value, maxPoints));
-                      }}
-                      min="0"
-                      max={Math.min(
-                        state.user?.loyaltyPoints || 0,
-                        Math.floor(baseSubtotal / 10) * 100
-                      )}
-                      step="100"
-                      className="flex-1"
-                      placeholder="Enter points (multiples of 100)"
-                    />
-                  </div>
-                  <div className="flex gap-1 flex-wrap">
-                    {[100, 200, 500, 1000].filter(amount => 
-                      amount <= (state.user?.loyaltyPoints || 0) && 
-                      amount <= Math.floor(baseSubtotal / 10) * 100
-                    ).map(amount => (
-                      <Button
-                        key={amount}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPointsToUse(amount)}
-                        className="text-xs"
-                      >
-                        {amount} pts
-                      </Button>
-                    ))}
-                  </div>
-                  
-                  {pointsToUse > 0 && (
-                    <div className="p-2 bg-green-50 rounded-lg">
-                      <p className="text-sm text-green-700 font-medium">
-                        You'll save ₱{((pointsToUse / 100) * 10).toFixed(2)} with {pointsToUse} points
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
 
         {/* Payment Method */}
         <motion.div

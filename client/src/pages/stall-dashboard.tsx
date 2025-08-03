@@ -21,7 +21,8 @@ import {
   Camera,
   BarChart3,
   X,
-  MessageSquare
+  MessageSquare,
+  Ticket
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,6 +54,7 @@ import CancellationRequestManagement from "@/components/orders/cancellation-requ
 import NotificationService from "@/lib/notification-service";
 import BottomNav from "@/components/layout/bottom-nav";
 import QRScanner from "@/components/qr-scanner";
+import VoucherUsageView from "@/components/orders/voucher-usage-view";
 
 export default function StallDashboard() {
   const { state, dispatch } = useStore();
@@ -809,6 +811,7 @@ export default function StallDashboard() {
                 { id: "overview", label: "Overview", icon: BarChart3 },
                 { id: "menu", label: "Menu", icon: Package },
                 { id: "orders", label: "Orders", icon: Clock },
+                { id: "vouchers", label: "Vouchers", icon: Ticket },
                 { id: "settings", label: "Settings", icon: Settings },
                 { id: "cancellations", label: "Cancellations", icon: X },
                 { id: "reviews", label: "Reviews", icon: MessageSquare },
@@ -849,6 +852,7 @@ export default function StallDashboard() {
               { id: "overview", label: "Overview", icon: BarChart3 },
               { id: "menu", label: "Menu", icon: Package },
               { id: "orders", label: "Orders", icon: Clock },
+              { id: "vouchers", label: "Voucher Usage", icon: Ticket },
               { id: "settings", label: "Stall Settings", icon: Settings },
               { id: "cancellations", label: "Cancellations", icon: X },
               { id: "reviews", label: "Reviews", icon: MessageSquare },
@@ -1769,6 +1773,17 @@ export default function StallDashboard() {
                 </CardContent>
               </Card>
             )}
+          </motion.div>
+        )}
+
+        {/* Voucher Usage Tab */}
+        {activeTab === "vouchers" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            <VoucherUsageView stallId={stallId} />
           </motion.div>
         )}
 

@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import BottomNav from "@/components/layout/bottom-nav";
 import VoucherCreateModal from "@/components/vouchers/voucher-create-modal";
+import VoucherRedemptionModal from "@/components/vouchers/voucher-redemption-modal";
 
 interface Voucher {
   id: string;
@@ -44,6 +45,8 @@ export default function AdminVouchers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired' | 'used'>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showRedemptionModal, setShowRedemptionModal] = useState(false);
+  const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
 
   useEffect(() => {
     if (state.user?.role === 'admin') {
@@ -142,7 +145,7 @@ export default function AdminVouchers() {
     if (voucher.discountType === 'percentage') {
       return `${voucher.discountValue}% OFF`;
     } else {
-      return `₱${voucher.discountValue.toFixed(2)} OFF`;
+      return `₱${(voucher.discountValue || 0).toFixed(2)} OFF`;
     }
   };
 
@@ -349,7 +352,7 @@ export default function AdminVouchers() {
                             <div className="text-xs text-gray-500">
                               Used {voucher.currentUsage} of {voucher.maxUsage} times
                               {voucher.minOrderAmount && (
-                                <span className="ml-2">• Min. order ₱{voucher.minOrderAmount.toFixed(2)}</span>
+                                <span className="ml-2">• Min. order ₱{(voucher.minOrderAmount || 0).toFixed(2)}</span>
                               )}
                             </div>
                           </div>
@@ -360,12 +363,10 @@ export default function AdminVouchers() {
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                // TODO: View voucher details
-                                toast({
-                                  title: "Feature coming soon",
-                                  description: "Voucher details view will be available soon",
-                                });
+                                setSelectedVoucher(voucher);
+                                setShowRedemptionModal(true);
                               }}
+                              title="View redemptions"
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
@@ -394,6 +395,16 @@ export default function AdminVouchers() {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onVoucherCreated={loadVouchers}
+      />
+
+      {/* Voucher Redemption Modal */}
+      <VoucherRedemptionModal
+        isOpen={showRedemptionModal}
+        onClose={() => {
+          setShowRedemptionModal(false);
+          setSelectedVoucher(null);
+        }}
+        voucher={selectedVoucher}
       />
 
       <BottomNav />

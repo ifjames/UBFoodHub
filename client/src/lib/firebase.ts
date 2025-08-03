@@ -634,6 +634,126 @@ export const deleteVoucher = async (voucherId: string) => {
   }
 };
 
+// Get voucher redemption details for admins
+export const getVoucherRedemptions = async (voucherId: string) => {
+  try {
+    // Get all users who redeemed this voucher
+    const redemptionsQuery = query(
+      collection(db, "userVouchers"),
+      where("voucherId", "==", voucherId),
+      where("isUsed", "==", true),
+      orderBy("usedAt", "desc")
+    );
+    
+    const redemptionsSnapshot = await getDocs(redemptionsQuery);
+    const redemptions = [];
+    
+    for (const docRef of redemptionsSnapshot.docs) {
+      const redemptionData = docRef.data();
+      
+      // Get user details
+      const userDoc = await getDoc(doc(db, "users", redemptionData.userId));
+      const userData = userDoc.exists() ? userDoc.data() : null;
+      
+      // Get order details if available
+      let orderData = null;
+      if (redemptionData.orderId) {
+        const orderDoc = await getDoc(doc(db, "orders", redemptionData.orderId));
+        orderData = orderDoc.exists() ? orderDoc.data() : null;
+      }
+      
+      redemptions.push({
+        id: docRef.id,
+        ...redemptionData,
+        user: userData,
+        order: orderData
+      });
+    }
+    
+    return redemptions;
+  } catch (error) {
+    console.error("Error getting voucher redemptions:", error);
+    return [];
+  }
+};
+
+// Get voucher usage statistics for admins
+export const getVoucherStats = async (voucherId: string) => {
+  try {
+    const [redemptionsQuery, voucherDoc] = await Promise.all([
+      getDocs(query(
+        collection(db, "userVouchers"),
+        where("voucherId", "==", voucherId)
+      )),
+      getDoc(doc(db, "vouchers", voucherId))
+    ]);
+    
+    const voucherData = voucherDoc.exists() ? voucherDoc.data() : null;
+    const totalRedemptions = redemptionsQuery.docs.length;
+    const usedRedemptions = redemptionsQuery.docs.filter(doc => doc.data().isUsed).length;
+    
+    return {
+      totalRedeemed: totalRedemptions,
+      totalUsed: usedRedemptions,
+      maxUsage: voucherData?.maxUsage || 0,
+      remainingUses: Math.max(0, (voucherData?.maxUsage || 0) - totalRedemptions)
+    };
+  } catch (error) {
+    console.error("Error getting voucher stats:", error);
+    return {
+      totalRedeemed: 0,
+      totalUsed: 0,
+      maxUsage: 0,
+      remainingUses: 0
+    };
+  }
+};
+
+// Get orders with voucher usage for stall owners
+export const getOrdersWithVouchers = async (stallId: string) => {
+  try {
+    const ordersQuery = query(
+      collection(db, "orders"),
+      where("stallId", "==", stallId),
+      where("voucherId", "!=", null),
+      orderBy("createdAt", "desc")
+    );
+    
+    const ordersSnapshot = await getDocs(ordersQuery);
+    const ordersWithVouchers = [];
+    
+    for (const docRef of ordersSnapshot.docs) {
+      const orderData = docRef.data();
+      
+      // Get voucher details
+      let voucherData = null;
+      if (orderData.voucherId) {
+        const voucherDoc = await getDoc(doc(db, "vouchers", orderData.voucherId));
+        voucherData = voucherDoc.exists() ? voucherDoc.data() : null;
+      }
+      
+      // Get customer details
+      let customerData = null;
+      if (orderData.userId) {
+        const customerDoc = await getDoc(doc(db, "users", orderData.userId));
+        customerData = customerDoc.exists() ? customerDoc.data() : null;
+      }
+      
+      ordersWithVouchers.push({
+        id: docRef.id,
+        ...orderData,
+        voucher: voucherData,
+        customer: customerData
+      });
+    }
+    
+    return ordersWithVouchers;
+  } catch (error) {
+    console.error("Error getting orders with vouchers:", error);
+    return [];
+  }
+};
+
 export const getAllUsers = async () => {
   try {
     const usersRef = collection(db, 'users');

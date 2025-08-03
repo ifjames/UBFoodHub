@@ -54,7 +54,7 @@ import CancellationRequestManagement from "@/components/orders/cancellation-requ
 import NotificationService from "@/lib/notification-service";
 import BottomNav from "@/components/layout/bottom-nav";
 import QRScanner from "@/components/qr-scanner";
-import VoucherUsageView from "@/components/orders/voucher-usage-view";
+
 
 export default function StallDashboard() {
   const { state, dispatch } = useStore();
@@ -433,7 +433,7 @@ export default function StallDashboard() {
       await updateDocument("stalls", stallId, stallData);
       
       // Update local state
-      setStallInfo(prev => prev ? { ...prev, ...stallData } : null);
+      setStallInfo((prev: any) => prev ? { ...prev, ...stallData } : null);
       
       toast({
         title: "Success",
@@ -811,7 +811,6 @@ export default function StallDashboard() {
                 { id: "overview", label: "Overview", icon: BarChart3 },
                 { id: "menu", label: "Menu", icon: Package },
                 { id: "orders", label: "Orders", icon: Clock },
-                { id: "vouchers", label: "Vouchers", icon: Ticket },
                 { id: "settings", label: "Settings", icon: Settings },
                 { id: "cancellations", label: "Cancellations", icon: X },
                 { id: "reviews", label: "Reviews", icon: MessageSquare },
@@ -852,7 +851,6 @@ export default function StallDashboard() {
               { id: "overview", label: "Overview", icon: BarChart3 },
               { id: "menu", label: "Menu", icon: Package },
               { id: "orders", label: "Orders", icon: Clock },
-              { id: "vouchers", label: "Vouchers", icon: Ticket },
               { id: "settings", label: "Stall Settings", icon: Settings },
               { id: "cancellations", label: "Cancellations", icon: X },
               { id: "reviews", label: "Reviews", icon: MessageSquare },
@@ -1258,9 +1256,32 @@ export default function StallDashboard() {
                         </div>
                       </div>
 
+                      {/* Voucher Information */}
+                      {order.voucherId && (
+                        <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <Ticket className="w-4 h-4 text-green-600" />
+                            <span className="text-sm text-green-700 font-medium">Voucher Applied</span>
+                          </div>
+                          <div className="mt-1 text-xs text-green-600">
+                            <p>Code: {order.voucherCode || 'N/A'}</p>
+                            <p>Discount: ₱{order.voucherDiscount?.toFixed(2) || '0.00'}</p>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Order Total */}
                       <div className="border-t pt-3 flex justify-between items-center">
-                        <span className="font-semibold text-gray-900">Total: ₱{order.totalAmount?.toFixed(2)}</span>
+                        <div>
+                          {order.voucherId && (
+                            <div className="text-xs text-gray-500 mb-1">
+                              Subtotal: ₱{((order.totalAmount || 0) + (order.voucherDiscount || 0)).toFixed(2)}
+                              <br />
+                              Voucher: -₱{order.voucherDiscount?.toFixed(2) || '0.00'}
+                            </div>
+                          )}
+                          <span className="font-semibold text-gray-900">Total: ₱{order.totalAmount?.toFixed(2)}</span>
+                        </div>
                         <div className="flex gap-2">
                           {order.status === 'pending' && (
                             <>
@@ -1776,16 +1797,8 @@ export default function StallDashboard() {
           </motion.div>
         )}
 
-        {/* Voucher Usage Tab */}
-        {activeTab === "vouchers" && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
-            <VoucherUsageView stallId={stallId || ""} />
-          </motion.div>
-        )}
+
+
 
         {/* Statistics Tab */}
         {activeTab === "statistics" && (
@@ -2472,6 +2485,25 @@ export default function StallDashboard() {
                 </div>
               )}
 
+              {/* Voucher Information */}
+              {selectedOrder.voucherId && (
+                <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
+                  <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    <Ticket className="w-4 h-4 mr-2 text-green-600" />
+                    Voucher Applied
+                  </h3>
+                  <div className="space-y-1 text-sm">
+                    <p><span className="font-medium">Voucher Code:</span> <span className="text-green-700 font-mono">{selectedOrder.voucherCode || 'N/A'}</span></p>
+                    <p><span className="font-medium">Discount Amount:</span> <span className="text-green-700 font-semibold">₱{selectedOrder.voucherDiscount?.toFixed(2) || '0.00'}</span></p>
+                    <div className="mt-2 p-2 bg-green-100 rounded">
+                      <p className="text-xs text-green-700">
+                        💰 Customer used a voucher for this order. The discount has been applied to the total amount.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Additional Order Preferences */}
               {(selectedOrder.noCutlery) && (
                 <div className="bg-green-50 p-4 rounded-lg">
@@ -2528,7 +2560,16 @@ export default function StallDashboard() {
                       <p><span className="font-medium">Change Required:</span> ₱{(selectedOrder.cashAmount - selectedOrder.totalAmount).toFixed(2)}</p>
                     </>
                   )}
-                  <p><span className="font-medium">Total Amount:</span> <span className="font-bold text-[#6d031e]">₱{selectedOrder.totalAmount?.toFixed(2)}</span></p>
+                  
+                  {/* Voucher breakdown in payment section */}
+                  {selectedOrder.voucherId && (
+                    <div className="pt-2 border-t border-gray-200">
+                      <p><span className="font-medium">Subtotal:</span> ₱{((selectedOrder.totalAmount || 0) + (selectedOrder.voucherDiscount || 0)).toFixed(2)}</p>
+                      <p><span className="font-medium text-green-600">Voucher Discount:</span> <span className="text-green-600">-₱{selectedOrder.voucherDiscount?.toFixed(2) || '0.00'}</span></p>
+                    </div>
+                  )}
+                  
+                  <p className="pt-1 border-t border-gray-300"><span className="font-medium">Final Amount:</span> <span className="font-bold text-[#6d031e]">₱{selectedOrder.totalAmount?.toFixed(2)}</span></p>
                 </div>
               </div>
 

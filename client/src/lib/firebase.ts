@@ -367,16 +367,29 @@ export const redeemLoyaltyPoints = async (userId: string, pointsToRedeem: number
           timestamp: new Date().toISOString()
         });
         
-        // Create a discount voucher
-        const voucherCode = `DISCOUNT${pointsToRedeem}`;
+        // Create a discount voucher with unified structure
+        const voucherCode = `LOYALTY${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
         await addDocument("vouchers", {
           userId,
           code: voucherCode,
-          discountAmount,
+          title: `Loyalty Discount ₱${discountAmount.toFixed(2)}`,
+          description: `Redeemed from ${pointsToRedeem} loyalty points`,
+          discountType: 'fixed',
+          discountValue: discountAmount,
+          discountAmount, // Keep for backward compatibility
+          minOrderAmount: 0,
+          validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Keep for backward compatibility
+          isActive: true,
           isUsed: false,
+          userTargeting: 'specific',
+          targetUserEmails: [auth.currentUser?.email],
+          stallTargeting: 'all',
+          maxUsage: 1,
+          currentUsage: 0,
+          type: "loyalty_redemption",
           createdAt: new Date().toISOString(),
-          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
-          type: "loyalty_redemption"
+          createdBy: userId
         });
         
         return { success: true, discountAmount, newTotal, voucherCode };
@@ -477,13 +490,13 @@ export const getUserVouchers = async (userId: string) => {
     
     // Filter admin vouchers based on user targeting
     const availableAdminVouchers = allAdminVouchers.filter((voucher: any) => {
-      // Skip loyalty redemption vouchers (they're already included above)
-      if (voucher.type === 'loyalty_redemption') return false;
+      // Skip loyalty redemption vouchers that don't belong to this user (they're already included above)
+      if (voucher.type === 'loyalty_redemption' && voucher.userId !== userId) return false;
       
       // Check user targeting
       if (voucher.userTargeting === 'all') {
         return true;
-      } else if (voucher.userTargeting === 'selected') {
+      } else if (voucher.userTargeting === 'selected' || voucher.userTargeting === 'specific') {
         // Get user email and check if it's in the target list
         const user = auth.currentUser;
         return user && voucher.targetUserEmails?.includes(user.email);

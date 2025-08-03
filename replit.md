@@ -9,6 +9,8 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes (August 2025)
 - **Email Verification Enforcement**: Implemented complete blocking of unverified student accounts at authentication level. Students cannot access any part of the application until email is verified.
 - **UI Enhancement**: Fixed logout button hover styling in profile page to maintain red text color instead of turning white.
+- **Sign-up Flow Fix**: Fixed account creation getting stuck by using session storage flag to bypass email verification during account creation process.
+- **Automatic Account Creation**: Google sign-in with UB email (@ub.edu.ph) now automatically creates student accounts, eliminating manual registration requirement.
 
 ## System Architecture
 

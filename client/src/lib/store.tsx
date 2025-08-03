@@ -161,8 +161,17 @@ export function useAuth() {
       if (userDoc.exists()) {
         const userData = userDoc.data();
         userRole = userData.role;
+        
+        // Update email verification status if it has changed
+        if (userData.emailVerified !== userCredential.user.emailVerified) {
+          await setDoc(doc(db, "users", userCredential.user.uid), {
+            ...userData,
+            emailVerified: userCredential.user.emailVerified
+          }, { merge: true });
+        }
       } else {
-        // Create new user document for Google sign-in
+        // Create new user document for Google sign-in with UB email
+        console.log("Creating new user document for Google sign-in:", userCredential.user.email);
         const userData = {
           uid: userCredential.user.uid,
           email: userCredential.user.email,
@@ -177,6 +186,7 @@ export function useAuth() {
         };
         
         await setDoc(doc(db, "users", userCredential.user.uid), userData);
+        console.log("New student account created automatically for:", userCredential.user.email);
       }
       
       // Check email verification for students only - prevent login completely

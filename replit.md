@@ -6,6 +6,10 @@ UB FoodHub is a mobile web application for the University of Batangas canteen ec
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes (August 2025)
+- **Email Verification Enforcement**: Implemented complete blocking of unverified student accounts at authentication level. Students cannot access any part of the application until email is verified.
+- **UI Enhancement**: Fixed logout button hover styling in profile page to maintain red text color instead of turning white.
+
 ## System Architecture
 
 ### Frontend

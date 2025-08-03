@@ -281,7 +281,7 @@ export default function Profile() {
         <Button
           onClick={handleLogout}
           variant="outline"
-          className="w-full text-red-600 border-red-200 hover:bg-red-50"
+          className="w-full text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
           disabled={isLoggingOut}
         >
           {isLoggingOut ? (

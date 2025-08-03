@@ -546,8 +546,24 @@ export const validateVoucher = async (userId: string, voucherId: string) => {
     if (voucherDoc.exists()) {
       const voucherData = voucherDoc.data();
       
-      // Validate voucher
-      if (voucherData.userId !== userId) {
+      // Check if voucher belongs to user or is available to them
+      let hasAccess = false;
+      
+      // Check if it's a user-specific voucher (loyalty redemption or assigned)
+      if (voucherData.userId === userId) {
+        hasAccess = true;
+      }
+      // Check if it's an admin voucher available to all users
+      else if (voucherData.userTargeting === 'all') {
+        hasAccess = true;
+      }
+      // Check if it's an admin voucher for selected users
+      else if (voucherData.userTargeting === 'selected' || voucherData.userTargeting === 'specific') {
+        const user = auth.currentUser;
+        hasAccess = user && voucherData.targetUserEmails?.includes(user.email);
+      }
+      
+      if (!hasAccess) {
         return { success: false, error: "Voucher does not belong to this user" };
       }
       
@@ -556,6 +572,10 @@ export const validateVoucher = async (userId: string, voucherId: string) => {
       }
       
       if (voucherData.expiresAt && new Date(voucherData.expiresAt) < new Date()) {
+        return { success: false, error: "Voucher has expired" };
+      }
+      
+      if (voucherData.validUntil && new Date(voucherData.validUntil) < new Date()) {
         return { success: false, error: "Voucher has expired" };
       }
       

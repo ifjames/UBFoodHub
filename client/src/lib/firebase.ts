@@ -637,12 +637,10 @@ export const deleteVoucher = async (voucherId: string) => {
 // Get voucher redemption details for admins
 export const getVoucherRedemptions = async (voucherId: string) => {
   try {
-    // Get all users who redeemed this voucher
+    // Get all user vouchers for this voucher first (simpler query to avoid index issues)
     const redemptionsQuery = query(
       collection(db, "userVouchers"),
-      where("voucherId", "==", voucherId),
-      where("isUsed", "==", true),
-      orderBy("usedAt", "desc")
+      where("voucherId", "==", voucherId)
     );
     
     const redemptionsSnapshot = await getDocs(redemptionsQuery);
@@ -650,6 +648,9 @@ export const getVoucherRedemptions = async (voucherId: string) => {
     
     for (const docRef of redemptionsSnapshot.docs) {
       const redemptionData = docRef.data();
+      
+      // Only include used vouchers and filter client-side
+      if (!redemptionData.isUsed) continue;
       
       // Get user details
       const userDoc = await getDoc(doc(db, "users", redemptionData.userId));
@@ -670,7 +671,12 @@ export const getVoucherRedemptions = async (voucherId: string) => {
       });
     }
     
-    return redemptions;
+    // Sort by usedAt date descending on client side
+    return redemptions.sort((a: any, b: any) => {
+      const dateA = new Date(a.usedAt || 0).getTime();
+      const dateB = new Date(b.usedAt || 0).getTime();
+      return dateB - dateA;
+    });
   } catch (error) {
     console.error("Error getting voucher redemptions:", error);
     return [];

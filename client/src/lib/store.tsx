@@ -123,6 +123,10 @@ export function useAuth() {
         loyaltyPoints: 0,
       });
       
+      // Sign out immediately after account creation to prevent auto-login
+      // This prevents the email verification enforcement from causing issues
+      await logOut();
+      
       return userCredential;
     } catch (error) {
       throw error;

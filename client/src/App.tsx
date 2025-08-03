@@ -125,7 +125,16 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           if (userDoc.exists()) {
             const userData = userDoc.data();
             const userRole = userData.role || 'student';
-            const isEmailVerified = userData.emailVerified || firebaseUser.emailVerified || false;
+            const isEmailVerified = firebaseUser.emailVerified || userData.emailVerified || false;
+            
+            // Sync email verification status from Firebase Auth to Firestore if it has changed
+            if (userData.emailVerified !== firebaseUser.emailVerified && firebaseUser.emailVerified) {
+              console.log("Updating email verification status in Firestore for:", firebaseUser.email);
+              const { updateDocument } = await import("./lib/firebase");
+              await updateDocument("users", firebaseUser.uid, {
+                emailVerified: firebaseUser.emailVerified
+              });
+            }
             
             // Check email verification for students - block authentication completely
             // But skip this check if we're currently creating an account

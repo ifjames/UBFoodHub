@@ -392,10 +392,26 @@ export default function AdminDashboard() {
 
   const handleDeleteUser = async (userId: string) => {
     try {
+      // Delete user from Firestore and related data
       await deleteDocument("users", userId);
+      
+      // Also delete user's related data
+      const userOrders = await queryCollection("orders", "userId", "==", userId);
+      const userNotifications = await queryCollection("notifications", "userId", "==", userId);
+      const userFavorites = await queryCollection("favorites", "userId", "==", userId);
+      
+      // Delete all related documents
+      const deletePromises = [
+        ...userOrders.docs.map(doc => deleteDocument("orders", doc.id)),
+        ...userNotifications.docs.map(doc => deleteDocument("notifications", doc.id)),
+        ...userFavorites.docs.map(doc => deleteDocument("favorites", doc.id)),
+      ];
+      
+      await Promise.all(deletePromises);
+      
       toast({
         title: "User deleted",
-        description: "User account has been removed from the system.",
+        description: "User account and all related data have been removed from the system. Note: Firebase Authentication deletion requires backend implementation.",
       });
     } catch (error: any) {
       toast({

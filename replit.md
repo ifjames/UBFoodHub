@@ -11,6 +11,8 @@ Preferred communication style: Simple, everyday language.
 - **UI Enhancement**: Fixed logout button hover styling in profile page to maintain red text color instead of turning white.
 - **Sign-up Flow Fix**: Fixed account creation getting stuck by using session storage flag to bypass email verification during account creation process.
 - **Automatic Account Creation**: Google sign-in with UB email (@ub.edu.ph) now automatically creates student accounts, eliminating manual registration requirement.
+- **Email Verification Sync**: Fixed email verification status syncing from Firebase Auth to Firestore when students verify their email.
+- **Enhanced User Deletion**: Admin user deletion now removes all related user data (orders, notifications, favorites) for complete cleanup.
 
 ## System Architecture
 

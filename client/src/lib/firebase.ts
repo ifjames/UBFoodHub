@@ -191,6 +191,25 @@ export const updateDocument = (
 export const deleteDocument = (collectionName: string, docId: string) =>
   deleteDoc(doc(db, collectionName, docId));
 
+// Admin function to delete user from Firebase Auth (requires admin SDK in real implementation)
+export const deleteUserAccount = async (userId: string) => {
+  // Note: In a real implementation, this would require Firebase Admin SDK on the backend
+  // For now, we'll just delete from Firestore and let the client know
+  try {
+    await deleteDocument("users", userId);
+    console.log("User deleted from Firestore:", userId);
+    
+    // In a real implementation, you would call your backend API:
+    // const response = await fetch(`/api/admin/delete-user/${userId}`, { method: 'DELETE' });
+    // if (!response.ok) throw new Error('Failed to delete user from Firebase Auth');
+    
+    return { success: true, message: "User deleted from Firestore. Note: Firebase Auth deletion requires backend implementation." };
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    throw error;
+  }
+};
+
 export const getCollection = (collectionName: string) =>
   getDocs(collection(db, collectionName));
 

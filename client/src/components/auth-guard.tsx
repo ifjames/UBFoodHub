@@ -19,6 +19,13 @@ export default function AuthGuard({ children }: AuthGuardProps) {
       return;
     }
 
+    // Check email verification for students - block access if not verified
+    if (state.user.role === "student" && !state.user.emailVerified) {
+      // Clear user state and redirect to login immediately
+      setLocation("/login");
+      return;
+    }
+
     // Check if user needs to complete their profile (missing student ID or phone number)
     // Only show profile completion modal for students, not admins or stall owners
     const needsProfileCompletion = state.user && 
@@ -33,8 +40,8 @@ export default function AuthGuard({ children }: AuthGuardProps) {
       setShowProfileCompletion(true);
     }
 
-    // Check for email verification and send notification if needed
-    if (state.user && !state.user.emailVerified) {
+    // Send notification for email verification (for non-students or as reminder)
+    if (state.user && !state.user.emailVerified && state.user.role !== "student") {
       const notificationService = NotificationService.getInstance();
       if (notificationService.isPermissionGranted()) {
         notificationService.sendVerificationNotification();

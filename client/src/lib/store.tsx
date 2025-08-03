@@ -81,15 +81,19 @@ export function useAuth() {
         userRole = userData.role;
       }
       
-      // Check email verification for students only
+      // Check email verification for students only - prevent login completely
       if (userRole === "student" && !userCredential.user.emailVerified) {
-        // Sign out the user immediately
+        // Sign out the user immediately before any state changes
         await logOut();
         throw new Error("Please verify your email address before signing in. Check your inbox for a verification email.");
       }
       
       return { userCredential, role: userRole };
     } catch (error) {
+      // If this is our verification error, make sure user is signed out
+      if (error instanceof Error && error.message.includes("verify your email")) {
+        await logOut();
+      }
       throw error;
     }
   };
@@ -163,15 +167,19 @@ export function useAuth() {
         await setDoc(doc(db, "users", userCredential.user.uid), userData);
       }
       
-      // Check email verification for students only
+      // Check email verification for students only - prevent login completely
       if (userRole === "student" && !userCredential.user.emailVerified) {
-        // Sign out the user immediately
+        // Sign out the user immediately before any state changes
         await logOut();
         throw new Error("Please verify your email address before signing in. Check your inbox for a verification email.");
       }
       
       return { userCredential, role: userRole };
     } catch (error) {
+      // If this is our verification error, make sure user is signed out
+      if (error instanceof Error && error.message.includes("verify your email")) {
+        await logOut();
+      }
       throw error;
     }
   };

@@ -23,7 +23,7 @@ import StallDashboard from "@/pages/stall-dashboard";
 import Settings from "@/pages/settings";
 import HelpCenter from "@/pages/help-center";
 import TermsPolicies from "@/pages/terms-policies";
-import { onAuthStateChange, getDocument, auth } from "@/lib/firebase";
+import { onAuthStateChange, getDocument, auth, logOut } from "@/lib/firebase";
 import { useStore } from "@/lib/store";
 
 function Router() {
@@ -124,6 +124,17 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           
           if (userDoc.exists()) {
             const userData = userDoc.data();
+            const userRole = userData.role || 'student';
+            const isEmailVerified = userData.emailVerified || firebaseUser.emailVerified || false;
+            
+            // Check email verification for students - block authentication completely
+            if (userRole === "student" && !isEmailVerified) {
+              console.log("Student account not verified, signing out:", firebaseUser.email);
+              await logOut();
+              dispatch({ type: "SET_USER", payload: null });
+              return;
+            }
+            
             const userPayload = {
               id: firebaseUser.uid,
               uid: firebaseUser.uid,
@@ -131,10 +142,10 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
               fullName: userData.fullName || '',
               studentId: userData.studentId || null,
               phoneNumber: userData.phoneNumber || null,
-              role: userData.role || 'student',
+              role: userRole,
               loyaltyPoints: userData.loyaltyPoints || 0,
               photoURL: userData.photoURL || firebaseUser.photoURL || null,
-              emailVerified: userData.emailVerified || firebaseUser.emailVerified || false,
+              emailVerified: isEmailVerified,
               createdAt: userData.createdAt || new Date(),
             };
 
@@ -144,7 +155,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
             });
             
             console.log("Firebase auth synced for user:", firebaseUser.email);
-            console.log("User role detected:", userData.role);
+            console.log("User role detected:", userRole);
             console.log("Firebase current user after sync:", auth.currentUser?.email);
             
             // Handle role-based redirection after successful login
@@ -152,12 +163,12 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log("Current path:", currentPath);
             
             if (currentPath === "/login") {
-              console.log("User on login page, redirecting based on role:", userData.role);
+              console.log("User on login page, redirecting based on role:", userRole);
               setTimeout(() => {
-                if (userData.role === "admin") {
+                if (userRole === "admin") {
                   console.log("Redirecting admin to dashboard");
                   window.location.href = "/admin";
-                } else if (userData.role === "stall_owner") {
+                } else if (userRole === "stall_owner") {
                   console.log("Redirecting stall owner to dashboard");
                   window.location.href = "/stall-dashboard";
                 } else {

@@ -19,6 +19,7 @@ import Orders from "@/pages/orders";
 import Profile from "@/pages/profile";
 
 import AdminDashboard from "@/pages/admin-dashboard";
+import AdminVouchers from "@/pages/admin-vouchers";
 import StallDashboard from "@/pages/stall-dashboard";
 import Settings from "@/pages/settings";
 import HelpCenter from "@/pages/help-center";
@@ -70,6 +71,11 @@ function Router() {
       <Route path="/admin">
         <AuthGuard>
           <AdminDashboard />
+        </AuthGuard>
+      </Route>
+      <Route path="/admin/vouchers">
+        <AuthGuard>
+          <AdminVouchers />
         </AuthGuard>
       </Route>
       <Route path="/stall-dashboard">

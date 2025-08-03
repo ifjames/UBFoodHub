@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { logOut, getUserLoyaltyTier } from "@/lib/firebase";
 import BottomNav from "@/components/layout/bottom-nav";
 import LoyaltyDashboard from "@/components/loyalty/loyalty-dashboard";
+import StudentVoucherDashboard from "@/components/vouchers/student-voucher-dashboard";
 
 export default function Profile() {
   const [, setLocation] = useLocation();
@@ -15,6 +16,7 @@ export default function Profile() {
   const { toast } = useToast();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showLoyalty, setShowLoyalty] = useState(false);
+  const [showVouchers, setShowVouchers] = useState(false);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -56,10 +58,11 @@ export default function Profile() {
     { 
       icon: Ticket, 
       title: "Vouchers", 
-      subtitle: isAdminOrStallOwner ? "Admin/Staff access restricted" : "Coming Soon",
-      bgColor: "bg-gray-50",
-      iconColor: "text-gray-400",
-      locked: true
+      subtitle: isAdminOrStallOwner ? "Admin/Staff access restricted" : "Discount coupons & offers",
+      bgColor: "bg-green-50",
+      iconColor: "text-green-600",
+      locked: isAdminOrStallOwner,
+      action: () => setShowVouchers(true)
     },
   ];
 
@@ -105,6 +108,10 @@ export default function Profile() {
         <BottomNav />
       </div>
     );
+  }
+
+  if (showVouchers && !isAdminOrStallOwner) {
+    return <StudentVoucherDashboard onBack={() => setShowVouchers(false)} />;
   }
 
   return (

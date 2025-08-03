@@ -516,3 +516,64 @@ export const applyVoucher = async (userId: string, voucherId: string) => {
     throw error;
   }
 };
+
+// Additional Voucher Management Functions
+export const createVoucher = async (voucherData: any) => {
+  try {
+    const vouchersRef = collection(db, 'vouchers');
+    const docRef = await addDoc(vouchersRef, {
+      ...voucherData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+    return { success: true, id: docRef.id };
+  } catch (error) {
+    console.error('Error creating voucher:', error);
+    throw error;
+  }
+};
+
+export const getAllVouchers = async () => {
+  try {
+    const vouchersRef = collection(db, 'vouchers');
+    const q = query(vouchersRef, orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('Error getting vouchers:', error);
+    return [];
+  }
+};
+
+export const deleteVoucher = async (voucherId: string) => {
+  try {
+    const voucherRef = doc(db, 'vouchers', voucherId);
+    await deleteDoc(voucherRef);
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting voucher:', error);
+    throw error;
+  }
+};
+
+export const getAllUsers = async () => {
+  try {
+    const usersRef = collection(db, 'users');
+    const snapshot = await getDocs(usersRef);
+    return snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('Error getting users:', error);
+    return [];
+  }
+};
+
+export const getAllStalls = async () => {
+  try {
+    const stallsRef = collection(db, 'stalls');
+    const snapshot = await getDocs(stallsRef);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('Error getting stalls:', error);
+    return [];
+  }
+};

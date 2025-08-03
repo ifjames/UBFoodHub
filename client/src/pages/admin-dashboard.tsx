@@ -13,7 +13,7 @@ import { useStore } from "@/lib/store";
 import { subscribeToCollection, addDocument, updateDocument, deleteDocument, getCollection, signUp, createDocument, queryCollection } from "@/lib/firebase";
 import { logOut } from "@/lib/firebase";
 import { useLocation } from "wouter";
-import { Users, Store, Plus, Edit, Trash2, LogOut, Settings, BarChart3, GripVertical, Check, Tag, AlertTriangle, Bell } from "lucide-react";
+import { Users, Store, Plus, Edit, Trash2, LogOut, Settings, BarChart3, GripVertical, Check, Tag, AlertTriangle, Bell, Gift } from "lucide-react";
 import PenaltyManagement from "@/components/penalties/penalty-management";
 import BroadcastNotification from "@/components/admin/broadcast-notification";
 import NotificationBell from "@/components/notifications/notification-bell";
@@ -611,8 +611,16 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
-            {/* Desktop Logout Button */}
+            {/* Desktop Action Buttons */}
             <div className="hidden md:flex items-center gap-4">
+              <Button
+                onClick={() => setLocation("/admin/vouchers")}
+                variant="ghost"
+                className="text-white hover:bg-white/10 hover:text-white border border-white/20 hover:border-white/40"
+              >
+                <Gift className="w-4 h-4 mr-2" />
+                Vouchers
+              </Button>
               <Button
                 onClick={async () => {
                   await logOut();

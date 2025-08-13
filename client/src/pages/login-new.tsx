@@ -154,6 +154,53 @@ export default function LoginPage() {
       return;
     }
 
+    // Validate Student ID - exactly 7 numbers only
+    const studentIdPattern = /^\d{7}$/;
+    if (!studentIdPattern.test(studentId)) {
+      toast({
+        title: "Invalid Student ID",
+        description: "Student ID must be exactly 7 numbers (e.g., 1234567)",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate Philippine phone number format
+    const phonePattern = /^\+63\s9\d{2}\s\d{3}\s\d{4}$/;
+    if (!phonePattern.test(phoneNumber)) {
+      toast({
+        title: "Invalid Phone Number",
+        description: "Phone number must be in format: +63 9XX XXX XXXX (e.g., +63 960 381 8382)",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // Basic abuse prevention - check password strength
+    if (signUpPassword.length < 8) {
+      toast({
+        title: "Weak Password",
+        description: "Password must be at least 8 characters long",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // Check for common weak passwords
+    const commonPasswords = ['password', '12345678', 'qwerty123', 'admin123', 'student123'];
+    if (commonPasswords.includes(signUpPassword.toLowerCase())) {
+      toast({
+        title: "Weak Password",
+        description: "Please choose a stronger password that's not commonly used",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
       await signUp(signUpEmail, signUpPassword, {
         name: signUpName,
@@ -560,10 +607,14 @@ export default function LoginPage() {
                       <Input
                         id="signup-student-id"
                         type="text"
-                        placeholder="Enter your student ID"
+                        placeholder="1234567 (7 numbers only)"
                         className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                         value={studentId}
-                        onChange={(e) => setStudentId(e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '').slice(0, 7);
+                          setStudentId(value);
+                        }}
+                        maxLength={7}
                         required
                         disabled={isLoading}
                       />
@@ -577,10 +628,47 @@ export default function LoginPage() {
                       <Input
                         id="signup-phone"
                         type="tel"
-                        placeholder="Enter your phone number"
+                        placeholder="+63 960 381 8382"
                         className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                         value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        onChange={(e) => {
+                          let value = e.target.value;
+                          // Remove all non-digits first
+                          const digits = value.replace(/\D/g, '');
+                          
+                          if (digits.length === 0) {
+                            setPhoneNumber('');
+                            return;
+                          }
+                          
+                          // Auto-format Philippine number
+                          if (digits.startsWith('63')) {
+                            // Format: +63 9XX XXX XXXX
+                            const formatted = digits.slice(0, 13);
+                            if (formatted.length <= 2) {
+                              setPhoneNumber(`+${formatted}`);
+                            } else if (formatted.length <= 5) {
+                              setPhoneNumber(`+63 ${formatted.slice(2)}`);
+                            } else if (formatted.length <= 8) {
+                              setPhoneNumber(`+63 ${formatted.slice(2, 5)} ${formatted.slice(5)}`);
+                            } else {
+                              setPhoneNumber(`+63 ${formatted.slice(2, 5)} ${formatted.slice(5, 8)} ${formatted.slice(8)}`);
+                            }
+                          } else if (digits.startsWith('9') && digits.length >= 1) {
+                            // Auto-prepend +63 for numbers starting with 9
+                            const formatted = ('63' + digits).slice(0, 13);
+                            if (formatted.length <= 5) {
+                              setPhoneNumber(`+63 ${formatted.slice(2)}`);
+                            } else if (formatted.length <= 8) {
+                              setPhoneNumber(`+63 ${formatted.slice(2, 5)} ${formatted.slice(5)}`);
+                            } else {
+                              setPhoneNumber(`+63 ${formatted.slice(2, 5)} ${formatted.slice(5, 8)} ${formatted.slice(8)}`);
+                            }
+                          } else {
+                            // For other inputs, just clean up
+                            setPhoneNumber(value);
+                          }
+                        }}
                         required
                         disabled={isLoading}
                       />

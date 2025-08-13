@@ -15,6 +15,7 @@ Preferred communication style: Simple, everyday language.
 - **Enhanced User Deletion**: Admin user deletion now removes all related user data (orders, notifications, favorites) for complete cleanup.
 - **Account Syncing**: Google sign-in now automatically syncs account data (name, profile picture) when students login with existing email accounts, merging manual and Google accounts seamlessly.
 - **Email Verification Sync Fix**: Fixed critical issue where admin-verified users couldn't log in. Authentication now checks both Firebase Auth verification AND admin verification status in Firestore database, allowing admin-verified accounts to access the application.
+- **Enhanced Signup Validation**: Implemented strict input validation and formatting for Student ID (exactly 7 numbers only) and Philippine phone number format (+63 9XX XXX XXXX). Added real-time input formatting, abuse prevention measures including password strength checks, and improved user guidance with clear placeholders and error messages.
 
 ## System Architecture
 

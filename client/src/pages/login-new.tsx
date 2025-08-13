@@ -1,6 +1,14 @@
 import { useState, FormEvent, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Lock, Mail, User, Phone, GraduationCap } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  User,
+  Phone,
+  GraduationCap,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,11 +26,11 @@ export default function LoginPage() {
   const [authMode, setAuthMode] = useState<"social" | "email">("social");
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Login form fields
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
-  
+
   // Signup form fields
   const [signUpName, setSignUpName] = useState("");
   const [signUpEmail, setSignUpEmail] = useState("");
@@ -30,7 +38,7 @@ export default function LoginPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [studentId, setStudentId] = useState("");
-  
+
   // UI state
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -39,47 +47,60 @@ export default function LoginPage() {
   const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
 
   // Stable particle configurations to prevent re-rendering on typing
-  const desktopParticles = useMemo(() => 
-    [...Array(30)].map((_, i) => ({
-      id: i,
-      className: i % 4 === 0 ? 'w-3 h-3 bg-white/20 animate-particle-float' :
-                  i % 4 === 1 ? 'w-2 h-2 bg-red-200/30 animate-wave-motion' :
-                  i % 4 === 2 ? 'w-1 h-1 bg-yellow-200/40 animate-magic-sparkle' :
-                  'w-2 h-2 bg-white/15 animate-float',
-      style: {
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-        animationDelay: `${Math.random() * 5}s`,
-        animationDuration: `${4 + Math.random() * 6}s`,
-      }
-    })), []
+  const desktopParticles = useMemo(
+    () =>
+      [...Array(30)].map((_, i) => ({
+        id: i,
+        className:
+          i % 4 === 0
+            ? "w-3 h-3 bg-white/20 animate-particle-float"
+            : i % 4 === 1
+              ? "w-2 h-2 bg-red-200/30 animate-wave-motion"
+              : i % 4 === 2
+                ? "w-1 h-1 bg-yellow-200/40 animate-magic-sparkle"
+                : "w-2 h-2 bg-white/15 animate-float",
+        style: {
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+          animationDelay: `${Math.random() * 5}s`,
+          animationDuration: `${4 + Math.random() * 6}s`,
+        },
+      })),
+    [],
   );
 
-  const sparkleParticles = useMemo(() => 
-    [...Array(15)].map((_, i) => ({
-      id: i,
-      style: {
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-        animationDelay: `${Math.random() * 3}s`,
-        animationDuration: `${2 + Math.random() * 3}s`,
-      }
-    })), []
+  const sparkleParticles = useMemo(
+    () =>
+      [...Array(15)].map((_, i) => ({
+        id: i,
+        style: {
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+          animationDelay: `${Math.random() * 3}s`,
+          animationDuration: `${2 + Math.random() * 3}s`,
+        },
+      })),
+    [],
   );
 
-  const mobileParticles = useMemo(() => 
-    [...Array(25)].map((_, i) => ({
-      id: i,
-      className: i % 3 === 0 ? 'w-2 h-2 bg-white/15 animate-wave-motion' :
-                  i % 3 === 1 ? 'w-1 h-1 bg-red-200/25 animate-magic-sparkle' :
-                  'w-1.5 h-1.5 bg-white/10 animate-particle-float',
-      style: {
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-        animationDelay: `${Math.random() * 4}s`,
-        animationDuration: `${3 + Math.random() * 5}s`,
-      }
-    })), []
+  const mobileParticles = useMemo(
+    () =>
+      [...Array(25)].map((_, i) => ({
+        id: i,
+        className:
+          i % 3 === 0
+            ? "w-2 h-2 bg-white/15 animate-wave-motion"
+            : i % 3 === 1
+              ? "w-1 h-1 bg-red-200/25 animate-magic-sparkle"
+              : "w-1.5 h-1.5 bg-white/10 animate-particle-float",
+        style: {
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+          animationDelay: `${Math.random() * 4}s`,
+          animationDuration: `${3 + Math.random() * 5}s`,
+        },
+      })),
+    [],
   );
 
   const handleLogin = async (e: FormEvent) => {
@@ -90,12 +111,12 @@ export default function LoginPage() {
       const result = await signIn(loginEmail, loginPassword);
       console.log("Login result:", result);
       console.log("User role:", result.role);
-      
+
       toast({
         title: "Welcome back!",
         description: "You've successfully signed in.",
       });
-      
+
       // Add a small delay to ensure state updates
       setTimeout(() => {
         if (result.role === "admin") {
@@ -127,7 +148,8 @@ export default function LoginPage() {
     if (!agreedToTerms) {
       toast({
         title: "Terms Agreement Required",
-        description: "You must agree to the Terms of Service and Privacy Policy to create an account",
+        description:
+          "You must agree to the Terms of Service and Privacy Policy to create an account",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -171,7 +193,8 @@ export default function LoginPage() {
     if (!phonePattern.test(phoneNumber)) {
       toast({
         title: "Invalid Phone Number",
-        description: "Phone number must be in format: +63 9XX XXX XXXX (e.g., +63 960 381 8382)",
+        description:
+          "Phone number must be in format: +63 9XX XXX XXXX (e.g., +63 123 456 7890)",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -190,11 +213,18 @@ export default function LoginPage() {
     }
 
     // Check for common weak passwords
-    const commonPasswords = ['password', '12345678', 'qwerty123', 'admin123', 'student123'];
+    const commonPasswords = [
+      "password",
+      "12345678",
+      "qwerty123",
+      "admin123",
+      "student123",
+    ];
     if (commonPasswords.includes(signUpPassword.toLowerCase())) {
       toast({
         title: "Weak Password",
-        description: "Please choose a stronger password that's not commonly used",
+        description:
+          "Please choose a stronger password that's not commonly used",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -207,12 +237,12 @@ export default function LoginPage() {
         phoneNumber,
         studentId,
       });
-      
+
       toast({
         title: "Account Created!",
         description: "Please check your email to verify your account.",
       });
-      
+
       setIsSignUp(false);
     } catch (error: any) {
       toast({
@@ -228,16 +258,16 @@ export default function LoginPage() {
   const handleGoogleAuth = async () => {
     if (isLoading) return;
     setIsLoading(true);
-    
+
     try {
       const result = await signInWithGoogle();
       console.log("Google sign-in result:", result);
-      
+
       toast({
         title: "Welcome!",
         description: "Successfully signed in with Google.",
       });
-      
+
       // Role-based redirection
       setTimeout(() => {
         if (result.role === "admin") {
@@ -252,7 +282,8 @@ export default function LoginPage() {
       console.error("Google auth error:", error);
       toast({
         title: "Sign-in Failed",
-        description: error.message || "Failed to sign in with Google. Please try again.",
+        description:
+          error.message || "Failed to sign in with Google. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -266,7 +297,7 @@ export default function LoginPage() {
         {/* Desktop Left Panel */}
         <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[#6d031e] via-[#8b0420] to-[#4a0115] items-center justify-center p-8">
           <div className="absolute inset-0 bg-black/20"></div>
-          
+
           {/* Enhanced Floating Particles */}
           <div className="absolute inset-0 overflow-hidden">
             {desktopParticles.map((particle) => (
@@ -276,7 +307,7 @@ export default function LoginPage() {
                 style={particle.style}
               ></div>
             ))}
-            
+
             {/* Magic sparkles */}
             {sparkleParticles.map((sparkle) => (
               <div
@@ -286,7 +317,7 @@ export default function LoginPage() {
               ></div>
             ))}
           </div>
-          
+
           {/* Content */}
           <div className="relative z-10 text-center text-white">
             <div className="mb-8">
@@ -304,7 +335,8 @@ export default function LoginPage() {
             </p>
             <div className="backdrop-blur-sm bg-white/10 rounded-2xl p-6 border border-white/20">
               <p className="text-red-50">
-                Order from your favorite campus restaurants, skip the lines, and enjoy seamless pickup with QR codes.
+                Order from your favorite campus restaurants, skip the lines, and
+                enjoy seamless pickup with QR codes.
               </p>
             </div>
           </div>
@@ -322,7 +354,7 @@ export default function LoginPage() {
               ></div>
             ))}
           </div>
-          
+
           <div className="w-full max-w-md space-y-8 relative z-10">
             {/* Enhanced Mobile Logo */}
             <div className="text-center lg:hidden">
@@ -354,11 +386,7 @@ export default function LoginPage() {
                   disabled={isLoading}
                   className="w-full flex items-center justify-center space-x-3 bg-[#6d031e] hover:bg-[#5a0219] text-white py-3 px-4 rounded-xl font-medium transition-colors h-12 disabled:opacity-50"
                 >
-                  <img
-                    src="/UBlogo.png"
-                    alt="UB"
-                    className="w-5 h-5"
-                  />
+                  <img src="/UBlogo.png" alt="UB" className="w-5 h-5" />
                   <span>Continue with UB Mail</span>
                 </button>
 
@@ -367,7 +395,9 @@ export default function LoginPage() {
                     <div className="w-full border-t border-[#6d031e]/20 lg:border-gray-300"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-[#6d031e]/60 lg:text-gray-500">Or</span>
+                    <span className="px-2 bg-white text-[#6d031e]/60 lg:text-gray-500">
+                      Or
+                    </span>
                   </div>
                 </div>
 
@@ -391,7 +421,7 @@ export default function LoginPage() {
       {/* Desktop Left Panel */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-[#6d031e] via-[#8b0420] to-[#4a0115] items-center justify-center p-8">
         <div className="absolute inset-0 bg-black/20"></div>
-        
+
         {/* Enhanced Floating Particles */}
         <div className="absolute inset-0 overflow-hidden">
           {desktopParticles.map((particle) => (
@@ -401,7 +431,7 @@ export default function LoginPage() {
               style={particle.style}
             ></div>
           ))}
-          
+
           {/* Magic sparkles */}
           {sparkleParticles.map((sparkle) => (
             <div
@@ -411,7 +441,7 @@ export default function LoginPage() {
             ></div>
           ))}
         </div>
-        
+
         {/* Content */}
         <div className="relative z-10 text-center text-white">
           <div className="mb-8">
@@ -429,7 +459,8 @@ export default function LoginPage() {
           </p>
           <div className="backdrop-blur-sm bg-white/10 rounded-2xl p-6 border border-white/20">
             <p className="text-red-50">
-              Order from your favorite campus restaurants, skip the lines, and enjoy seamless pickup with QR codes.
+              Order from your favorite campus restaurants, skip the lines, and
+              enjoy seamless pickup with QR codes.
             </p>
           </div>
         </div>
@@ -447,7 +478,7 @@ export default function LoginPage() {
             ></div>
           ))}
         </div>
-        
+
         <div className="w-full max-w-md space-y-8 relative z-10">
           {/* Enhanced Mobile Logo */}
           <div className="text-center lg:hidden">
@@ -476,7 +507,9 @@ export default function LoginPage() {
                 {isSignUp ? "Create Account" : "Sign In"}
               </h2>
               <p className="text-[#6d031e]/70 lg:text-gray-600">
-                {isSignUp ? "Join UB FoodHub community" : "Welcome back to UB FoodHub"}
+                {isSignUp
+                  ? "Join UB FoodHub community"
+                  : "Welcome back to UB FoodHub"}
               </p>
             </div>
 
@@ -492,7 +525,12 @@ export default function LoginPage() {
                   className="space-y-6"
                 >
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-[#6d031e] font-medium lg:text-gray-700">Email Address</Label>
+                    <Label
+                      htmlFor="email"
+                      className="text-[#6d031e] font-medium lg:text-gray-700"
+                    >
+                      Email Address
+                    </Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-[#6d031e]/60 lg:text-gray-400" />
                       <Input
@@ -509,7 +547,12 @@ export default function LoginPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-[#6d031e] font-medium lg:text-gray-700">Password</Label>
+                    <Label
+                      htmlFor="password"
+                      className="text-[#6d031e] font-medium lg:text-gray-700"
+                    >
+                      Password
+                    </Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-[#6d031e]/60 lg:text-gray-400" />
                       <Input
@@ -528,15 +571,19 @@ export default function LoginPage() {
                         className="absolute right-3 top-3 text-[#6d031e]/60 hover:text-[#6d031e] lg:text-gray-400 lg:hover:text-gray-600"
                         disabled={isLoading}
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                   </div>
 
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="w-full text-white h-12 rounded-xl font-medium"
-                    style={{ backgroundColor: '#6d031e' }}
+                    style={{ backgroundColor: "#6d031e" }}
                     disabled={isLoading}
                   >
                     {isLoading ? "Signing in..." : "Sign In"}
@@ -567,7 +614,12 @@ export default function LoginPage() {
                   className="space-y-4"
                 >
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name" className="text-[#6d031e] font-medium lg:text-gray-700">Full Name</Label>
+                    <Label
+                      htmlFor="signup-name"
+                      className="text-[#6d031e] font-medium lg:text-gray-700"
+                    >
+                      Full Name
+                    </Label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-4 w-4 text-[#6d031e]/60 lg:text-gray-400" />
                       <Input
@@ -584,7 +636,12 @@ export default function LoginPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email" className="text-[#6d031e] font-medium lg:text-gray-700">Email Address</Label>
+                    <Label
+                      htmlFor="signup-email"
+                      className="text-[#6d031e] font-medium lg:text-gray-700"
+                    >
+                      Email Address
+                    </Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-[#6d031e]/60 lg:text-gray-400" />
                       <Input
@@ -601,17 +658,24 @@ export default function LoginPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-student-id" className="text-[#6d031e] font-medium lg:text-gray-700">Student ID</Label>
+                    <Label
+                      htmlFor="signup-student-id"
+                      className="text-[#6d031e] font-medium lg:text-gray-700"
+                    >
+                      Student ID
+                    </Label>
                     <div className="relative">
                       <GraduationCap className="absolute left-3 top-3 h-4 w-4 text-[#6d031e]/60 lg:text-gray-400" />
                       <Input
                         id="signup-student-id"
                         type="text"
-                        placeholder="1234567 (7 numbers only)"
+                        placeholder="1234567"
                         className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                         value={studentId}
                         onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '').slice(0, 7);
+                          const value = e.target.value
+                            .replace(/\D/g, "")
+                            .slice(0, 7);
                           setStudentId(value);
                         }}
                         maxLength={7}
@@ -622,27 +686,32 @@ export default function LoginPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-phone" className="text-[#6d031e] font-medium lg:text-gray-700">Phone Number</Label>
+                    <Label
+                      htmlFor="signup-phone"
+                      className="text-[#6d031e] font-medium lg:text-gray-700"
+                    >
+                      Phone Number
+                    </Label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-3 h-4 w-4 text-[#6d031e]/60 lg:text-gray-400" />
                       <Input
                         id="signup-phone"
                         type="tel"
-                        placeholder="+63 960 381 8382"
+                        placeholder="+63 123 456 7890"
                         className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                         value={phoneNumber}
                         onChange={(e) => {
                           let value = e.target.value;
                           // Remove all non-digits first
-                          const digits = value.replace(/\D/g, '');
-                          
+                          const digits = value.replace(/\D/g, "");
+
                           if (digits.length === 0) {
-                            setPhoneNumber('');
+                            setPhoneNumber("");
                             return;
                           }
-                          
+
                           // Auto-format Philippine number
-                          if (digits.startsWith('63')) {
+                          if (digits.startsWith("63")) {
                             // Format: +63 9XX XXX XXXX
                             const formatted = digits.slice(0, 13);
                             if (formatted.length <= 2) {
@@ -650,19 +719,30 @@ export default function LoginPage() {
                             } else if (formatted.length <= 5) {
                               setPhoneNumber(`+63 ${formatted.slice(2)}`);
                             } else if (formatted.length <= 8) {
-                              setPhoneNumber(`+63 ${formatted.slice(2, 5)} ${formatted.slice(5)}`);
+                              setPhoneNumber(
+                                `+63 ${formatted.slice(2, 5)} ${formatted.slice(5)}`,
+                              );
                             } else {
-                              setPhoneNumber(`+63 ${formatted.slice(2, 5)} ${formatted.slice(5, 8)} ${formatted.slice(8)}`);
+                              setPhoneNumber(
+                                `+63 ${formatted.slice(2, 5)} ${formatted.slice(5, 8)} ${formatted.slice(8)}`,
+                              );
                             }
-                          } else if (digits.startsWith('9') && digits.length >= 1) {
+                          } else if (
+                            digits.startsWith("9") &&
+                            digits.length >= 1
+                          ) {
                             // Auto-prepend +63 for numbers starting with 9
-                            const formatted = ('63' + digits).slice(0, 13);
+                            const formatted = ("63" + digits).slice(0, 13);
                             if (formatted.length <= 5) {
                               setPhoneNumber(`+63 ${formatted.slice(2)}`);
                             } else if (formatted.length <= 8) {
-                              setPhoneNumber(`+63 ${formatted.slice(2, 5)} ${formatted.slice(5)}`);
+                              setPhoneNumber(
+                                `+63 ${formatted.slice(2, 5)} ${formatted.slice(5)}`,
+                              );
                             } else {
-                              setPhoneNumber(`+63 ${formatted.slice(2, 5)} ${formatted.slice(5, 8)} ${formatted.slice(8)}`);
+                              setPhoneNumber(
+                                `+63 ${formatted.slice(2, 5)} ${formatted.slice(5, 8)} ${formatted.slice(8)}`,
+                              );
                             }
                           } else {
                             // For other inputs, just clean up
@@ -676,7 +756,12 @@ export default function LoginPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password" className="text-[#6d031e] font-medium lg:text-gray-700">Password</Label>
+                    <Label
+                      htmlFor="signup-password"
+                      className="text-[#6d031e] font-medium lg:text-gray-700"
+                    >
+                      Password
+                    </Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-[#6d031e]/60 lg:text-gray-400" />
                       <Input
@@ -695,13 +780,22 @@ export default function LoginPage() {
                         className="absolute right-3 top-3 text-[#6d031e]/60 hover:text-[#6d031e] lg:text-gray-400 lg:hover:text-gray-600"
                         disabled={isLoading}
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className="text-[#6d031e] font-medium lg:text-gray-700">Confirm Password</Label>
+                    <Label
+                      htmlFor="confirmPassword"
+                      className="text-[#6d031e] font-medium lg:text-gray-700"
+                    >
+                      Confirm Password
+                    </Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-[#6d031e]/60 lg:text-gray-400" />
                       <Input
@@ -716,15 +810,21 @@ export default function LoginPage() {
                       />
                       <button
                         type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                         className="absolute right-3 top-3 text-[#6d031e]/60 hover:text-[#6d031e] lg:text-gray-400 lg:hover:text-gray-600"
                         disabled={isLoading}
                       >
-                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start space-x-2 mt-4">
                     <input
                       type="checkbox"
@@ -734,8 +834,8 @@ export default function LoginPage() {
                       className="mt-1 w-4 h-4 accent-[#6d031e]"
                       disabled={isLoading}
                     />
-                    <label 
-                      htmlFor="terms-signup" 
+                    <label
+                      htmlFor="terms-signup"
                       className="text-xs text-[#6d031e] font-medium lg:text-gray-700 cursor-pointer"
                     >
                       I agree to the{" "}
@@ -746,8 +846,8 @@ export default function LoginPage() {
                         disabled={isLoading}
                       >
                         Terms of Service
-                      </button>
-                      {" "}and{" "}
+                      </button>{" "}
+                      and{" "}
                       <button
                         type="button"
                         onClick={() => setShowPrivacyDialog(true)}
@@ -758,11 +858,11 @@ export default function LoginPage() {
                       </button>
                     </label>
                   </div>
-                  
-                  <Button 
-                    type="submit" 
+
+                  <Button
+                    type="submit"
                     className="w-full text-white h-12 rounded-xl font-medium"
-                    style={{ backgroundColor: '#6d031e' }}
+                    style={{ backgroundColor: "#6d031e" }}
                     disabled={isLoading || !agreedToTerms}
                   >
                     {isLoading ? "Creating account..." : "Create Account"}
@@ -789,14 +889,14 @@ export default function LoginPage() {
       </div>
 
       {/* Terms Dialogs */}
-      <TermsDialog 
-        isOpen={showTermsDialog} 
-        onClose={() => setShowTermsDialog(false)} 
+      <TermsDialog
+        isOpen={showTermsDialog}
+        onClose={() => setShowTermsDialog(false)}
         type="terms"
       />
-      <TermsDialog 
-        isOpen={showPrivacyDialog} 
-        onClose={() => setShowPrivacyDialog(false)} 
+      <TermsDialog
+        isOpen={showPrivacyDialog}
+        onClose={() => setShowPrivacyDialog(false)}
         type="privacy"
       />
     </div>

@@ -6,7 +6,7 @@ UB FoodHub is a mobile web application for the University of Batangas canteen ec
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
-## Recent Changes (August 2025)
+## Recent Changes (January 2025)
 - **Email Verification Enforcement**: Implemented complete blocking of unverified student accounts at authentication level. Students cannot access any part of the application until email is verified.
 - **UI Enhancement**: Fixed logout button hover styling in profile page to maintain red text color instead of turning white.
 - **Sign-up Flow Fix**: Fixed account creation getting stuck by using session storage flag to bypass email verification during account creation process.
@@ -14,6 +14,7 @@ Preferred communication style: Simple, everyday language.
 - **Email Verification Sync**: Fixed email verification status syncing from Firebase Auth to Firestore when students verify their email.
 - **Enhanced User Deletion**: Admin user deletion now removes all related user data (orders, notifications, favorites) for complete cleanup.
 - **Account Syncing**: Google sign-in now automatically syncs account data (name, profile picture) when students login with existing email accounts, merging manual and Google accounts seamlessly.
+- **Email Verification Sync Fix**: Fixed critical issue where admin-verified users couldn't log in. Authentication now checks both Firebase Auth verification AND admin verification status in Firestore database, allowing admin-verified accounts to access the application.
 
 ## System Architecture
 

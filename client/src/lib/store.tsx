@@ -82,7 +82,11 @@ export function useAuth() {
       }
       
       // Check email verification for students only - prevent login completely
-      if (userRole === "student" && !userCredential.user.emailVerified) {
+      // Check both Firebase Auth verification AND admin verification in Firestore
+      const isVerifiedByFirebase = userCredential.user.emailVerified;
+      const isVerifiedByAdmin = userData && userData.emailVerified === true;
+      
+      if (userRole === "student" && !isVerifiedByFirebase && !isVerifiedByAdmin) {
         // Sign out the user immediately before any state changes
         await logOut();
         throw new Error("Please verify your email address before signing in. Check your inbox for a verification email.");
@@ -165,17 +169,17 @@ export function useAuth() {
         // Sync Google account data with existing account (name, photo, email verification)
         const shouldUpdate = 
           userData.emailVerified !== userCredential.user.emailVerified ||
-          (userCredential.user.displayName && userData.fullName !== userCredential.user.displayName) ||
-          (userCredential.user.photoURL && userData.photoURL !== userCredential.user.photoURL);
+          (userCredential.user.displayName && (userData as any).fullName !== userCredential.user.displayName) ||
+          (userCredential.user.photoURL && (userData as any).photoURL !== userCredential.user.photoURL);
           
         if (shouldUpdate) {
           console.log("Syncing Google account data for existing user:", userCredential.user.email);
-          console.log("Current name:", userData.fullName, "-> Google name:", userCredential.user.displayName);
+          console.log("Current name:", (userData as any).fullName, "-> Google name:", userCredential.user.displayName);
           
           const updatedData = {
             ...userData,
             emailVerified: userCredential.user.emailVerified,
-          };
+          } as any;
           
           // Always use Google name if available (override existing name)
           if (userCredential.user.displayName) {
@@ -216,12 +220,12 @@ export function useAuth() {
           
           // Always override with Google name if available
           if (userCredential.user.displayName) {
-            mergedUserData.fullName = userCredential.user.displayName;
+            (mergedUserData as any).fullName = userCredential.user.displayName;
           }
           
           // Always override with Google photo if available
           if (userCredential.user.photoURL) {
-            mergedUserData.photoURL = userCredential.user.photoURL;
+            (mergedUserData as any).photoURL = userCredential.user.photoURL;
           }
           
           console.log("Merging accounts - Old name:", existingUserData.fullName, "-> Google name:", userCredential.user.displayName);
@@ -255,7 +259,14 @@ export function useAuth() {
       }
       
       // Check email verification for students only - prevent login completely
-      if (userRole === "student" && !userCredential.user.emailVerified) {
+      // Check both Firebase Auth verification AND admin verification in Firestore
+      const isVerifiedByFirebase = userCredential.user.emailVerified;
+      
+      // Get fresh user data to check admin verification status
+      const freshUserDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+      const isVerifiedByAdmin = freshUserDoc.exists() && freshUserDoc.data().emailVerified === true;
+      
+      if (userRole === "student" && !isVerifiedByFirebase && !isVerifiedByAdmin) {
         // Sign out the user immediately before any state changes
         await logOut();
         throw new Error("Please verify your email address before signing in. Check your inbox for a verification email.");

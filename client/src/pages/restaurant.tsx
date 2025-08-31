@@ -605,22 +605,7 @@ export default function Restaurant() {
                   <p className="text-xs text-gray-500 mt-1">{specialInstructions.length}/500</p>
                 </div>
 
-                <div>
-                  <Label className="text-base font-medium">If this product is not available</Label>
-                  <Button 
-                    variant="outline" 
-                    className="w-full mt-2 justify-start"
-                    onClick={() => {
-                      setIsDialogOpen(false);
-                      toast({
-                        title: "Preference saved",
-                        description: "We'll remove this item if unavailable",
-                      });
-                    }}
-                  >
-                    Remove it from my order →
-                  </Button>
-                </div>
+                
 
                 <div className="flex items-center justify-between pt-4 border-t">
                   <div className="flex items-center gap-3">

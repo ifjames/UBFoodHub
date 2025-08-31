@@ -280,12 +280,18 @@ export default function Cart() {
     setLoadingStates((prev) => ({ ...prev, [loadingKey]: true }));
 
     try {
+      // Optimistically remove item from UI first for smoother experience
+      setCartItems(prevItems => prevItems.filter(item => item.id !== itemId));
+      
+      // Then delete from database
       await deleteDocument("cartItems", itemId);
       toast({
         title: "Item removed",
         description: "Item has been removed from your cart",
       });
     } catch (error) {
+      // If deletion failed, restore item by refetching cart items
+      // The Firebase subscription will handle this automatically
       toast({
         title: "Error",
         description: "Failed to remove item",
@@ -530,15 +536,25 @@ export default function Cart() {
         </motion.div>
 
         {/* Cart Items */}
-        <AnimatePresence>
+        <AnimatePresence mode="popLayout">
           {cartItems.map((item, index) => (
             <motion.div
               key={item.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-lg p-4"
+              initial={{ opacity: 0, x: -20, height: 0 }}
+              animate={{ opacity: 1, x: 0, height: "auto" }}
+              exit={{ 
+                opacity: 0, 
+                x: 20, 
+                height: 0,
+                transition: { duration: 0.3, ease: "easeInOut" }
+              }}
+              transition={{ 
+                duration: 0.3,
+                delay: index * 0.05,
+                layout: { duration: 0.3 }
+              }}
+              layout
+              className="bg-white rounded-lg p-4 overflow-hidden"
             >
               <div className="flex gap-3">
                 <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">

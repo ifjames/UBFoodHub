@@ -109,6 +109,7 @@ function Router() {
 function AuthProvider({ children }: { children: React.ReactNode }) {
   const { dispatch } = useStore();
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isAuthComplete, setIsAuthComplete] = useState(false);
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -166,34 +167,42 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
               createdAt: userData.createdAt || new Date(),
             };
 
-            dispatch({
-              type: "SET_USER",
-              payload: userPayload
-            });
-            
-            console.log("Firebase auth synced for user:", firebaseUser.email);
-            console.log("User role detected:", userRole);
-            console.log("Firebase current user after sync:", auth.currentUser?.email);
-            
-            // Handle role-based redirection after successful login
-            const currentPath = window.location.pathname;
-            console.log("Current path:", currentPath);
-            
-            if (currentPath === "/login") {
-              console.log("User on login page, redirecting based on role:", userRole);
+            // Delay setting user and completion to ensure loading screen shows properly
+            setTimeout(() => {
+              dispatch({
+                type: "SET_USER",
+                payload: userPayload
+              });
+              
+              console.log("Firebase auth synced for user:", firebaseUser.email);
+              console.log("User role detected:", userRole);
+              console.log("Firebase current user after sync:", auth.currentUser?.email);
+              
+              // Mark auth as complete after user is set
               setTimeout(() => {
-                if (userRole === "admin") {
-                  console.log("Redirecting admin to dashboard");
-                  window.location.href = "/admin";
-                } else if (userRole === "stall_owner") {
-                  console.log("Redirecting stall owner to dashboard");
-                  window.location.href = "/stall-dashboard";
-                } else {
-                  console.log("Redirecting student to home");
-                  window.location.href = "/";
+                setIsAuthComplete(true);
+                
+                // Handle role-based redirection after successful login
+                const currentPath = window.location.pathname;
+                console.log("Current path:", currentPath);
+                
+                if (currentPath === "/login") {
+                  console.log("User on login page, redirecting based on role:", userRole);
+                  setTimeout(() => {
+                    if (userRole === "admin") {
+                      console.log("Redirecting admin to dashboard");
+                      window.location.href = "/admin";
+                    } else if (userRole === "stall_owner") {
+                      console.log("Redirecting stall owner to dashboard");
+                      window.location.href = "/stall-dashboard";
+                    } else {
+                      console.log("Redirecting student to home");
+                      window.location.href = "/";
+                    }
+                  }, 500);
                 }
-              }, 500);
-            }
+              }, 200);
+            }, 300);
           } else {
             console.warn("User document not found in Firestore");
           }
@@ -201,6 +210,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           // Add a small delay before clearing to prevent race conditions
           setTimeout(() => {
             dispatch({ type: "SET_USER", payload: null });
+            setIsAuthComplete(true);
             console.log("No Firebase user found, clearing store");
           }, 1000);
         }
@@ -211,7 +221,10 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } finally {
         clearTimeout(timeoutId);
-        setIsAuthLoading(false);
+        // Only set loading to false after a minimum delay to ensure loading screen is visible
+        setTimeout(() => {
+          setIsAuthLoading(false);
+        }, 1500);
       }
     });
 
@@ -221,7 +234,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [dispatch]);
 
-  if (isAuthLoading) {
+  if (isAuthLoading || !isAuthComplete) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#6d031e] via-[#8b0a2e] to-[#a91b42] flex items-center justify-center overflow-hidden">
         {/* Liquid glass background effect */}

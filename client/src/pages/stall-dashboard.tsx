@@ -997,7 +997,7 @@ export default function StallDashboard() {
                         setOrderFilter("pending");
                         setCurrentPage(1);
                       }}
-                      className={orderFilter === "pending" ? "bg-yellow-600 hover:bg-yellow-700" : "text-yellow-700 border-yellow-300 hover:bg-yellow-50"}
+                      className={orderFilter === "pending" ? "bg-yellow-600 hover:bg-yellow-700" : "text-yellow-700 border-yellow-300 hover:bg-yellow-50 hover:text-yellow-800"}
                     >
                       New Orders ({orders.filter(o => o.status === 'pending').length})
                     </Button>
@@ -1008,7 +1008,7 @@ export default function StallDashboard() {
                         setOrderFilter("preparing");
                         setCurrentPage(1);
                       }}
-                      className={orderFilter === "preparing" ? "bg-blue-600 hover:bg-blue-700" : "text-blue-700 border-blue-300 hover:bg-blue-50"}
+                      className={orderFilter === "preparing" ? "bg-blue-600 hover:bg-blue-700" : "text-blue-700 border-blue-300 hover:bg-blue-50 hover:text-blue-800"}
                     >
                       Cooking ({orders.filter(o => o.status === 'preparing').length})
                     </Button>
@@ -1019,7 +1019,7 @@ export default function StallDashboard() {
                         setOrderFilter("ready");
                         setCurrentPage(1);
                       }}
-                      className={orderFilter === "ready" ? "bg-green-600 hover:bg-green-700" : "text-green-700 border-green-300 hover:bg-green-50"}
+                      className={orderFilter === "ready" ? "bg-green-600 hover:bg-green-700" : "text-green-700 border-green-300 hover:bg-green-50 hover:text-green-800"}
                     >
                       Ready ({orders.filter(o => o.status === 'ready').length})
                     </Button>
@@ -1030,7 +1030,7 @@ export default function StallDashboard() {
                         setOrderFilter("completed");
                         setCurrentPage(1);
                       }}
-                      className={orderFilter === "completed" ? "bg-gray-600 hover:bg-gray-700" : "text-gray-700 border-gray-300 hover:bg-gray-50"}
+                      className={orderFilter === "completed" ? "bg-gray-600 hover:bg-gray-700" : "text-gray-700 border-gray-300 hover:bg-gray-50 hover:text-gray-800"}
                     >
                       Completed ({orders.filter(o => o.status === 'completed').length})
                     </Button>

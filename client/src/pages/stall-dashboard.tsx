@@ -1522,7 +1522,21 @@ export default function StallDashboard() {
                           {item.isPopular && <Star className="w-4 h-4 text-yellow-500 fill-current" />}
                         </div>
                         <p className="text-sm text-gray-600">{item.description}</p>
-                        <p className="text-lg font-bold text-gray-900">₱{item.price?.toFixed(2)}</p>
+                        <div className="flex items-center gap-3 mt-1">
+                          <p className="text-lg font-bold text-gray-900">₱{item.price?.toFixed(2)}</p>
+                          <Badge 
+                            variant="outline" 
+                            className={`${
+                              (item.stock ?? 0) === 0 
+                                ? 'bg-red-50 text-red-700 border-red-200' 
+                                : (item.stock ?? 0) < 10 
+                                  ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                  : 'bg-green-50 text-green-700 border-green-200'
+                            }`}
+                          >
+                            Stock: {item.stock ?? 0}
+                          </Badge>
+                        </div>
                         {item.customizations && item.customizations.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-2">
                             {item.customizations.map((custom: any, index: number) => (

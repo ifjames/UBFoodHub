@@ -337,13 +337,7 @@ export default function Home() {
             {activeFilter === "all" ? "All Stalls" : `${activeFilter} Stalls`}
           </h2>
 
-          {isLoading ? (
-            <Card className="bg-white border-gray-200">
-              <CardContent className="p-8 text-center md:p-12">
-                <StallLoadingScreen message="Loading delicious stalls..." />
-              </CardContent>
-            </Card>
-          ) : showSkeletons ? (
+          {isLoading || showSkeletons ? (
             <StallSkeleton count={6} />
           ) : filteredStalls.length === 0 ? (
             <Card className="bg-white border-gray-200">

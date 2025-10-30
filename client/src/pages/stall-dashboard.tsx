@@ -95,6 +95,7 @@ export default function StallDashboard() {
     isAvailable: true,
     isPopular: false,
     image: "",
+    stock: 0,
     customizations: [{ name: "", price: 0 }] // For customizations like "Extra Rice +25", "Choice of Rice", etc.
   });
 
@@ -323,6 +324,7 @@ export default function StallDashboard() {
       const menuItemData = {
         ...itemForm,
         price: parseFloat(itemForm.price),
+        stock: parseInt(itemForm.stock.toString()) || 0,
         stallId: stallId,
         customizations: itemForm.customizations.filter(c => c.name.trim() !== ""),
         createdAt: new Date()
@@ -365,6 +367,7 @@ export default function StallDashboard() {
       isAvailable: true,
       isPopular: false,
       image: "",
+      stock: 0,
       customizations: [{ name: "", price: 0 }]
     });
   };
@@ -616,6 +619,7 @@ export default function StallDashboard() {
       isAvailable: item.isAvailable ?? true,
       isPopular: item.isPopular ?? false,
       image: item.image || "",
+      stock: item.stock ?? 0,
       customizations: item.customizations && item.customizations.length > 0 
         ? item.customizations 
         : [{ name: "", price: 0 }]
@@ -2291,6 +2295,19 @@ export default function StallDashboard() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div>
+              <Label htmlFor="stock">Stock Quantity</Label>
+              <Input
+                id="stock"
+                type="number"
+                min="0"
+                value={itemForm.stock}
+                onChange={(e) => setItemForm(prev => ({ ...prev, stock: parseInt(e.target.value) || 0 }))}
+                placeholder="0"
+              />
+              <p className="text-xs text-gray-500 mt-1">Set to 0 to mark item as out of stock</p>
             </div>
 
             <div>

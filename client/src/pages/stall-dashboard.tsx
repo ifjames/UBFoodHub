@@ -21,7 +21,11 @@ import {
   Camera,
   X,
   MessageSquare,
-  Ticket
+  Ticket,
+  User,
+  Banknote,
+  Coins,
+  Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1090,20 +1094,24 @@ export default function StallDashboard() {
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                               <div>
-                                <p className="text-gray-600">
-                                  👤 <span className="font-medium">{order.customerName || 'Student'}</span>
+                                <p className="text-gray-600 flex items-center gap-1">
+                                  <User className="w-4 h-4" />
+                                  <span className="font-medium">{order.customerName || 'Student'}</span>
                                 </p>
-                                <p className="text-gray-500 text-xs">
-                                  🕐 {order.createdAt?.toDate ? new Date(order.createdAt.toDate()).toLocaleString() : 'Just now'}
+                                <p className="text-gray-500 text-xs flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  {order.createdAt?.toDate ? new Date(order.createdAt.toDate()).toLocaleString() : 'Just now'}
                                 </p>
                               </div>
                               {order.paymentMethod === 'cash' && order.cashAmount && (
                                 <div className="bg-green-50 border border-green-200 rounded px-2 py-1">
-                                  <p className="text-xs text-green-700 font-medium">
-                                    💵 Cash: ₱{order.cashAmount.toFixed(2)}
+                                  <p className="text-xs text-green-700 font-medium flex items-center gap-1">
+                                    <Banknote className="w-3 h-3" />
+                                    Cash: ₱{order.cashAmount.toFixed(2)}
                                   </p>
-                                  <p className="text-xs text-green-600">
-                                    💰 Change: ₱{(order.cashAmount - order.totalAmount).toFixed(2)}
+                                  <p className="text-xs text-green-600 flex items-center gap-1">
+                                    <Coins className="w-3 h-3" />
+                                    Change: ₱{(order.cashAmount - order.totalAmount).toFixed(2)}
                                   </p>
                                 </div>
                               )}
@@ -1113,8 +1121,9 @@ export default function StallDashboard() {
 
                         {/* Order Items */}
                         <div className="bg-gray-50 rounded-lg p-3 mb-3">
-                          <h4 className="text-xs font-semibold text-gray-700 uppercase mb-2">
-                            📦 Items ({order.items?.length || 0})
+                          <h4 className="text-xs font-semibold text-gray-700 uppercase mb-2 flex items-center gap-1">
+                            <Package className="w-4 h-4" />
+                            Items ({order.items?.length || 0})
                           </h4>
                           <div className="space-y-1">
                             {order.items?.map((item: any, index: number) => (
@@ -1126,8 +1135,11 @@ export default function StallDashboard() {
                           </div>
                           {order.voucherId && (
                             <div className="mt-2 pt-2 border-t border-gray-200">
-                              <div className="flex justify-between text-xs text-green-700">
-                                <span>🎫 Voucher ({order.voucherCode})</span>
+                              <div className="flex items-center justify-between text-xs text-green-700">
+                                <span className="flex items-center gap-1">
+                                  <Ticket className="w-3 h-3" />
+                                  Voucher ({order.voucherCode})
+                                </span>
                                 <span>-₱{order.voucherDiscount?.toFixed(2)}</span>
                               </div>
                             </div>
@@ -1147,7 +1159,8 @@ export default function StallDashboard() {
                                   onClick={() => updateOrderStatus(order.id, 'preparing')}
                                   className="bg-blue-600 hover:bg-blue-700 text-white"
                                 >
-                                  ✓ Accept Order
+                                  <Check className="w-4 h-4 mr-1" />
+                                  Accept Order
                                 </Button>
                                 <Button
                                   size="sm"
@@ -1155,7 +1168,8 @@ export default function StallDashboard() {
                                   variant="outline"
                                   className="border-red-300 text-red-700 hover:bg-red-50"
                                 >
-                                  ✕ Decline
+                                  <X className="w-4 h-4 mr-1" />
+                                  Decline
                                 </Button>
                               </>
                             )}
@@ -1165,7 +1179,8 @@ export default function StallDashboard() {
                                 onClick={() => updateOrderStatus(order.id, 'ready')}
                                 className="bg-green-600 hover:bg-green-700 text-white"
                               >
-                                ✓ Mark as Ready
+                                <Check className="w-4 h-4 mr-1" />
+                                Mark as Ready
                               </Button>
                             )}
                             {order.status === 'ready' && (
@@ -1174,7 +1189,8 @@ export default function StallDashboard() {
                                 onClick={() => updateOrderStatus(order.id, 'completed')}
                                 className="bg-gray-600 hover:bg-gray-700 text-white"
                               >
-                                ✓ Mark Completed
+                                <Check className="w-4 h-4 mr-1" />
+                                Mark Completed
                               </Button>
                             )}
                             <Button
@@ -1183,7 +1199,8 @@ export default function StallDashboard() {
                               onClick={() => viewOrderDetails(order)}
                               className="border-[#6d031e] text-[#6d031e] hover:bg-[#6d031e] hover:text-white"
                             >
-                              👁 View Full Details
+                              <Eye className="w-4 h-4 mr-1" />
+                              View Details
                             </Button>
                           </div>
                         </div>

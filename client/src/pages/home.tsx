@@ -376,30 +376,6 @@ export default function Home() {
           />
         </div>
 
-        {/* Quick Stats */}
-        <Card className="bg-gradient-to-r from-maroon-50 to-maroon-100 border-maroon-200 md:p-2">
-          <CardContent className="p-4 md:p-6">
-            <div className="grid grid-cols-3 gap-4 text-center md:gap-8">
-              <div>
-                <div className="text-lg font-bold text-maroon-700 md:text-2xl">
-                  {stalls.length}
-                </div>
-                <div className="text-xs text-maroon-600 md:text-sm">Active Stalls</div>
-              </div>
-              <div>
-                <div className="text-lg font-bold text-maroon-700 md:text-2xl">
-                  {state.user?.loyaltyPoints || 0}
-                </div>
-                <div className="text-xs text-maroon-600 md:text-sm">Loyalty Points</div>
-              </div>
-              <div>
-                <div className="text-lg font-bold text-maroon-700 md:text-2xl">15-30</div>
-                <div className="text-xs text-maroon-600 md:text-sm">Avg. Wait (min)</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Category Filter */}
         <div 
           ref={categoryScrollRef}

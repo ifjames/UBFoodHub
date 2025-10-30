@@ -19,7 +19,6 @@ import {
   Save,
   LogOut,
   Camera,
-  BarChart3,
   X,
   MessageSquare,
   Ticket
@@ -69,7 +68,7 @@ export default function StallDashboard() {
   const [stallId, setStallId] = useState<string | null>(null);
   const [isMenuDialogOpen, setIsMenuDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("menu");
   const [orderFilter, setOrderFilter] = useState("all");
   const [menuFilter, setMenuFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -840,7 +839,6 @@ export default function StallDashboard() {
               style={{ scrollBehavior: isDragging ? 'auto' : 'smooth' }}
             >
               {[
-                { id: "overview", label: "Overview", icon: BarChart3 },
                 { id: "menu", label: "Menu", icon: Package },
                 { id: "orders", label: "Orders", icon: Clock },
                 { id: "settings", label: "Settings", icon: Settings },
@@ -880,7 +878,6 @@ export default function StallDashboard() {
           {/* Desktop Grid Navigation */}
           <div className="hidden md:flex space-x-1 bg-gray-100 rounded-lg p-1">
             {[
-              { id: "overview", label: "Overview", icon: BarChart3 },
               { id: "menu", label: "Menu", icon: Package },
               { id: "orders", label: "Orders", icon: Clock },
               { id: "settings", label: "Stall Settings", icon: Settings },
@@ -903,229 +900,6 @@ export default function StallDashboard() {
             ))}
           </div>
         </div>
-
-        {/* Overview Tab */}
-        {activeTab === "overview" && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
-            {/* Stats Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-              <Card>
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-center">
-                    <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-[#6d031e]" />
-                    <div className="ml-3 sm:ml-4">
-                      <p className="text-xs sm:text-sm font-medium text-gray-600">Today's Revenue</p>
-                      <p className="text-lg sm:text-2xl font-bold text-gray-900">₱{todayRevenue.toFixed(2)}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-center">
-                    <Package className="w-6 h-6 sm:w-8 sm:h-8 text-[#6d031e]" />
-                    <div className="ml-3 sm:ml-4">
-                      <p className="text-xs sm:text-sm font-medium text-gray-600">Today's Orders</p>
-                      <p className="text-lg sm:text-2xl font-bold text-gray-900">{todayOrders.length}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-center">
-                    <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-[#6d031e]" />
-                    <div className="ml-3 sm:ml-4">
-                      <p className="text-xs sm:text-sm font-medium text-gray-600">Pending Orders</p>
-                      <p className="text-lg sm:text-2xl font-bold text-gray-900">{pendingOrders.length}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-center">
-                    <Users className="w-6 h-6 sm:w-8 sm:h-8 text-[#6d031e]" />
-                    <div className="ml-3 sm:ml-4">
-                      <p className="text-xs sm:text-sm font-medium text-gray-600">Menu Items</p>
-                      <p className="text-lg sm:text-2xl font-bold text-gray-900">{menuItems.length}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Detailed Orders */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-[#6d031e]">Order Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-sm font-medium text-gray-700">Recent Orders (Showing {overviewOrders.length} of {orders.length})</h3>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setActiveTab("orders")}
-                      className="text-[#6d031e] border-[#6d031e] hover:bg-[#6d031e] hover:text-white"
-                    >
-                      View All Orders
-                    </Button>
-                  </div>
-                  {overviewOrders.map((order) => (
-                    <div key={order.id} className="border rounded-lg p-4 bg-white">
-                      {/* Order Header */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <h3 className="font-semibold text-gray-900">Order {order.qrCode}</h3>
-                          <p className="text-sm text-gray-600">
-                            {order.createdAt?.toDate ? new Date(order.createdAt.toDate()).toLocaleString() : 'Just now'}
-                          </p>
-                          {order.customerName && (
-                            <p className="text-sm text-[#6d031e] font-medium">Customer: {order.customerName}</p>
-                          )}
-                          {order.paymentMethod && (
-                            <div className="mt-1">
-                              <span className="text-sm text-gray-600">Payment: {order.paymentMethod}</span>
-                              {order.paymentMethod === 'cash' && order.cashAmount && (
-                                <span className="text-sm text-green-600 ml-2">
-                                  Cash: ₱{order.cashAmount} | Change: ₱{(order.cashAmount - order.totalAmount).toFixed(2)}
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                        <Badge
-                          className={
-                            order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            order.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
-                            order.status === 'ready' ? 'bg-green-100 text-green-800' :
-                            'bg-gray-100 text-gray-800'
-                          }
-                        >
-                          {order.status?.toUpperCase()}
-                        </Badge>
-                      </div>
-
-                      {/* Order Items */}
-                      <div className="mb-3">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">Items Ordered:</h4>
-                        <div className="space-y-2">
-                          {order.items?.map((item: any, index: number) => (
-                            <div key={index} className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <p className="font-medium">{item.name} x{item.quantity}</p>
-                                {item.customizations && item.customizations.length > 0 && (
-                                  <p className="text-sm text-gray-600 ml-2">
-                                    Add-ons: {item.customizations.map((c: any) => c.name).join(', ')}
-                                  </p>
-                                )}
-                              </div>
-                              <span className="text-sm font-medium">₱{((item.price + (item.customizations?.reduce((sum: number, c: any) => sum + c.price, 0) || 0)) * item.quantity).toFixed(2)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Special Instructions */}
-                      {order.specialInstructions && (
-                        <div className="mb-3">
-                          <h4 className="text-sm font-medium text-gray-700">Special Instructions:</h4>
-                          <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded mt-1">{order.specialInstructions}</p>
-                        </div>
-                      )}
-
-                      {/* Cutlery Info */}
-                      <div className="mb-3">
-                        <h4 className="text-sm font-medium text-gray-700">Cutlery:</h4>
-                        <p className="text-sm text-gray-600">Customer {order.noCutlery ? 'does not need' : 'needs'} cutlery</p>
-                      </div>
-
-                      {/* Order Total */}
-                      <div className="border-t pt-3 flex justify-between items-center">
-                        <span className="font-semibold text-gray-900">Total Amount:</span>
-                        <span className="font-bold text-lg text-[#6d031e]">₱{order.totalAmount?.toFixed(2)}</span>
-                      </div>
-
-                      {/* Order Actions */}
-                      <div className="flex gap-2 mt-3 flex-wrap">
-                        {order.status === 'pending' && (
-                          <>
-                            <Button
-                              size="sm"
-                              onClick={() => updateOrderStatus(order.id, 'preparing')}
-                              className="bg-blue-600 hover:bg-blue-700 text-white"
-                            >
-                              Accept Order
-                            </Button>
-                            <Button
-                              size="sm"
-                              onClick={() => cancelOrder(order.id)}
-                              variant="destructive"
-                              className="bg-red-600 hover:bg-red-700 text-white"
-                            >
-                              Cancel Order
-                            </Button>
-                          </>
-                        )}
-                        {order.status === 'preparing' && (
-                          <>
-                            <Button
-                              size="sm"
-                              onClick={() => updateOrderStatus(order.id, 'ready')}
-                              className="bg-green-600 hover:bg-green-700 text-white"
-                            >
-                              Mark Ready
-                            </Button>
-                            <Button
-                              size="sm"
-                              onClick={() => cancelOrder(order.id)}
-                              variant="destructive"
-                              className="bg-red-600 hover:bg-red-700 text-white"
-                            >
-                              Cancel Order
-                            </Button>
-                          </>
-                        )}
-                        {order.status === 'ready' && (
-                          <Button
-                            size="sm"
-                            onClick={() => updateOrderStatus(order.id, 'completed')}
-                            className="bg-gray-600 hover:bg-gray-700 text-white"
-                          >
-                            Complete Order
-                          </Button>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => viewOrderDetails(order)}
-                          className="border-[#6d031e] text-[#6d031e] hover:bg-[#6d031e] hover:text-white"
-                        >
-                          View Details
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                  {orders.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p>No orders yet</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
 
         {/* Orders Tab with Pagination */}
         {activeTab === "orders" && (

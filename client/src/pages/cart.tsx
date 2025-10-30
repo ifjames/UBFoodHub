@@ -221,9 +221,6 @@ export default function Cart() {
   }>({});
   const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
-  const [groupOrderEmails, setGroupOrderEmails] = useState<string[]>([]);
-  const [newEmailInput, setNewEmailInput] = useState("");
-  const [scheduledTime, setScheduledTime] = useState("");
   const [appliedVoucher, setAppliedVoucher] = useState<{ discount: number; voucherId: string; code: string } | null>(null);
 
   useEffect(() => {
@@ -345,56 +342,6 @@ export default function Cart() {
     });
   };
 
-  const addGroupEmail = () => {
-    const email = newEmailInput.trim();
-    if (!email) return;
-    
-    // Validate email format and domain
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast({
-        title: "Invalid email",
-        description: "Please enter a valid email address",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!email.endsWith("@ub.edu.ph")) {
-      toast({
-        title: "Invalid domain",
-        description: "Only @ub.edu.ph email addresses are allowed",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (groupOrderEmails.includes(email)) {
-      toast({
-        title: "Email already added",
-        description: "This email is already in the group order",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setGroupOrderEmails([...groupOrderEmails, email]);
-    setNewEmailInput("");
-    toast({
-      title: "Email added",
-      description: `${email} has been added to the group order`,
-    });
-  };
-
-  const removeGroupEmail = (index: number) => {
-    const removedEmail = groupOrderEmails[index];
-    setGroupOrderEmails(groupOrderEmails.filter((_, i) => i !== index));
-    toast({
-      title: "Email removed",
-      description: `${removedEmail} has been removed from the group order`,
-    });
-  };
-
   const proceedToCheckout = async () => {
     if (cartItems.length === 0) return;
 
@@ -402,8 +349,6 @@ export default function Cart() {
     setLoadingMessage("Preparing checkout...");
 
     // Store additional order data for checkout
-    localStorage.setItem('groupOrderEmails', JSON.stringify(groupOrderEmails));
-    localStorage.setItem('scheduledTime', scheduledTime);
     localStorage.setItem('deliveryInstructions', deliveryInstructions);
     localStorage.setItem('noCutlery', JSON.stringify(noCutlery));
 
@@ -714,97 +659,11 @@ export default function Cart() {
           </div>
         </motion.div>
 
-        {/* Group Order */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="bg-white rounded-lg p-4"
-        >
-          <Label className="text-base font-medium mb-2 block">
-            Group Order (Optional)
-          </Label>
-          <p className="text-sm text-gray-600 mb-3">
-            Add @ub.edu.ph email addresses to include friends in this order
-          </p>
-          
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <Input
-                placeholder="211242@ub.edu.ph"
-                value={newEmailInput}
-                onChange={(e) => setNewEmailInput(e.target.value)}
-                className="flex-1"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addGroupEmail();
-                  }
-                }}
-              />
-              <Button
-                variant="outline"
-                onClick={addGroupEmail}
-                className="shrink-0"
-              >
-                Add
-              </Button>
-            </div>
-            
-            {groupOrderEmails.length > 0 && (
-              <div className="space-y-1">
-                {groupOrderEmails.map((email, index) => (
-                  <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                    <span className="text-sm">{email}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeGroupEmail(index)}
-                      className="h-6 w-6 p-0 text-red-500"
-                    >
-                      ×
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </motion.div>
-
-        {/* Scheduled Pickup */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="bg-white rounded-lg p-4"
-        >
-          <Label className="text-base font-medium mb-2 block">
-            Pickup Time (Optional)
-          </Label>
-          <p className="text-sm text-gray-600 mb-3">
-            Schedule when you want to pickup your order (like FoodPanda Order Later)
-          </p>
-          
-          <Input
-            type="time"
-            value={scheduledTime}
-            onChange={(e) => setScheduledTime(e.target.value)}
-            className="w-full"
-            min={new Date(Date.now() + 30 * 60000).toTimeString().slice(0, 5)} // 30 minutes from now
-          />
-          
-          {scheduledTime && (
-            <p className="text-sm text-green-600 mt-2">
-              Order will be ready by {scheduledTime}
-            </p>
-          )}
-        </motion.div>
-
         {/* Instructions */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
+          transition={{ delay: 0.6 }}
           className="bg-white rounded-lg p-4"
         >
           <Label className="text-base font-medium">

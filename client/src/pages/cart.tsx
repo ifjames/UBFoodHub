@@ -449,37 +449,6 @@ export default function Cart() {
         <div className="md:grid md:grid-cols-3 md:gap-8 md:items-start">
           {/* Main Cart Content - Left Side on Desktop */}
           <div className="md:col-span-2 space-y-4 pb-32 md:pb-4">
-        {/* Pickup/Delivery Option */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-lg p-4"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              🏪
-            </div>
-            <div className="flex-1">
-              <h3 className="font-medium">Pickup</h3>
-              <p className="text-sm text-gray-600">Ready in 15-25 mins</p>
-              <Button
-                variant="link"
-                className="p-0 h-auto text-sm text-[#6d031e]"
-                onClick={() => {
-                  toast({
-                    title: "Delivery Option",
-                    description:
-                      "Delivery is currently unavailable. Only pickup is supported.",
-                    variant: "default",
-                  });
-                }}
-              >
-                Change
-              </Button>
-            </div>
-          </div>
-        </motion.div>
-
         {/* Cart Items */}
         <AnimatePresence mode="popLayout">
           {cartItems.map((item, index) => (

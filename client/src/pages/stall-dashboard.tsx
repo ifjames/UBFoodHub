@@ -713,7 +713,24 @@ export default function StallDashboard() {
       return matchesStatus && matchesSearch;
     })
     .sort((a, b) => {
-      // Sort by createdAt in ascending order (first ordered appears first)
+      // Priority order for food pre-ordering: pending > preparing > ready > completed/cancelled
+      const statusPriority: Record<string, number> = {
+        'pending': 1,
+        'preparing': 2,
+        'ready': 3,
+        'completed': 4,
+        'cancelled': 5
+      };
+      
+      const priorityA = statusPriority[a.status] || 999;
+      const priorityB = statusPriority[b.status] || 999;
+      
+      // If different status priorities, sort by priority
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+      
+      // If same status, sort by earliest order (oldest first)
       const dateA = new Date(a.createdAt?.toDate ? a.createdAt.toDate() : a.createdAt);
       const dateB = new Date(b.createdAt?.toDate ? b.createdAt.toDate() : b.createdAt);
       return dateA.getTime() - dateB.getTime();
@@ -945,272 +962,248 @@ export default function StallDashboard() {
           >
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <div>
-                <h2 className="text-xl font-bold text-[#6d031e]">Order Management</h2>
-                <p className="text-sm text-gray-600">Showing {paginatedOrders.length} of {filteredOrders.length} orders</p>
+                <h2 className="text-2xl font-bold text-[#6d031e]">Orders</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  {filteredOrders.length > 0 ? `Showing ${paginatedOrders.length} of ${filteredOrders.length} orders` : 'No orders yet'}
+                </p>
               </div>
             </div>
 
-            {/* Enhanced Order Filtering & Search */}
-            <Card className="mb-6">
+            {/* Simplified Order Filtering */}
+            <Card className="mb-6 bg-gradient-to-r from-[#6d031e]/5 to-pink-50">
               <CardContent className="p-4">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="flex-1">
-                    <Label htmlFor="order-search">Search Orders</Label>
-                    <Input
-                      id="order-search"
-                      placeholder="Search by order ID, customer name, or item..."
-                      value={orderSearchQuery}
-                      onChange={(e) => {
-                        setOrderSearchQuery(e.target.value);
-                        setCurrentPage(1);
-                      }}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div className="sm:w-48">
-                    <Label htmlFor="order-status">Filter by Status</Label>
-                    <Select value={orderFilter} onValueChange={(value) => {
-                      setOrderFilter(value);
-                      setCurrentPage(1); // Reset to first page when filtering
-                    }}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="All Orders" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Orders ({orders.length})</SelectItem>
-                        <SelectItem value="pending">Pending ({orders.filter(o => o.status === 'pending').length})</SelectItem>
-                        <SelectItem value="preparing">Preparing ({orders.filter(o => o.status === 'preparing').length})</SelectItem>
-                        <SelectItem value="ready">Ready ({orders.filter(o => o.status === 'ready').length})</SelectItem>
-                        <SelectItem value="completed">Completed ({orders.filter(o => o.status === 'completed').length})</SelectItem>
-                        <SelectItem value="cancelled">Cancelled ({orders.filter(o => o.status === 'cancelled').length})</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-2 mt-3">
-                  <div className="flex gap-2">
+                <div className="flex flex-col gap-3">
+                  {/* Quick Status Filter Buttons */}
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant={orderFilter === "all" ? "default" : "outline"}
+                      onClick={() => {
+                        setOrderFilter("all");
+                        setCurrentPage(1);
+                      }}
+                      className={orderFilter === "all" ? "bg-[#6d031e] hover:bg-red-800" : ""}
+                    >
+                      All ({orders.length})
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={orderFilter === "pending" ? "default" : "outline"}
                       onClick={() => {
                         setOrderFilter("pending");
                         setCurrentPage(1);
                       }}
-                      className="text-yellow-700 border-yellow-300 hover:bg-yellow-50"
+                      className={orderFilter === "pending" ? "bg-yellow-600 hover:bg-yellow-700" : "text-yellow-700 border-yellow-300 hover:bg-yellow-50"}
                     >
-                      Pending ({orders.filter(o => o.status === 'pending').length})
+                      New Orders ({orders.filter(o => o.status === 'pending').length})
                     </Button>
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant={orderFilter === "preparing" ? "default" : "outline"}
                       onClick={() => {
                         setOrderFilter("preparing");
                         setCurrentPage(1);
                       }}
-                      className="text-blue-700 border-blue-300 hover:bg-blue-50"
+                      className={orderFilter === "preparing" ? "bg-blue-600 hover:bg-blue-700" : "text-blue-700 border-blue-300 hover:bg-blue-50"}
                     >
-                      Preparing ({orders.filter(o => o.status === 'preparing').length})
+                      Cooking ({orders.filter(o => o.status === 'preparing').length})
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={orderFilter === "ready" ? "default" : "outline"}
+                      onClick={() => {
+                        setOrderFilter("ready");
+                        setCurrentPage(1);
+                      }}
+                      className={orderFilter === "ready" ? "bg-green-600 hover:bg-green-700" : "text-green-700 border-green-300 hover:bg-green-50"}
+                    >
+                      Ready ({orders.filter(o => o.status === 'ready').length})
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={orderFilter === "completed" ? "default" : "outline"}
+                      onClick={() => {
+                        setOrderFilter("completed");
+                        setCurrentPage(1);
+                      }}
+                      className={orderFilter === "completed" ? "bg-gray-600 hover:bg-gray-700" : "text-gray-700 border-gray-300 hover:bg-gray-50"}
+                    >
+                      Completed ({orders.filter(o => o.status === 'completed').length})
                     </Button>
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <span>Performance: {orders.length < 50 ? 'Optimal' : orders.length < 200 ? 'Good' : 'High Volume'}</span>
-                    {(orderFilter !== "all" || orderSearchQuery) && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setOrderFilter("all");
-                          setOrderSearchQuery("");
-                          setCurrentPage(1);
-                        }}
-                        className="text-[#6d031e] hover:bg-red-50"
-                      >
-                        Clear All Filters
-                      </Button>
-                    )}
-                  </div>
+                  
+                  {/* Search Box */}
+                  <Input
+                    placeholder="Search by order number, customer name, or item..."
+                    value={orderSearchQuery}
+                    onChange={(e) => {
+                      setOrderSearchQuery(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="bg-white"
+                  />
                 </div>
               </CardContent>
             </Card>
 
-            {/* Paginated Orders List */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-[#6d031e] flex items-center justify-between">
-                  <span>Orders List</span>
-                  <div className="text-sm font-normal text-gray-600">
-                    Page {currentPage} of {totalPages}
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+            {/* Orders List */}
+            {filteredOrders.length === 0 ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Package className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">No orders found</h3>
+                  <p className="text-gray-500">
+                    {orderSearchQuery || orderFilter !== "all" 
+                      ? "Try adjusting your filters or search terms" 
+                      : "Orders will appear here when customers place them"}
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                <div className="space-y-3">
                   {paginatedOrders.map((order) => (
-                    <div key={order.id} className="border rounded-lg p-4 bg-white">
-                      {/* Order Header */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <h3 className="font-semibold text-gray-900">Order {order.qrCode}</h3>
-                          <p className="text-sm text-gray-600">
-                            {order.createdAt?.toDate ? new Date(order.createdAt.toDate()).toLocaleString() : 'Just now'}
-                          </p>
-                          {order.customerName && (
-                            <p className="text-sm text-[#6d031e] font-medium">Customer: {order.customerName}</p>
-                          )}
-                          {order.paymentMethod && (
-                            <div className="mt-1">
-                              <span className="text-sm text-gray-600">Payment: {order.paymentMethod}</span>
+                    <Card key={order.id} className="hover:shadow-lg transition-shadow border-l-4" style={{
+                      borderLeftColor: 
+                        order.status === 'pending' ? '#eab308' :
+                        order.status === 'preparing' ? '#3b82f6' :
+                        order.status === 'ready' ? '#22c55e' :
+                        order.status === 'completed' ? '#6b7280' : '#ef4444'
+                    }}>
+                      <CardContent className="p-5">
+                        {/* Order Header */}
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="text-lg font-bold text-gray-900">#{order.qrCode}</h3>
+                              <Badge
+                                className={
+                                  order.status === 'pending' ? 'bg-yellow-500 text-white hover:bg-yellow-600' :
+                                  order.status === 'preparing' ? 'bg-blue-500 text-white hover:bg-blue-600' :
+                                  order.status === 'ready' ? 'bg-green-500 text-white hover:bg-green-600' :
+                                  order.status === 'completed' ? 'bg-gray-500 text-white hover:bg-gray-600' :
+                                  'bg-red-500 text-white hover:bg-red-600'
+                                }
+                              >
+                                {order.status?.toUpperCase()}
+                              </Badge>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                              <div>
+                                <p className="text-gray-600">
+                                  👤 <span className="font-medium">{order.customerName || 'Student'}</span>
+                                </p>
+                                <p className="text-gray-500 text-xs">
+                                  🕐 {order.createdAt?.toDate ? new Date(order.createdAt.toDate()).toLocaleString() : 'Just now'}
+                                </p>
+                              </div>
                               {order.paymentMethod === 'cash' && order.cashAmount && (
-                                <span className="text-sm text-green-600 ml-2">
-                                  Cash: ₱{order.cashAmount} | Change: ₱{(order.cashAmount - order.totalAmount).toFixed(2)}
-                                </span>
+                                <div className="bg-green-50 border border-green-200 rounded px-2 py-1">
+                                  <p className="text-xs text-green-700 font-medium">
+                                    💵 Cash: ₱{order.cashAmount.toFixed(2)}
+                                  </p>
+                                  <p className="text-xs text-green-600">
+                                    💰 Change: ₱{(order.cashAmount - order.totalAmount).toFixed(2)}
+                                  </p>
+                                </div>
                               )}
                             </div>
-                          )}
-                        </div>
-                        <Badge
-                          className={
-                            order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            order.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
-                            order.status === 'ready' ? 'bg-green-100 text-green-800' :
-                            order.status === 'completed' ? 'bg-gray-100 text-gray-800' :
-                            'bg-red-100 text-red-800'
-                          }
-                        >
-                          {order.status?.toUpperCase()}
-                        </Badge>
-                      </div>
-
-                      {/* Order Items Summary */}
-                      <div className="mb-3">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">Items ({order.items?.length || 0}):</h4>
-                        <div className="text-sm text-gray-600">
-                          {order.items?.slice(0, 2).map((item: any, index: number) => (
-                            <span key={index}>
-                              {item.name} x{item.quantity}
-                              {index < Math.min(1, order.items.length - 1) && ', '}
-                            </span>
-                          ))}
-                          {order.items?.length > 2 && (
-                            <span className="text-gray-500"> +{order.items.length - 2} more items</span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Voucher Information */}
-                      {order.voucherId && (
-                        <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <Ticket className="w-4 h-4 text-green-600" />
-                            <span className="text-sm text-green-700 font-medium">Voucher Applied</span>
-                          </div>
-                          <div className="mt-1 text-xs text-green-600">
-                            <p>Code: {order.voucherCode || 'N/A'}</p>
-                            <p>Discount: ₱{order.voucherDiscount?.toFixed(2) || '0.00'}</p>
                           </div>
                         </div>
-                      )}
 
-                      {/* Order Total */}
-                      <div className="border-t pt-3 flex justify-between items-center">
-                        <div>
+                        {/* Order Items */}
+                        <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                          <h4 className="text-xs font-semibold text-gray-700 uppercase mb-2">
+                            📦 Items ({order.items?.length || 0})
+                          </h4>
+                          <div className="space-y-1">
+                            {order.items?.map((item: any, index: number) => (
+                              <div key={index} className="flex justify-between text-sm">
+                                <span className="text-gray-700">{item.name} <span className="text-gray-500">×{item.quantity}</span></span>
+                                <span className="font-medium text-gray-900">₱{(item.price * item.quantity).toFixed(2)}</span>
+                              </div>
+                            ))}
+                          </div>
                           {order.voucherId && (
-                            <div className="text-xs text-gray-500 mb-1">
-                              Subtotal: ₱{((order.totalAmount || 0) + (order.voucherDiscount || 0)).toFixed(2)}
-                              <br />
-                              Voucher: -₱{order.voucherDiscount?.toFixed(2) || '0.00'}
+                            <div className="mt-2 pt-2 border-t border-gray-200">
+                              <div className="flex justify-between text-xs text-green-700">
+                                <span>🎫 Voucher ({order.voucherCode})</span>
+                                <span>-₱{order.voucherDiscount?.toFixed(2)}</span>
+                              </div>
                             </div>
                           )}
-                          <span className="font-semibold text-gray-900">Total: ₱{order.totalAmount?.toFixed(2)}</span>
                         </div>
-                        <div className="flex gap-2">
-                          {order.status === 'pending' && (
-                            <>
-                              <Button
-                                size="sm"
-                                onClick={() => updateOrderStatus(order.id, 'preparing')}
-                                className="bg-blue-600 hover:bg-blue-700 text-white"
-                              >
-                                Accept
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={() => cancelOrder(order.id)}
-                                variant="destructive"
-                                className="bg-red-600 hover:bg-red-700 text-white"
-                              >
-                                Cancel
-                              </Button>
-                            </>
-                          )}
-                          {order.status === 'preparing' && (
-                            <>
+
+                        {/* Total and Actions */}
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-3 border-t">
+                          <div className="text-xl font-bold text-[#6d031e]">
+                            Total: ₱{order.totalAmount?.toFixed(2)}
+                          </div>
+                          <div className="flex gap-2 flex-wrap">
+                            {order.status === 'pending' && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={() => updateOrderStatus(order.id, 'preparing')}
+                                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                                >
+                                  ✓ Accept Order
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={() => cancelOrder(order.id)}
+                                  variant="outline"
+                                  className="border-red-300 text-red-700 hover:bg-red-50"
+                                >
+                                  ✕ Decline
+                                </Button>
+                              </>
+                            )}
+                            {order.status === 'preparing' && (
                               <Button
                                 size="sm"
                                 onClick={() => updateOrderStatus(order.id, 'ready')}
                                 className="bg-green-600 hover:bg-green-700 text-white"
                               >
-                                Mark Ready
+                                ✓ Mark as Ready
                               </Button>
+                            )}
+                            {order.status === 'ready' && (
                               <Button
                                 size="sm"
-                                onClick={() => cancelOrder(order.id)}
-                                variant="destructive"
-                                className="bg-red-600 hover:bg-red-700 text-white"
+                                onClick={() => updateOrderStatus(order.id, 'completed')}
+                                className="bg-gray-600 hover:bg-gray-700 text-white"
                               >
-                                Cancel
+                                ✓ Mark Completed
                               </Button>
-                            </>
-                          )}
-                          {order.status === 'ready' && (
+                            )}
                             <Button
                               size="sm"
-                              onClick={() => updateOrderStatus(order.id, 'completed')}
-                              className="bg-gray-600 hover:bg-gray-700 text-white"
+                              variant="outline"
+                              onClick={() => viewOrderDetails(order)}
+                              className="border-[#6d031e] text-[#6d031e] hover:bg-[#6d031e] hover:text-white"
                             >
-                              Complete
+                              👁 View Full Details
                             </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => viewOrderDetails(order)}
-                            className="border-[#6d031e] text-[#6d031e] hover:bg-[#6d031e] hover:text-white"
-                          >
-                            Details
-                          </Button>
+                          </div>
                         </div>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   ))}
-                  
-                  {filteredOrders.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p>No orders found for the selected filter</p>
-                    </div>
-                  )}
                 </div>
 
                 {/* Pagination Controls */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-4 border-t">
                     <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setCurrentPage(1)}
-                        disabled={currentPage === 1}
-                      >
-                        First
-                      </Button>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => setCurrentPage(currentPage - 1)}
                         disabled={currentPage === 1}
+                        className="text-[#6d031e]"
                       >
-                        Previous
+                        ← Previous
                       </Button>
                     </div>
                     
@@ -1224,7 +1217,7 @@ export default function StallDashboard() {
                             size="sm"
                             variant={currentPage === pageNum ? "default" : "outline"}
                             onClick={() => setCurrentPage(pageNum)}
-                            className={currentPage === pageNum ? "bg-[#6d031e] text-white" : ""}
+                            className={currentPage === pageNum ? "bg-[#6d031e] hover:bg-red-800 text-white" : ""}
                           >
                             {pageNum}
                           </Button>
@@ -1250,22 +1243,15 @@ export default function StallDashboard() {
                         variant="outline"
                         onClick={() => setCurrentPage(currentPage + 1)}
                         disabled={currentPage === totalPages}
+                        className="text-[#6d031e]"
                       >
-                        Next
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setCurrentPage(totalPages)}
-                        disabled={currentPage === totalPages}
-                      >
-                        Last
+                        Next →
                       </Button>
                     </div>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </>
+            )}
           </motion.div>
         )}
 
@@ -1414,157 +1400,6 @@ export default function StallDashboard() {
           </motion.div>
         )}
 
-        {/* Orders Tab */}
-        {activeTab === "orders" && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
-          >
-            <h2 className="text-xl font-bold text-[#6d031e]">Order Management</h2>
-            
-            {/* Smart Filtering for Orders */}
-            <Card className="mb-6">
-              <CardContent className="p-4">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="sm:w-48">
-                    <Label htmlFor="order-filter">Filter by Status</Label>
-                    <Select value={orderFilter} onValueChange={setOrderFilter}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="All Orders" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Orders</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="preparing">Preparing</SelectItem>
-                        <SelectItem value="ready">Ready for Pickup</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 mt-3 text-sm text-gray-600">
-                  <span>Showing {filteredOrders.length} of {orders.length} orders</span>
-                  <span>Pending: {pendingOrders.length}</span>
-                  <span>Preparing: {preparingOrders.length}</span>
-                  {orderFilter !== "all" && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setOrderFilter("all")}
-                      className="text-[#6d031e] hover:bg-red-50"
-                    >
-                      Clear Filter
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <div className="space-y-4">
-              {filteredOrders.map((order) => (
-                <Card key={order.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <p className="font-semibold text-[#6d031e]">Order {order.qrCode}</p>
-                          {order.isMultiStallOrder && (
-                            <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">
-                              Multi-Stall
-                            </Badge>
-                          )}
-                          {order.groupOrderEmails && order.groupOrderEmails.length > 0 && (
-                            <Badge variant="outline" className="text-purple-600 border-purple-200 bg-purple-50">
-                              <Users className="w-3 h-3 mr-1" />
-                              Group Order
-                            </Badge>
-                          )}
-                          {order.scheduledTime && (
-                            <Badge variant="outline" className="text-orange-600 border-orange-200 bg-orange-50">
-                              <Clock className="w-3 h-3 mr-1" />
-                              Scheduled
-                            </Badge>
-                          )}
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                          <div>
-                            <p className="text-gray-600">
-                              <span className="font-medium">Customer:</span> {order.customerName || 'Student'}
-                            </p>
-                            <p className="text-gray-600">
-                              <span className="font-medium">Student ID:</span> {order.studentId || 'Not provided'}
-                            </p>
-                            <p className="text-gray-600">
-                              <span className="font-medium">Order Date:</span> {new Date(order.createdAt?.toDate ? order.createdAt.toDate() : order.createdAt).toLocaleString()}
-                            </p>
-                          </div>
-                          
-                          <div>
-                            {order.scheduledTime && (
-                              <p className="text-orange-700 font-medium">
-                                <Clock className="w-4 h-4 inline mr-1" />
-                                Ready by: {order.scheduledTime}
-                              </p>
-                            )}
-                            {order.groupOrderEmails && order.groupOrderEmails.length > 0 && (
-                              <p className="text-purple-700 font-medium">
-                                <Users className="w-4 h-4 inline mr-1" />
-                                Group: {order.groupOrderEmails.length + 1} members
-                              </p>
-                            )}
-                            <p className="text-lg font-bold text-gray-900 mt-1">₱{order.totalAmount?.toFixed(2)}</p>
-                          </div>
-                        </div>
-
-                        {order.paymentMethod === 'cash' && order.cashAmount && (
-                          <div className="mt-2 p-2 bg-green-50 rounded-lg">
-                            <p className="text-sm text-green-700">
-                              <span className="font-medium">Cash Payment:</span> ₱{order.cashAmount.toFixed(2)} 
-                              <span className="ml-2 font-medium">Change:</span> ₱{(order.cashAmount - order.totalAmount).toFixed(2)}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex flex-col items-end gap-2 ml-4">
-                        <Select
-                          value={order.status}
-                          onValueChange={(value) => updateOrderStatus(order.id, value)}
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="preparing">Preparing</SelectItem>
-                            <SelectItem value="ready">Ready</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedOrder(order);
-                            setShowOrderDetails(true);
-                          }}
-                          className="text-[#6d031e] border-[#6d031e] hover:bg-[#6d031e] hover:text-white"
-                        >
-                          View Details
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </motion.div>
-        )}
 
         {/* Cancellations Tab */}
         {activeTab === "cancellations" && (

@@ -574,12 +574,6 @@ export default function Restaurant() {
               className="space-y-4"
             >
               <DialogHeader>
-                <button
-                  onClick={() => setIsDialogOpen(false)}
-                  className="absolute right-4 top-4 w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center"
-                >
-                  ×
-                </button>
                 {selectedItem.image && (
                   <div className="w-full h-48 rounded-lg bg-gray-100 overflow-hidden mb-4">
                     <img 

@@ -11,8 +11,10 @@ import { Spinner } from "@/components/ui/spinner";
 import { TermsDialog } from "@/components/TermsDialog";
 import campusImage from "@assets/campus.png";
 import ubLogo from "@assets/ub foodhub logo2_1751778236646.png";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 export default function LoginPage() {
+  usePageTitle("Login");
   const [authMode, setAuthMode] = useState<"social" | "email">("social");
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);

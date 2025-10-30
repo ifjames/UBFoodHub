@@ -53,6 +53,7 @@ import {
   runTransaction
 } from "@/lib/firebase";
 import { collection, getDocs, doc } from "firebase/firestore";
+import { usePageTitle } from "@/hooks/use-page-title";
 import { useLocation } from "wouter";
 import NotificationBell from "@/components/notifications/notification-bell";
 import CancellationRequestManagement from "@/components/orders/cancellation-request-management";
@@ -62,6 +63,7 @@ import QRScanner from "@/components/qr-scanner";
 
 
 export default function StallDashboard() {
+  usePageTitle("Stall Dashboard");
   const { state, dispatch } = useStore();
   const { toast } = useToast();
   const [, setLocation] = useLocation();

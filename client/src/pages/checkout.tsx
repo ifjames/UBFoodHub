@@ -11,8 +11,10 @@ import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { subscribeToQuery, addDocument, deleteDocument, getDocument, awardLoyaltyPoints, getUserFavorites, redeemLoyaltyPoints, useVoucher } from "@/lib/firebase";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 export default function Checkout() {
+  usePageTitle("Checkout");
   const [, setLocation] = useLocation();
   const { state, dispatch } = useStore();
   const { toast } = useToast();

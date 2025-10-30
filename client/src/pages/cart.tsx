@@ -19,6 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
+import { usePageTitle } from "@/hooks/use-page-title";
 import {
   subscribeToQuery,
   updateDocument,
@@ -208,6 +209,7 @@ function VoucherSection({ userId, appliedVoucher, onVoucherApplied, onVoucherRem
 }
 
 export default function Cart() {
+  usePageTitle("Cart");
   const [, setLocation] = useLocation();
   const { state } = useStore();
   const { toast } = useToast();

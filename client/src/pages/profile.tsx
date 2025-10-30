@@ -9,8 +9,10 @@ import { logOut, getUserLoyaltyTier } from "@/lib/firebase";
 import BottomNav from "@/components/layout/bottom-nav";
 import LoyaltyDashboard from "@/components/loyalty/loyalty-dashboard";
 import StudentVoucherDashboard from "@/components/vouchers/student-voucher-dashboard";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 export default function Profile() {
+  usePageTitle("Profile");
   const [, setLocation] = useLocation();
   const { state, dispatch } = useStore();
   const { toast } = useToast();

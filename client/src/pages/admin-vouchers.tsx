@@ -23,6 +23,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import BottomNav from "@/components/layout/bottom-nav";
 import VoucherCreateModal from "@/components/vouchers/voucher-create-modal";
 import VoucherRedemptionModal from "@/components/vouchers/voucher-redemption-modal";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 interface Voucher {
   id: string;
@@ -47,6 +48,7 @@ interface Voucher {
 }
 
 export default function AdminVouchers() {
+  usePageTitle("Admin Vouchers");
   const [, setLocation] = useLocation();
   const { state } = useStore();
   const { toast } = useToast();

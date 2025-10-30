@@ -19,8 +19,10 @@ import BroadcastNotification from "@/components/admin/broadcast-notification";
 import NotificationBell from "@/components/notifications/notification-bell";
 import BottomNav from "@/components/layout/bottom-nav";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 export default function AdminDashboard() {
+  usePageTitle("Admin Dashboard");
   const { state, dispatch } = useStore();
   const { toast } = useToast();
   const [, setLocation] = useLocation();

@@ -15,8 +15,10 @@ import { updatePassword, updateProfile, reauthenticateWithCredential, EmailAuthP
 import { auth, updateDocument } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "@/lib/firebase";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 export default function Settings() {
+  usePageTitle("Settings");
   const [, setLocation] = useLocation();
   const { state, dispatch } = useStore();
   const { toast } = useToast();

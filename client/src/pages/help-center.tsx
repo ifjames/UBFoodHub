@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocation } from "wouter";
 import BottomNav from "@/components/layout/bottom-nav";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 export default function HelpCenter() {
+  usePageTitle("Help Center");
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);

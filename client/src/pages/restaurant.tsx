@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/lib/store";
 import { motion, AnimatePresence } from "framer-motion";
 import { getDocument, subscribeToQuery, addDocument, getDocuments } from "@/lib/firebase";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 interface MenuItemType {
   id: string;
@@ -39,6 +40,8 @@ export default function Restaurant() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [stall, setStall] = useState<any>(null);
+  
+  usePageTitle(stall?.name || "Restaurant");
   const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
   const [selectedItem, setSelectedItem] = useState<MenuItemType | null>(null);
   const [customizations, setCustomizations] = useState<any>({});

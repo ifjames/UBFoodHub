@@ -14,6 +14,7 @@ import { subscribeToQuery, updateDocument, deleteDocument, addDocument, getDocum
 import BottomNav from "@/components/layout/bottom-nav";
 import QRCode from "@/components/qr-code";
 import OrderCancellationRequest from "@/components/orders/order-cancellation-request";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 const orderStatusConfig = {
   pending: {
@@ -49,6 +50,7 @@ const orderStatusConfig = {
 };
 
 export default function Orders() {
+  usePageTitle("Orders");
   const [, setLocation] = useLocation();
   const { state } = useStore();
   const { toast } = useToast();

@@ -16,8 +16,10 @@ import NotificationBell from "@/components/notifications/notification-bell";
 import { Search, Clock, Star, Award, Bell } from "lucide-react";
 import { subscribeToCollection, getDocuments, getUserFavorites, subscribeToQuery } from "@/lib/firebase";
 import { useStore } from "@/lib/store";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 export default function Home() {
+  usePageTitle("Home");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
   const [stalls, setStalls] = useState<any[]>([]);

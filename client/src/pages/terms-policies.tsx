@@ -2,8 +2,10 @@ import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocation } from "wouter";
 import BottomNav from "@/components/layout/bottom-nav";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 export default function TermsPolicies() {
+  usePageTitle("Terms & Policies");
   const [, setLocation] = useLocation();
 
   return (

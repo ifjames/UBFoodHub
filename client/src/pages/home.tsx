@@ -275,17 +275,12 @@ export default function Home() {
         {/* Desktop Welcome Header */}
         <div className="hidden md:block mb-8">
           <div className="bg-gradient-to-r from-[#820d2a] via-[#820d2a] to-[#B22222] text-white rounded-2xl p-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center">
-                <img src="/logo.png" alt="UB FoodHub" className="h-12" />
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 bg-maroon-700 px-4 py-2 rounded-full">
-                  <Award className="w-5 h-5" />
-                  <span className="text-sm font-medium">
-                    {state.user?.loyaltyPoints || 0} points
-                  </span>
-                </div>
+            <div className="flex items-center justify-end mb-6">
+              <div className="flex items-center gap-2 bg-maroon-700 px-4 py-2 rounded-full">
+                <Award className="w-5 h-5" />
+                <span className="text-sm font-medium">
+                  {state.user?.loyaltyPoints || 0} points
+                </span>
               </div>
             </div>
             <h1 className="text-3xl font-bold mb-2">
@@ -296,7 +291,7 @@ export default function Home() {
             </p>
             
             {/* Search Bar - Desktop */}
-            <div className="relative max-w-3xl">
+            <div className="relative max-w-3xl mx-auto">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
                 placeholder="Search for food, restaurants..."

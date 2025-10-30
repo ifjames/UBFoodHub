@@ -45,9 +45,11 @@ import {
   getCollection,
   auth,
   db,
-  logOut 
+  logOut,
+  increment,
+  runTransaction
 } from "@/lib/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc } from "firebase/firestore";
 import { useLocation } from "wouter";
 import NotificationBell from "@/components/notifications/notification-bell";
 import CancellationRequestManagement from "@/components/orders/cancellation-request-management";
@@ -483,23 +485,48 @@ export default function StallDashboard() {
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
-      // Find the order to get customer info
-      const order = orders.find(o => o.id === orderId);
+      // Find the order from local state for notification purposes
+      const localOrder = orders.find(o => o.id === orderId);
       
-      await updateDocument("orders", orderId, { 
-        status: newStatus,
-        updatedAt: new Date()
+      // Use a transaction to ensure atomic updates and prevent race conditions
+      await runTransaction(db, async (transaction) => {
+        const orderRef = doc(db, "orders", orderId);
+        const orderDoc = await transaction.get(orderRef);
+        
+        if (!orderDoc.exists()) {
+          throw new Error("Order not found");
+        }
+        
+        const orderData = orderDoc.data();
+        
+        // Only deduct stock when transitioning from non-completed to completed
+        // Check the persisted status from Firestore, not local state
+        if (newStatus === 'completed' && orderData.status !== 'completed' && orderData.items) {
+          for (const orderItem of orderData.items) {
+            const menuItemRef = doc(db, "menuItems", orderItem.menuItemId);
+            // Use atomic increment to deduct stock safely
+            transaction.update(menuItemRef, { 
+              stock: increment(-orderItem.quantity)
+            });
+          }
+        }
+        
+        // Update order status
+        transaction.update(orderRef, { 
+          status: newStatus,
+          updatedAt: new Date()
+        });
       });
       
       // Send notification to customer with their user ID
-      if (order) {
-        console.log('Order data for notification:', { orderId, customerName: order.customerName, userId: order.userId });
+      if (localOrder) {
+        console.log('Order data for notification:', { orderId, customerName: localOrder.customerName, userId: localOrder.userId });
         const notificationService = NotificationService.getInstance();
         await notificationService.sendOrderNotification(
           orderId, 
           newStatus, 
-          order.customerName,
-          order.userId // Pass the user ID so they get notified
+          localOrder.customerName,
+          localOrder.userId // Pass the user ID so they get notified
         );
       }
       
@@ -508,6 +535,7 @@ export default function StallDashboard() {
         description: `Order status updated to ${newStatus}`,
       });
     } catch (error) {
+      console.error("Error updating order status:", error);
       toast({
         title: "Error",
         description: "Failed to update order status",

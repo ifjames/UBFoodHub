@@ -27,6 +27,8 @@ import {
   onSnapshot,
   addDoc,
   serverTimestamp,
+  increment,
+  runTransaction,
 } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -53,6 +55,9 @@ try {
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Export increment and runTransaction for atomic operations
+export { increment, runTransaction };
 
 // Storage
 import { getStorage } from "firebase/storage";

@@ -254,9 +254,20 @@ export default function Home() {
           <h1 className="text-xl font-bold mb-1">
             Welcome back, {state.user?.fullName?.split(" ")[0] || "Student"}!
           </h1>
-          <p className="text-maroon-100 text-sm">
+          <p className="text-maroon-100 text-sm mb-3">
             What would you like to eat today?
           </p>
+          
+          {/* Search Bar - Mobile */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search for food, restaurants..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-white text-gray-900 border-gray-200"
+            />
+          </div>
         </div>
       </div>
 
@@ -281,21 +292,21 @@ export default function Home() {
             <h1 className="text-3xl font-bold mb-2">
               Welcome back, {state.user?.fullName?.split(" ")[0] || "Student"}!
             </h1>
-            <p className="text-maroon-100 text-lg">
+            <p className="text-maroon-100 text-lg mb-4">
               What would you like to eat today?
             </p>
+            
+            {/* Search Bar - Desktop */}
+            <div className="relative max-w-2xl">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Input
+                placeholder="Search for food, restaurants..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-12 bg-white text-gray-900 border-gray-200 h-12 text-base"
+              />
+            </div>
           </div>
-        </div>
-
-        {/* Search Bar */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Search for food, restaurants..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-white border-gray-200 md:h-12 md:text-base"
-          />
         </div>
 
         {/* Category Filter */}

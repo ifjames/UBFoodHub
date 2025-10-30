@@ -276,9 +276,8 @@ export default function Home() {
         <div className="hidden md:block mb-8">
           <div className="bg-gradient-to-r from-[#820d2a] via-[#820d2a] to-[#B22222] text-white rounded-2xl p-8">
             <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center">
                 <img src="/logo.png" alt="UB FoodHub" className="h-12" />
-                <span className="text-lg font-semibold">UB FoodHub</span>
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 bg-maroon-700 px-4 py-2 rounded-full">
@@ -297,7 +296,7 @@ export default function Home() {
             </p>
             
             {/* Search Bar - Desktop */}
-            <div className="relative max-w-2xl">
+            <div className="relative max-w-3xl">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
                 placeholder="Search for food, restaurants..."

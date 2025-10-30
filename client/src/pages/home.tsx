@@ -13,7 +13,7 @@ import StallLoadingScreen from "@/components/stall-loading-screen";
 import StallSkeleton from "@/components/stall-skeleton";
 import NotificationCenter from "@/components/notifications/notification-center";
 import NotificationBell from "@/components/notifications/notification-bell";
-import { Search, MapPin, Clock, Star, Award, Bell } from "lucide-react";
+import { Search, Clock, Star, Award, Bell } from "lucide-react";
 import { subscribeToCollection, getDocuments, getUserFavorites, subscribeToQuery } from "@/lib/firebase";
 import { useStore } from "@/lib/store";
 
@@ -235,9 +235,8 @@ export default function Home() {
       <div className="bg-gradient-to-r from-[#820d2a] via-[#820d2a] to-[#B22222] text-white sticky top-0 z-40 md:hidden">
         <div className="px-4 py-3 md:px-6">
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <MapPin className="w-5 h-5" />
-              <span className="text-sm">University of Batangas</span>
+            <div className="flex items-center">
+              <img src="/logo.png" alt="UB FoodHub" className="h-8" />
             </div>
             <div className="flex items-center gap-3">
               {/* Loyalty Points */}
@@ -276,9 +275,8 @@ export default function Home() {
         <div className="hidden md:block mb-8">
           <div className="bg-gradient-to-r from-[#820d2a] via-[#820d2a] to-[#B22222] text-white rounded-2xl p-8">
             <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <MapPin className="w-6 h-6" />
-                <span className="text-lg">University of Batangas</span>
+              <div className="flex items-center">
+                <img src="/logo.png" alt="UB FoodHub" className="h-12" />
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 bg-maroon-700 px-4 py-2 rounded-full">

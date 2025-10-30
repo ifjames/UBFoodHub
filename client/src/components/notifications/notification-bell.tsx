@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useStore } from "@/lib/store";
 import { subscribeToQuery, updateDocument, deleteDocument } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 interface Notification {
   id: string;
@@ -25,6 +26,7 @@ interface Notification {
 export default function NotificationBell() {
   const { state } = useStore();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -147,6 +149,53 @@ export default function NotificationBell() {
     }
   };
 
+  const handleNotificationClick = async (notification: Notification) => {
+    try {
+      // Mark as read
+      if (!notification.isRead) {
+        await markAsRead(notification.id);
+      }
+
+      // Handle navigation based on notification type
+      if (notification.type === "order" && notification.orderId) {
+        // Close the popover
+        setIsOpen(false);
+        
+        // Navigate to the appropriate page based on user role
+        if (state.user?.role === "stall_owner") {
+          // Store the order ID in localStorage so the stall dashboard can open it
+          localStorage.setItem('openOrderId', notification.orderId);
+          setLocation("/stall-dashboard");
+        } else if (state.user?.role === "student") {
+          // Students go to their orders page
+          toast({
+            title: "Viewing order details",
+            description: "Opening your order from notification",
+          });
+          setLocation("/orders");
+        }
+      }
+    } catch (error) {
+      console.error("Error handling notification click:", error);
+      toast({
+        title: "Error",
+        description: "Failed to process notification. Navigating anyway.",
+        variant: "destructive",
+      });
+      
+      // Continue with navigation even if marking as read failed
+      if (notification.type === "order" && notification.orderId) {
+        setIsOpen(false);
+        if (state.user?.role === "stall_owner") {
+          localStorage.setItem('openOrderId', notification.orderId);
+          setLocation("/stall-dashboard");
+        } else if (state.user?.role === "student") {
+          setLocation("/orders");
+        }
+      }
+    }
+  };
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
@@ -206,7 +255,8 @@ export default function NotificationBell() {
                   className={`mb-2 cursor-pointer transition-all hover:shadow-md ${
                     !notification.isRead ? "bg-blue-50 border-blue-200" : "bg-white"
                   }`}
-                  onClick={() => !notification.isRead && markAsRead(notification.id)}
+                  onClick={() => handleNotificationClick(notification)}
+                  data-testid={`notification-${notification.id}`}
                 >
                   <CardContent className="p-3">
                     <div className="flex items-start gap-3">

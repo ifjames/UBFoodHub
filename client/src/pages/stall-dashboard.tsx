@@ -79,6 +79,7 @@ export default function StallDashboard() {
   const [overviewOrdersPerPage] = useState(5);
   const [orderSearchQuery, setOrderSearchQuery] = useState("");
   const [showQRScanner, setShowQRScanner] = useState(false);
+  const [ordersInitialized, setOrdersInitialized] = useState(false);
   const [stallForm, setStallForm] = useState({
     name: "",
     description: "",
@@ -282,7 +283,10 @@ export default function StallDashboard() {
         "stallId", 
         "==", 
         stallId, 
-        setOrders
+        (ordersData) => {
+          setOrders(ordersData);
+          setOrdersInitialized(true);
+        }
       );
 
       // Subscribe to reviews for this stall
@@ -582,6 +586,37 @@ export default function StallDashboard() {
     setSelectedOrder(order);
     setShowOrderDetails(true);
   };
+
+  // Handle opening order from notification
+  useEffect(() => {
+    const openOrderId = localStorage.getItem('openOrderId');
+    if (openOrderId && stallId && ordersInitialized) {
+      // Find the order
+      const order = orders.find(o => o.id === openOrderId);
+      if (order) {
+        // Switch to orders tab
+        setActiveTab('orders');
+        // Open the order details
+        viewOrderDetails(order);
+        // Show toast to inform user
+        toast({
+          title: "Opening order from notification",
+          description: `Order ${order.qrCode} is now displayed`,
+        });
+        // Clear the localStorage
+        localStorage.removeItem('openOrderId');
+      } else {
+        // Orders have been initialized but the specific order was not found
+        // (might be deleted or belong to different stall)
+        localStorage.removeItem('openOrderId');
+        toast({
+          title: "Order not found",
+          description: "The order from the notification could not be found",
+          variant: "destructive",
+        });
+      }
+    }
+  }, [orders, stallId, ordersInitialized]);
 
   const handleQRScan = (orderId: string) => {
     // Find the order from the scanned ID

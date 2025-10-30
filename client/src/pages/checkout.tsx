@@ -127,7 +127,7 @@ export default function Checkout() {
         const stallVoucherDiscount = voucherDiscount * stallDiscountProportion;
         const stallFinalAmount = stallSubtotal - stallVoucherDiscount;
 
-        return addDocument("orders", {
+        const orderDoc = await addDocument("orders", {
           userId: state.user?.id,
           customerName: state.user?.fullName || "Student",
           customerEmail: state.user?.email || "Not provided",
@@ -158,6 +158,42 @@ export default function Checkout() {
           })),
           createdAt: new Date(),
         });
+
+        // Send notification to stall owner about the new order
+        try {
+          const stallDoc = await getDocument("stalls", stallId);
+          if (stallDoc.exists()) {
+            const stallOwnerData = stallDoc.data();
+            const ownerId = stallOwnerData.ownerId;
+            
+            if (ownerId) {
+              // Create notification for stall owner
+              await addDocument("notifications", {
+                userId: ownerId,
+                type: "order",
+                title: "New Order Received!",
+                message: `Order ${stallOrderId} from ${state.user?.fullName || "a student"} - ₱${stallFinalAmount.toFixed(2)} (${(stallItems as any[]).length} item${(stallItems as any[]).length > 1 ? 's' : ''})`,
+                isRead: false,
+                orderId: orderDoc.id,
+                metadata: {
+                  stallId,
+                  stallName: stallData?.name,
+                  customerName: state.user?.fullName,
+                  orderTotal: stallFinalAmount,
+                  itemCount: (stallItems as any[]).length,
+                },
+                createdAt: new Date(),
+              });
+              
+              console.log(`Notification sent to stall owner ${ownerId} for order ${stallOrderId}`);
+            }
+          }
+        } catch (notifError) {
+          console.error("Error sending notification to stall owner:", notifError);
+          // Don't fail the order if notification fails
+        }
+
+        return orderDoc;
       });
 
       await Promise.all(orderPromises);

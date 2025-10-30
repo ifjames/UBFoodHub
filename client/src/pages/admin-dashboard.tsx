@@ -707,7 +707,6 @@ export default function AdminDashboard() {
                 { id: "users", label: "Users", icon: Users },
                 { id: "stalls", label: "Stalls", icon: Store },
                 { id: "categories", label: "Categories", icon: Tag },
-                { id: "penalties", label: "Penalties", icon: AlertTriangle },
                 { id: "notifications", label: "Notify", icon: Bell }
               ].map((tab) => (
                 <button
@@ -734,11 +733,10 @@ export default function AdminDashboard() {
           </div>
           
           {/* Desktop Grid Navigation */}
-          <TabsList className="hidden md:grid w-full grid-cols-5 text-xs sm:text-sm">
+          <TabsList className="hidden md:grid w-full grid-cols-4 text-xs sm:text-sm">
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="stalls">Stalls</TabsTrigger>
             <TabsTrigger value="categories">Categories</TabsTrigger>
-            <TabsTrigger value="penalties">Penalties</TabsTrigger>
             <TabsTrigger value="notifications">Notify</TabsTrigger>
           </TabsList>
 
@@ -1111,17 +1109,6 @@ export default function AdminDashboard() {
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="penalties" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Penalty Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <PenaltyManagement />
               </CardContent>
             </Card>
           </TabsContent>

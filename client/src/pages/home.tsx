@@ -10,7 +10,7 @@ import FloatingCart from "@/components/floating-cart";
 import LoadingIndicator from "@/components/loading-indicator";
 import LoadingOverlay from "@/components/loading-overlay";
 import StallLoadingScreen from "@/components/stall-loading-screen";
-import StallSkeleton, { FeaturedStallSkeleton } from "@/components/stall-skeleton";
+import StallSkeleton from "@/components/stall-skeleton";
 import NotificationCenter from "@/components/notifications/notification-center";
 import NotificationBell from "@/components/notifications/notification-bell";
 import { Search, MapPin, Clock, Star, Award, Bell } from "lucide-react";
@@ -28,7 +28,6 @@ export default function Home() {
   const [showSkeletons, setShowSkeletons] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
-  const [featuredStall, setFeaturedStall] = useState<any>(null);
   const [stallRatings, setStallRatings] = useState<{[key: string]: {rating: number, reviewCount: number}}>({});
   const [categories, setCategories] = useState<string[]>([]);
   const [userFavorites, setUserFavorites] = useState<string[]>([]);
@@ -86,80 +85,6 @@ export default function Home() {
         tag: 'order-ready',
         requireInteraction: true,
       });
-    }
-  };
-
-  // Calculate featured stall based on daily orders
-  const calculateFeaturedStall = async (stallsData: any[]) => {
-    try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayStart = today.getTime();
-      const todayEnd = todayStart + (24 * 60 * 60 * 1000);
-
-      // Get today's orders
-      const todayOrders = await getDocuments("orders", "createdAt", ">=", new Date(todayStart));
-      const todayOrdersFiltered = todayOrders.filter(order => {
-        const orderTime = order.createdAt?.toDate?.()?.getTime() || 0;
-        return orderTime >= todayStart && orderTime < todayEnd;
-      });
-
-      // Count orders per stall
-      const stallOrderCounts: {[key: string]: number} = {};
-      todayOrdersFiltered.forEach(order => {
-        order.items?.forEach((item: any) => {
-          if (item.stallId) {
-            stallOrderCounts[item.stallId] = (stallOrderCounts[item.stallId] || 0) + 1;
-          }
-        });
-      });
-
-      // Find stall with most orders today
-      let featuredStallId = "";
-      let maxOrders = 0;
-      Object.entries(stallOrderCounts).forEach(([stallId, count]) => {
-        if (count > maxOrders) {
-          maxOrders = count;
-          featuredStallId = stallId;
-        }
-      });
-
-      // If no orders today, get yesterday's featured
-      if (!featuredStallId) {
-        const yesterday = new Date(todayStart - (24 * 60 * 60 * 1000));
-        const yesterdayOrders = await getDocuments("orders", "createdAt", ">=", yesterday);
-        const yesterdayOrdersFiltered = yesterdayOrders.filter(order => {
-          const orderTime = order.createdAt?.toDate?.()?.getTime() || 0;
-          return orderTime >= yesterday.getTime() && orderTime < todayStart;
-        });
-
-        const yesterdayStallCounts: {[key: string]: number} = {};
-        yesterdayOrdersFiltered.forEach(order => {
-          order.items?.forEach((item: any) => {
-            if (item.stallId) {
-              yesterdayStallCounts[item.stallId] = (yesterdayStallCounts[item.stallId] || 0) + 1;
-            }
-          });
-        });
-
-        let maxYesterdayOrders = 0;
-        Object.entries(yesterdayStallCounts).forEach(([stallId, count]) => {
-          if (count > maxYesterdayOrders) {
-            maxYesterdayOrders = count;
-            featuredStallId = stallId;
-          }
-        });
-      }
-
-      // Set featured stall
-      if (featuredStallId) {
-        const featured = stallsData.find(stall => stall.id === featuredStallId);
-        if (featured) {
-          setFeaturedStall(featured);
-        }
-      }
-    } catch (error) {
-      console.error("Error calculating featured stall:", error);
     }
   };
 
@@ -232,10 +157,7 @@ export default function Home() {
       // Optimized: Start these calculations in background after displaying stalls
       setIsLoadingRatings(true);
       setTimeout(async () => {
-        await Promise.all([
-          calculateFeaturedStall(activeStalls),
-          calculateStallRatings(activeStalls)
-        ]);
+        await calculateStallRatings(activeStalls);
         setIsLoadingRatings(false);
       }, 100);
     });
@@ -411,74 +333,6 @@ export default function Home() {
             </Button>
           ))}
         </div>
-
-        {/* Featured Section */}
-        {activeFilter === "all" && (
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-3 md:text-xl">
-              Featured Today
-            </h2>
-            {isLoadingRatings && !featuredStall ? (
-              <FeaturedStallSkeleton />
-            ) : featuredStall ? (
-              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                <Card
-                key={featuredStall.id}
-                className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => window.location.href = `/restaurant/${featuredStall.id}`}
-              >
-                <CardContent className="p-4 md:p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge className="bg-yellow-500 text-white text-xs">
-                          🏆 Most Ordered Today
-                        </Badge>
-                      </div>
-                      <h3 className="font-medium text-gray-900 md:text-lg">
-                        {featuredStall.name}
-                      </h3>
-                      <p className="text-sm text-gray-600 mt-1 md:text-base">
-                        {featuredStall.description}
-                      </p>
-                      <div className="flex items-center gap-3 mt-2">
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                          <span className="text-sm font-medium md:text-base">
-                            {stallRatings[featuredStall.id]?.rating > 0 
-                              ? stallRatings[featuredStall.id].rating 
-                              : "No ratings"}
-                          </span>
-                          {stallRatings[featuredStall.id]?.reviewCount > 0 && (
-                            <span className="text-xs text-gray-500">
-                              ({stallRatings[featuredStall.id].reviewCount})
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-600 md:text-base">
-                            {featuredStall.deliveryTime || "15-30 min"}
-                          </span>
-                        </div>
-                        <Badge variant="outline" className="text-xs md:text-sm">
-                          {featuredStall.category}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            ) : (
-              <Card className="bg-gray-50 border-gray-200">
-                <CardContent className="p-4 text-center">
-                  <p className="text-gray-500">No featured stall today</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
 
         {/* Stalls Grid */}
         <div>

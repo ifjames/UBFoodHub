@@ -27,6 +27,7 @@ interface MenuItemType {
   image?: string;
   isAvailable: boolean;
   isPopular: boolean;
+  stock?: number;
   customizations?: Array<{ name: string; price: number }>;
 }
 
@@ -165,6 +166,26 @@ export default function Restaurant() {
 
   const handleAddToCart = async () => {
     if (!selectedItem || !state.user) return;
+
+    // Check stock availability
+    const availableStock = selectedItem.stock ?? 0;
+    if (availableStock === 0) {
+      toast({
+        title: "Out of Stock",
+        description: `${selectedItem.name} is currently out of stock.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (quantity > availableStock) {
+      toast({
+        title: "Insufficient Stock",
+        description: `Only ${availableStock} item(s) available. Please reduce the quantity.`,
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const selectedCustomizations = Object.entries(customizations)
@@ -386,16 +407,27 @@ export default function Restaurant() {
                 <div className="flex-1 order-1 md:order-2">
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="font-medium text-gray-900 md:text-lg">{item.name}</h3>
-                    {item.isPopular && (
-                      <Badge className="bg-red-100 text-red-700 text-xs ml-2">NEW!</Badge>
-                    )}
+                    <div className="flex gap-1">
+                      {item.isPopular && (
+                        <Badge className="bg-red-100 text-red-700 text-xs">NEW!</Badge>
+                      )}
+                      {(item.stock ?? 0) === 0 && (
+                        <Badge className="bg-gray-100 text-gray-700 text-xs">Out of Stock</Badge>
+                      )}
+                    </div>
                   </div>
                   <p className="text-sm md:text-base text-gray-600 mb-2 md:mb-4">{item.description}</p>
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-gray-900 md:text-lg">₱{item.price}</span>
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-gray-900 md:text-lg">₱{item.price}</span>
+                      {(item.stock ?? 0) > 0 && (item.stock ?? 0) < 10 && (
+                        <span className="text-xs text-yellow-600">Only {item.stock} left</span>
+                      )}
+                    </div>
                     <Button
                       size="sm"
-                      className="rounded-full w-8 h-8 md:w-10 md:h-10 p-0 bg-[#6d031e] hover:bg-red-700"
+                      disabled={!item.isAvailable || (item.stock ?? 0) === 0}
+                      className="rounded-full w-8 h-8 md:w-10 md:h-10 p-0 bg-[#6d031e] hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={(e) => {
                         e.stopPropagation();
                         openCustomization(item);
@@ -622,7 +654,8 @@ export default function Restaurant() {
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => setQuantity(quantity + 1)}
+                      onClick={() => setQuantity(Math.min((selectedItem?.stock ?? 0), quantity + 1))}
+                      disabled={quantity >= (selectedItem?.stock ?? 0)}
                       className="rounded-full"
                     >
                       +

@@ -235,8 +235,9 @@ export default function Home() {
       <div className="bg-gradient-to-r from-[#820d2a] via-[#820d2a] to-[#B22222] text-white sticky top-0 z-40 md:hidden">
         <div className="px-4 py-3 md:px-6">
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center">
+            <div className="flex items-center gap-2">
               <img src="/logo.png" alt="UB FoodHub" className="h-8" />
+              <span className="text-sm font-semibold">UB FoodHub</span>
             </div>
             <div className="flex items-center gap-3">
               {/* Loyalty Points */}
@@ -275,8 +276,9 @@ export default function Home() {
         <div className="hidden md:block mb-8">
           <div className="bg-gradient-to-r from-[#820d2a] via-[#820d2a] to-[#B22222] text-white rounded-2xl p-8">
             <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center">
+              <div className="flex items-center gap-3">
                 <img src="/logo.png" alt="UB FoodHub" className="h-12" />
+                <span className="text-lg font-semibold">UB FoodHub</span>
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 bg-maroon-700 px-4 py-2 rounded-full">

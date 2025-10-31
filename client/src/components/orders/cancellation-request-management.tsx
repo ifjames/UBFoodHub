@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useStore } from "@/lib/store";
-import { subscribeToQuery, updateDocument, addDocument } from "@/lib/firebase";
+import { subscribeToQuery, updateDocument, addDocument, getDocument } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { createNotification, NotificationTemplates } from "@/lib/notifications";
 
@@ -21,6 +21,7 @@ interface CancellationRequest {
   customerName: string;
   customerEmail: string;
   studentId: string;
+  profilePicture?: string;
   reasonCategory: string;
   reasonLabel: string;
   description: string;
@@ -41,6 +42,7 @@ export default function CancellationRequestManagement({ stallId }: CancellationR
   const { state } = useStore();
   const { toast } = useToast();
   const [requests, setRequests] = useState<CancellationRequest[]>([]);
+  const [enrichedRequests, setEnrichedRequests] = useState<CancellationRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<CancellationRequest | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [responseReason, setResponseReason] = useState("");
@@ -65,6 +67,44 @@ export default function CancellationRequestManagement({ stallId }: CancellationR
       return unsubscribe;
     }
   }, [stallId]);
+
+  // Enrich requests with user profile pictures
+  useEffect(() => {
+    const enrichRequestsWithUserData = async () => {
+      if (requests.length === 0) {
+        setEnrichedRequests([]);
+        return;
+      }
+
+      try {
+        const enriched = await Promise.all(
+          requests.map(async (request) => {
+            try {
+              const userDoc = await getDocument("users", request.customerId);
+              if (userDoc.exists()) {
+                const userData = userDoc.data();
+                return {
+                  ...request,
+                  profilePicture: userData.photoURL || null,
+                  studentId: userData.studentId || request.studentId || 'N/A'
+                };
+              }
+              return request;
+            } catch (error) {
+              console.error("Error fetching user data for cancellation:", error);
+              return request;
+            }
+          })
+        );
+        setEnrichedRequests(enriched);
+      } catch (error) {
+        console.error("Error enriching cancellation requests:", error);
+        setEnrichedRequests(requests);
+      }
+    };
+
+    enrichRequestsWithUserData();
+  }, [requests]);
 
   const handleApproveRequest = async (request: CancellationRequest) => {
     setIsProcessing(true);
@@ -186,8 +226,8 @@ export default function CancellationRequestManagement({ stallId }: CancellationR
     });
   };
 
-  const pendingRequests = requests.filter(r => r.status === "pending");
-  const processedRequests = requests.filter(r => r.status !== "pending");
+  const pendingRequests = enrichedRequests.filter(r => r.status === "pending");
+  const processedRequests = enrichedRequests.filter(r => r.status !== "pending");
 
   return (
     <div className="space-y-6">
@@ -206,10 +246,35 @@ export default function CancellationRequestManagement({ stallId }: CancellationR
         <div className="space-y-4">
           <h4 className="font-medium text-gray-900">Pending Requests</h4>
           {pendingRequests.map((request) => (
-            <Card key={request.id} className="border-l-4 border-l-orange-500">
+            <Card key={request.id} className="border-l-4 border-l-orange-500" data-testid={`cancellation-card-${request.id}`}>
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      {request.profilePicture ? (
+                        <img 
+                          src={request.profilePicture} 
+                          alt={request.customerName}
+                          className="w-10 h-10 rounded-full object-cover border-2 border-orange-500"
+                          data-testid={`cancellation-profile-${request.id}`}
+                        />
+                      ) : (
+                        <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                          <span className="text-white font-medium text-sm">
+                            {request.customerName?.charAt(0) || 'S'}
+                          </span>
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-medium text-sm" data-testid={`cancellation-name-${request.id}`}>
+                          {request.customerName}
+                        </p>
+                        <p className="text-xs text-gray-500" data-testid={`cancellation-studentid-${request.id}`}>
+                          Student ID: {request.studentId || 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                    
                     <div className="flex items-center gap-2 mb-2">
                       <Badge className={getStatusBadgeColor(request.status)}>
                         {request.status.toUpperCase()}
@@ -223,10 +288,6 @@ export default function CancellationRequestManagement({ stallId }: CancellationR
                     <p className="text-sm text-gray-600 mb-2">{request.description}</p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <User className="w-3 h-3" />
-                        {request.customerName} ({request.studentId})
-                      </span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         {formatDate(request.requestedAt)}
@@ -244,6 +305,7 @@ export default function CancellationRequestManagement({ stallId }: CancellationR
                         setIsDialogOpen(true);
                       }}
                       className="bg-blue-600 hover:bg-blue-700"
+                      data-testid={`button-review-${request.id}`}
                     >
                       Review
                     </Button>
@@ -262,7 +324,20 @@ export default function CancellationRequestManagement({ stallId }: CancellationR
           {processedRequests.slice(0, 5).map((request) => (
             <Card key={request.id} className="bg-gray-50">
               <CardContent className="p-3">
-                <div className="flex items-center justify-between">
+                <div className="flex items-start gap-3">
+                  {request.profilePicture ? (
+                    <img 
+                      src={request.profilePicture} 
+                      alt={request.customerName}
+                      className="w-8 h-8 rounded-full object-cover border border-gray-300"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                      <span className="text-white font-medium text-xs">
+                        {request.customerName?.charAt(0) || 'S'}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <Badge className={getStatusBadgeColor(request.status)}>
@@ -274,7 +349,7 @@ export default function CancellationRequestManagement({ stallId }: CancellationR
                     </div>
                     <p className="text-sm text-gray-700">{request.reasonLabel}</p>
                     <p className="text-xs text-gray-500">
-                      {request.customerName} • {formatDate(request.respondedAt)}
+                      {request.customerName} ({request.studentId}) • {formatDate(request.respondedAt)}
                     </p>
                   </div>
                 </div>
@@ -284,7 +359,7 @@ export default function CancellationRequestManagement({ stallId }: CancellationR
         </div>
       )}
 
-      {requests.length === 0 && (
+      {enrichedRequests.length === 0 && (
         <Card>
           <CardContent className="p-8 text-center">
             <FileText className="w-16 h-16 mx-auto mb-4 text-gray-300" />

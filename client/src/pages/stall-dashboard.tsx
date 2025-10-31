@@ -70,6 +70,7 @@ export default function StallDashboard() {
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [enrichedReviews, setEnrichedReviews] = useState<any[]>([]);
   const [stallInfo, setStallInfo] = useState<any>(null);
   const [stallId, setStallId] = useState<string | null>(null);
   const [isMenuDialogOpen, setIsMenuDialogOpen] = useState(false);
@@ -311,6 +312,46 @@ export default function StallDashboard() {
       };
     }
   }, [stallId]);
+
+  // Enrich reviews with user data (profile pictures)
+  useEffect(() => {
+    const enrichReviewsWithUserData = async () => {
+      if (reviews.length === 0) {
+        setEnrichedReviews([]);
+        return;
+      }
+
+      try {
+        const enriched = await Promise.all(
+          reviews.map(async (review) => {
+            try {
+              // Fetch user data to get profile picture and ensure we have student info
+              const userDoc = await getDocument("users", review.userId);
+              if (userDoc.exists()) {
+                const userData = userDoc.data();
+                return {
+                  ...review,
+                  studentName: userData.displayName || review.studentName || 'Student',
+                  studentId: userData.studentId || review.studentId || 'N/A',
+                  profilePicture: userData.photoURL || null
+                };
+              }
+              return review;
+            } catch (error) {
+              console.error("Error fetching user data for review:", error);
+              return review;
+            }
+          })
+        );
+        setEnrichedReviews(enriched);
+      } catch (error) {
+        console.error("Error enriching reviews:", error);
+        setEnrichedReviews(reviews);
+      }
+    };
+
+    enrichReviewsWithUserData();
+  }, [reviews]);
 
   const handleSaveMenuItem = async () => {
     if (!itemForm.name || !itemForm.price) {
@@ -1442,25 +1483,38 @@ export default function StallDashboard() {
               <h2 className="text-xl font-bold text-[#6d031e]">Student Reviews</h2>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600">Total Reviews:</span>
-                <Badge variant="outline">{reviews.length}</Badge>
+                <Badge variant="outline">{enrichedReviews.length}</Badge>
               </div>
             </div>
 
-            {reviews.length > 0 ? (
+            {enrichedReviews.length > 0 ? (
               <div className="space-y-4">
-                {reviews.map((review) => (
-                  <Card key={review.id}>
+                {enrichedReviews.map((review) => (
+                  <Card key={review.id} data-testid={`review-card-${review.id}`}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-[#6d031e] rounded-full flex items-center justify-center">
-                            <span className="text-white font-medium text-sm">
-                              {review.studentName?.charAt(0) || review.userEmail?.charAt(0) || 'S'}
-                            </span>
-                          </div>
+                          {review.profilePicture ? (
+                            <img 
+                              src={review.profilePicture} 
+                              alt={review.studentName || 'Student'}
+                              className="w-12 h-12 rounded-full object-cover border-2 border-[#6d031e]"
+                              data-testid={`review-profile-${review.id}`}
+                            />
+                          ) : (
+                            <div className="w-12 h-12 bg-[#6d031e] rounded-full flex items-center justify-center">
+                              <span className="text-white font-medium text-lg">
+                                {review.studentName?.charAt(0) || review.userEmail?.charAt(0) || 'S'}
+                              </span>
+                            </div>
+                          )}
                           <div>
-                            <p className="font-medium text-sm">{review.studentName || review.userEmail || 'Student'}</p>
-                            <p className="text-xs text-gray-500">{review.studentId ? `ID: ${review.studentId}` : 'UB Student'}</p>
+                            <p className="font-medium text-sm" data-testid={`review-name-${review.id}`}>
+                              {review.studentName || review.userEmail || 'Student'}
+                            </p>
+                            <p className="text-xs text-gray-500" data-testid={`review-studentid-${review.id}`}>
+                              {review.studentId && review.studentId !== 'N/A' ? `ID: ${review.studentId}` : 'UB Student'}
+                            </p>
                             <div className="flex items-center gap-1 mt-1">
                               {Array.from({ length: 5 }, (_, i) => (
                                 <Star
@@ -1481,11 +1535,11 @@ export default function StallDashboard() {
                         </span>
                       </div>
                       {review.comment && (
-                        <p className="text-sm text-gray-700 ml-13">{review.comment}</p>
+                        <p className="text-sm text-gray-700 ml-15">{review.comment}</p>
                       )}
                       {review.orderId && (
-                        <p className="text-xs text-gray-500 mt-2 ml-13">
-                          Order: {review.orderId}
+                        <p className="text-xs text-gray-500 mt-2 ml-15">
+                          Order ID: {review.orderId}
                         </p>
                       )}
                     </CardContent>

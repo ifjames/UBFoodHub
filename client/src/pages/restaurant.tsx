@@ -38,7 +38,6 @@ export default function Restaurant() {
   const { state } = useStore();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState("All");
   const [stall, setStall] = useState<any>(null);
   
   usePageTitle(stall?.name || "Restaurant");
@@ -157,14 +156,9 @@ export default function Restaurant() {
     }
   }, [restaurantId]);
 
-  const categories = ["All", "Popular", "Main Course", "Appetizer", "Dessert", "Beverage", "Snack"];
-  
   const filteredItems = menuItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = activeCategory === "All" ? true :
-                          activeCategory === "Popular" ? item.isPopular : 
-                          item.category === activeCategory;
-    return matchesSearch && matchesCategory;
+    return matchesSearch;
   });
 
   const handleAddToCart = async () => {
@@ -336,48 +330,6 @@ export default function Restaurant() {
             className="pl-10 bg-gray-50 border-gray-200"
           />
         </div>
-      </motion.div>
-
-      {/* Category Tabs */}
-      <motion.div
-        initial={{ x: -100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="bg-white sticky top-[72px] z-30"
-      >
-        <div className="flex gap-2 px-4 py-3 overflow-x-auto scrollbar-hide">
-          {categories.map((category, index) => (
-            <motion.button
-              key={category}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * index }}
-              onClick={() => setActiveCategory(category)}
-              className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-all ${
-                activeCategory === category
-                  ? "bg-gray-900 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              {category}
-            </motion.button>
-          ))}
-        </div>
-        {activeCategory === "Popular" && (
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="px-4 pb-3"
-          >
-            <div className="flex items-center gap-2 text-sm">
-              <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs">🔥</span>
-              </div>
-              <span className="font-medium text-gray-900">Popular</span>
-              <span className="text-gray-600">Most ordered right now.</span>
-            </div>
-          </motion.div>
-        )}
       </motion.div>
 
       {/* Menu Items */}

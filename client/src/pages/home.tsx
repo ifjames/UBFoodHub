@@ -21,7 +21,6 @@ import { usePageTitle } from "@/hooks/use-page-title";
 export default function Home() {
   usePageTitle("Home");
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState("all");
   const [stalls, setStalls] = useState<any[]>([]);
   const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
@@ -31,38 +30,8 @@ export default function Home() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const [stallRatings, setStallRatings] = useState<{[key: string]: {rating: number, reviewCount: number}}>({});
-  const [categories, setCategories] = useState<string[]>([]);
   const [userFavorites, setUserFavorites] = useState<string[]>([]);
   const { state } = useStore();
-
-  // Drag-to-scroll functionality for category filters
-  const categoryScrollRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!categoryScrollRef.current) return;
-    setIsDragging(true);
-    setStartX(e.pageX - categoryScrollRef.current.offsetLeft);
-    setScrollLeft(categoryScrollRef.current.scrollLeft);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !categoryScrollRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - categoryScrollRef.current.offsetLeft;
-    const walk = (x - startX) * 2; // Multiply by 2 for faster scrolling
-    categoryScrollRef.current.scrollLeft = scrollLeft - walk;
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-  };
 
   // Redirect admin and stall owners to their dashboards
   useEffect(() => {
@@ -164,26 +133,8 @@ export default function Home() {
       }, 100);
     });
 
-    // Subscribe to categories from Firebase
-    const unsubscribeCategories = subscribeToCollection("categories", (categoriesData) => {
-      const categoryNames = categoriesData
-        .filter(cat => cat.isActive !== false) // Only show active categories
-        .sort((a, b) => {
-          // Sort by order if available, then alphabetically
-          if (a.order !== undefined && b.order !== undefined) {
-            return a.order - b.order;
-          }
-          if (a.order !== undefined) return -1;
-          if (b.order !== undefined) return 1;
-          return a.name.localeCompare(b.name);
-        })
-        .map(cat => cat.name);
-      setCategories(['all', ...categoryNames]);
-    });
-
     return () => {
       unsubscribe();
-      unsubscribeCategories();
     };
   }, []);
 
@@ -213,11 +164,7 @@ export default function Home() {
       (stall.category && stall.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (stall.categories && stall.categories.some((cat: string) => cat.toLowerCase().includes(searchQuery.toLowerCase())));
     
-    const matchesFilter =
-      activeFilter === "all" ||
-      (stall.category && stall.category.toLowerCase() === activeFilter.toLowerCase()) ||
-      (stall.categories && stall.categories.some((cat: string) => cat.toLowerCase() === activeFilter.toLowerCase()));
-    return matchesSearch && matchesFilter;
+    return matchesSearch;
   }).sort((a, b) => {
     // Sort favorites first, then alphabetical
     // Check both string and numeric ID formats since Firebase uses string IDs
@@ -297,46 +244,10 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Category Filter */}
-        <div 
-          ref={categoryScrollRef}
-          className={`flex gap-2 overflow-x-auto pb-2 md:justify-center md:flex-wrap scrollbar-hide select-none ${
-            isDragging ? 'cursor-grabbing' : 'cursor-grab'
-          } md:cursor-default`}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-          style={{ scrollBehavior: isDragging ? 'auto' : 'smooth' }}
-        >
-          {categories.map((category) => (
-            <Button
-              key={category}
-              variant={activeFilter === category ? "default" : "outline"}
-              size="sm" 
-              onClick={(e) => {
-                // Prevent click during drag
-                if (isDragging) {
-                  e.preventDefault();
-                  return;
-                }
-                setActiveFilter(category);
-              }}
-              className={`flex-shrink-0 md:flex-shrink md:px-6 md:py-3 ${
-                activeFilter === category
-                  ? "bg-[#6d031e] hover:bg-[#8b0426] text-white"
-                  : "border-[#6d031e]/20 text-[#6d031e] hover:bg-[#6d031e]/10 hover:text-[#6d031e]"
-              }`}
-            >
-              {category === "all" ? "All" : category}
-            </Button>
-          ))}
-        </div>
-
         {/* Stalls Grid */}
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-3 md:text-xl">
-            {activeFilter === "all" ? "All Stalls" : `${activeFilter} Stalls`}
+            All Stalls
           </h2>
 
           {isLoading || showSkeletons ? (
@@ -348,7 +259,7 @@ export default function Home() {
                 <p className="text-sm text-gray-600">
                   {searchQuery
                     ? "Try adjusting your search terms"
-                    : "No stalls available in this category"}
+                    : "No stalls available"}
                 </p>
               </CardContent>
             </Card>

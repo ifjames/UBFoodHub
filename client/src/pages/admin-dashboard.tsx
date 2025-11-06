@@ -37,8 +37,6 @@ export default function AdminDashboard() {
   const [newStall, setNewStall] = useState({
     name: "",
     description: "",
-    category: "",
-    categories: [] as string[],
     ownerId: "",
     image: "",
     isActive: true,
@@ -51,8 +49,6 @@ export default function AdminDashboard() {
   const [editStall, setEditStall] = useState({
     name: "",
     description: "",
-    category: "",
-    categories: [] as string[],
     ownerId: "",
     image: "",
     isActive: true,
@@ -81,7 +77,6 @@ export default function AdminDashboard() {
     phoneNumber: "",
     stallName: "",
     stallDescription: "",
-    stallCategory: "",
   });
 
   // Drag-to-scroll functionality for mobile tabs
@@ -164,8 +159,6 @@ export default function AdminDashboard() {
       setNewStall({
         name: "",
         description: "",
-        category: "",
-        categories: [],
         ownerId: "",
         image: "",
         isActive: true,
@@ -186,8 +179,6 @@ export default function AdminDashboard() {
     setEditStall({
       name: stall.name || "",
       description: stall.description || "",
-      category: stall.category || "",
-      categories: stall.categories || (stall.category ? [stall.category] : []),
       ownerId: stall.ownerId || "",
       image: stall.image || "",
       isActive: stall.isActive ?? true,
@@ -444,7 +435,6 @@ export default function AdminDashboard() {
         phoneNumber: "",
         stallName: "",
         stallDescription: "",
-        stallCategory: "",
       });
 
       setShowCreateAccountModal(false);
@@ -833,15 +823,6 @@ export default function AdminDashboard() {
                         <h3 className="font-medium">{stall.name}</h3>
                         <p className="text-sm text-gray-600">{stall.description}</p>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          {stall.categories && stall.categories.length > 0 ? (
-                            stall.categories.map((category: string) => (
-                              <Badge key={category} variant="outline">{category}</Badge>
-                            ))
-                          ) : stall.category ? (
-                            <Badge variant="outline">{stall.category}</Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-gray-500">No categories</Badge>
-                          )}
                           <Badge variant={stall.isActive ? "default" : "secondary"}>
                             {stall.isActive ? "Active" : "Inactive"}
                           </Badge>

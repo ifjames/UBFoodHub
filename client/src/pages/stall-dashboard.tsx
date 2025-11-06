@@ -90,11 +90,9 @@ export default function StallDashboard() {
   const [stallForm, setStallForm] = useState({
     name: "",
     description: "",
-    categories: [] as string[],
     image: "",
     isActive: true,
   });
-  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [isEditingStall, setIsEditingStall] = useState(false);
   const [itemForm, setItemForm] = useState({
     name: "",
@@ -159,7 +157,6 @@ export default function StallDashboard() {
               setStallForm({
                 name: stall.name || "",
                 description: stall.description || "",
-                categories: stall.categories || (stall.category ? [stall.category] : []),
                 image: stall.image || "",
                 isActive: stall.isActive !== undefined ? stall.isActive : true,
               });
@@ -177,100 +174,6 @@ export default function StallDashboard() {
   // Subscribe to menu items and orders when stallId is available
   useEffect(() => {
     // Fetch categories created by admin
-    const fetchCategories = async () => {
-      try {
-        console.log("Fetching admin categories from 'categories' collection...");
-        
-        // Test Firebase authentication and permissions first
-        console.log("Current Firebase user:", auth.currentUser);
-        console.log("User email:", auth.currentUser?.email);
-        console.log("User uid:", auth.currentUser?.uid);
-        
-        // First, try to access the categories collection directly using Firebase SDK
-        try {
-          console.log("Getting ALL categories directly from Firebase...");
-          const categoriesRef = collection(db, "categories");
-          const snapshot = await getDocs(categoriesRef);
-          console.log("Direct Firebase query result:", snapshot);
-          console.log("Snapshot size:", snapshot.size);
-          console.log("Snapshot empty:", snapshot.empty);
-          
-          if (!snapshot.empty) {
-            const allData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-            console.log("ALL categories found via direct query:", allData);
-            
-            if (allData.length > 0) {
-              const categoryNames = allData
-                .sort((a: any, b: any) => {
-                  if (a.order !== undefined && b.order !== undefined) {
-                    return a.order - b.order;
-                  }
-                  if (a.order !== undefined) return -1;
-                  if (b.order !== undefined) return 1;
-                  return a.name.localeCompare(b.name);
-                })
-                .map((cat: any) => cat.name);
-              setAvailableCategories(categoryNames);
-              console.log("Admin-created categories loaded via direct query:", categoryNames);
-              return;
-            }
-          } else {
-            console.log("Categories collection is empty");
-          }
-        } catch (directError: any) {
-          console.error("Direct Firebase query failed:", directError);
-          console.error("Error code:", directError?.code);
-          console.error("Error message:", directError?.message);
-        }
-        
-        // Fallback: try using the getCollection wrapper function
-        try {
-          console.log("Trying getCollection wrapper function...");
-          const allCats = await getCollection("categories");
-          console.log("getCollection result:", allCats);
-          
-          if (allCats && allCats.docs) {
-            const allData = allCats.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-            console.log("Categories via wrapper function:", allData);
-            
-            if (allData.length > 0) {
-              const categoryNames = allData
-                .sort((a: any, b: any) => {
-                  if (a.order !== undefined && b.order !== undefined) {
-                    return a.order - b.order;
-                  }
-                  if (a.order !== undefined) return -1;
-                  if (b.order !== undefined) return 1;
-                  return a.name.localeCompare(b.name);
-                })
-                .map((cat: any) => cat.name);
-              setAvailableCategories(categoryNames);
-              console.log("Admin-created categories loaded via wrapper:", categoryNames);
-              return;
-            }
-          }
-        } catch (wrapperError) {
-          console.error("Wrapper function failed:", wrapperError);
-        }
-        
-        // Fallback to existing categories from current stall
-        console.log("Using fallback categories from stall info");
-        if (stallInfo?.categories && Array.isArray(stallInfo.categories)) {
-          setAvailableCategories(stallInfo.categories);
-        } else if (stallInfo?.category) {
-          setAvailableCategories([stallInfo.category]);
-        } else {
-          setAvailableCategories(["Chinese", "Filipino"]);
-        }
-      } catch (error) {
-        console.error("Error fetching admin categories:", error);
-        // Final fallback
-        setAvailableCategories(["Chinese", "Filipino"]);
-      }
-    };
-
-    fetchCategories();
-
     if (stallId) {
       // Subscribe to menu items for this stall
       const unsubscribeMenuItems = subscribeToQuery(
@@ -458,10 +361,10 @@ export default function StallDashboard() {
 
   // Stall editing functions
   const handleSaveStall = async () => {
-    if (!stallForm.name || stallForm.categories.length === 0) {
+    if (!stallForm.name) {
       toast({
         title: "Error",
-        description: "Please fill in stall name and select at least one category",
+        description: "Please fill in stall name",
         variant: "destructive",
       });
       return;
@@ -480,7 +383,6 @@ export default function StallDashboard() {
       const stallData = {
         name: stallForm.name,
         description: stallForm.description,
-        categories: stallForm.categories,
         image: stallForm.image,
         isActive: stallForm.isActive,
       };
@@ -503,15 +405,6 @@ export default function StallDashboard() {
         variant: "destructive",
       });
     }
-  };
-
-  const toggleCategory = (category: string) => {
-    setStallForm(prev => ({
-      ...prev,
-      categories: prev.categories.includes(category)
-        ? prev.categories.filter(c => c !== category)
-        : [...prev.categories, category]
-    }));
   };
 
   const handleLogout = async () => {
@@ -880,10 +773,6 @@ export default function StallDashboard() {
                     </p>
                     {stallInfo && (
                       <div className="mt-1 flex items-center gap-2">
-                        <div className="px-2 py-1 bg-white/10 rounded-full">
-                          <span className="text-xs text-red-200">{stallInfo.category || 'Food Stall'}</span>
-                        </div>
-                        <div className="w-1 h-1 bg-red-300 rounded-full"></div>
                         <span className="text-xs text-red-200">Active</span>
                       </div>
                     )}
@@ -1774,7 +1663,6 @@ export default function StallDashboard() {
                           setStallForm({
                             name: stallInfo.name || "",
                             description: stallInfo.description || "",
-                            categories: stallInfo.categories || (stallInfo.category ? [stallInfo.category] : []),
                             image: stallInfo.image || "",
                             isActive: stallInfo.isActive !== undefined ? stallInfo.isActive : true,
                           });
@@ -1844,64 +1732,6 @@ export default function StallDashboard() {
                     <p className="text-sm text-gray-900 mt-1 p-2 bg-gray-50 rounded-md min-h-[60px]">
                       {stallInfo?.description || "No description set"}
                     </p>
-                  )}
-                </div>
-
-                {/* Stall Categories */}
-                <div>
-                  <Label className="text-sm font-medium">
-                    Food Categories
-                  </Label>
-                  {isEditingStall ? (
-                    <div className="mt-2 space-y-2">
-                      <p className="text-xs text-gray-600">Select all categories that apply to your stall:</p>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {availableCategories.map((category) => (
-                          <div
-                            key={category}
-                            onClick={() => toggleCategory(category)}
-                            className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                              stallForm.categories.includes(category)
-                                ? 'bg-[#6d031e] text-white border-[#6d031e]'
-                                : 'bg-white text-gray-700 border-gray-200 hover:border-[#6d031e] hover:bg-red-50'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium">{category}</span>
-                              {stallForm.categories.includes(category) && (
-                                <CheckCircle className="w-4 h-4" />
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      {stallForm.categories.length === 0 && (
-                        <p className="text-sm text-red-600 mt-1">
-                          Please select at least one category
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="mt-2">
-                      {stallInfo?.categories && stallInfo.categories.length > 0 ? (
-                        <div className="flex flex-wrap gap-2">
-                          {stallInfo.categories.map((category: string) => (
-                            <Badge
-                              key={category}
-                              className="bg-[#6d031e] text-white hover:bg-red-700"
-                            >
-                              {category}
-                            </Badge>
-                          ))}
-                        </div>
-                      ) : stallInfo?.category ? (
-                        <Badge className="bg-[#6d031e] text-white hover:bg-red-700">
-                          {stallInfo.category}
-                        </Badge>
-                      ) : (
-                        <p className="text-sm text-gray-500">No categories set</p>
-                      )}
-                    </div>
                   )}
                 </div>
 

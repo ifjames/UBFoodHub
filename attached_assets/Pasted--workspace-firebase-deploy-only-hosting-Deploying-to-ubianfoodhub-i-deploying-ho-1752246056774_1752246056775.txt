@@ -1,0 +1,99 @@
+~/workspace$ firebase deploy --only hosting
+
+=== Deploying to 'ubianfoodhub'...
+
+i  deploying hosting
+i  hosting[ubianfoodhub]: beginning deploy...
+i  hosting[ubianfoodhub]: found 7 files in dist
+✔  hosting[ubianfoodhub]: file upload complete
+i  hosting[ubianfoodhub]: finalizing version...
+✔  hosting[ubianfoodhub]: version finalized
+i  hosting[ubianfoodhub]: releasing new version...
+✔  hosting[ubianfoodhub]: release complete
+
+✔  Deploy complete!
+
+Project Console: https://console.firebase.google.com/project/ubianfoodhub/overview
+Hosting URL: https://ubianfoodhub.web.app
+~/workspace$ npm run build
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.19 building for production...
+transforming (3) src/main.tsxBrowserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ 2432 modules transformed.
+../dist/public/index.html                     0.40 kB │ gzip:   0.26 kB
+../dist/public/assets/index-vveCaGDT.css     86.52 kB │ gzip:  14.37 kB
+../dist/public/assets/index-CCoiBczb.js   1,199.15 kB │ gzip: 318.38 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 8.24s
+
+  dist/index.js  27.5kb
+
+⚡ Done in 6ms
+~/workspace$ firebase deploy --only hosting
+
+=== Deploying to 'ubianfoodhub'...
+
+i  deploying hosting
+i  hosting[ubianfoodhub]: beginning deploy...
+i  hosting[ubianfoodhub]: found 7 files in dist
+✔  hosting[ubianfoodhub]: file upload complete
+i  hosting[ubianfoodhub]: finalizing version...
+✔  hosting[ubianfoodhub]: version finalized
+i  hosting[ubianfoodhub]: releasing new version...
+✔  hosting[ubianfoodhub]: release complete
+
+✔  Deploy complete!
+
+Project Console: https://console.firebase.google.com/project/ubianfoodhub/overview
+Hosting URL: https://ubianfoodhub.web.app
+~/workspace$ cd client
+~/workspace/client$ npm run build
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.19 building for production...
+transforming (3) src/main.tsxBrowserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ 2432 modules transformed.
+../dist/public/index.html                     0.40 kB │ gzip:   0.26 kB
+../dist/public/assets/index-vveCaGDT.css     86.52 kB │ gzip:  14.37 kB
+../dist/public/assets/index-CCoiBczb.js   1,199.15 kB │ gzip: 318.38 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 9.77s
+
+  dist/index.js  27.5kb
+
+⚡ Done in 7ms
+~/workspace/client$ firebase deploy --only hosting
+
+=== Deploying to 'ubianfoodhub'...
+
+i  deploying hosting
+i  hosting[ubianfoodhub]: beginning deploy...
+i  hosting[ubianfoodhub]: found 7 files in dist
+✔  hosting[ubianfoodhub]: file upload complete
+i  hosting[ubianfoodhub]: finalizing version...
+✔  hosting[ubianfoodhub]: version finalized
+i  hosting[ubianfoodhub]: releasing new version...
+✔  hosting[ubianfoodhub]: release complete
+
+✔  Deploy complete!
+
+Project Console: https://console.firebase.google.com/project/ubianfoodhub/overview
+Hosting URL: https://ubianfoodhub.web.app
+~/workspace/client$ 

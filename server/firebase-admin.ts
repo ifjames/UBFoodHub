@@ -1,15 +1,25 @@
 import admin from 'firebase-admin';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 let app: admin.app.App;
 let authInstance: admin.auth.Auth | null = null;
 
 try {
   if (!admin.apps || admin.apps.length === 0) {
-    if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-      throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is not set');
-    }
+    let serviceAccount;
 
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    } else {
+      const keyPath = join(__dirname, 'config', 'firebase-admin-key.json');
+      const keyFile = readFileSync(keyPath, 'utf8');
+      serviceAccount = JSON.parse(keyFile);
+    }
 
     app = admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),

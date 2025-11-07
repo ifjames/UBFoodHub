@@ -53,6 +53,8 @@ export default function Restaurant() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [reviewsWithOrderDetails, setReviewsWithOrderDetails] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const reviewsPerPage = 5;
   
   // Debug effect to track reviews state changes
   useEffect(() => {
@@ -451,7 +453,7 @@ export default function Restaurant() {
       </div>
 
       {/* Student Reviews Section */}
-      <div className="bg-white p-4 md:p-6 mb-2">
+      <div className="bg-white p-4 md:p-6 mb-24">
         <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4">Student Reviews</h2>
         
         {isLoading ? (
@@ -459,8 +461,11 @@ export default function Restaurant() {
             <p className="text-gray-600">Loading reviews...</p>
           </div>
         ) : reviewsWithOrderDetails && reviewsWithOrderDetails.length > 0 ? (
-          <div className="space-y-4 max-h-[500px] md:max-h-[600px] overflow-y-auto">
-            {reviewsWithOrderDetails.map((review) => (
+          <div>
+            <div className="space-y-4">
+              {reviewsWithOrderDetails
+                .slice((currentPage - 1) * reviewsPerPage, currentPage * reviewsPerPage)
+                .map((review) => (
               <div
                 key={review.id}
                 className="border-b pb-4 last:border-b-0"
@@ -532,6 +537,47 @@ export default function Restaurant() {
                 )}
               </div>
             ))}
+          </div>
+          
+          {/* Pagination Controls */}
+          {reviewsWithOrderDetails.length > reviewsPerPage && (
+            <div className="flex justify-center items-center gap-2 mt-6">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                data-testid="button-prev-page"
+                className="text-sm"
+              >
+                Previous
+              </Button>
+              
+              {Array.from({ length: Math.ceil(reviewsWithOrderDetails.length / reviewsPerPage) }, (_, i) => i + 1).map((page) => (
+                <Button
+                  key={page}
+                  variant={currentPage === page ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setCurrentPage(page)}
+                  data-testid={`button-page-${page}`}
+                  className={currentPage === page ? "bg-[#6d031e] hover:bg-[#820d2a]" : ""}
+                >
+                  {page}
+                </Button>
+              ))}
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(Math.ceil(reviewsWithOrderDetails.length / reviewsPerPage), prev + 1))}
+                disabled={currentPage === Math.ceil(reviewsWithOrderDetails.length / reviewsPerPage)}
+                data-testid="button-next-page"
+                className="text-sm"
+              >
+                Next
+              </Button>
+            </div>
+          )}
           </div>
         ) : (
           <div className="text-center py-8">

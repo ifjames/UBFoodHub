@@ -16,7 +16,7 @@ import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/lib/store";
 import { motion, AnimatePresence } from "framer-motion";
-import { getDocument, subscribeToQuery, addDocument, getDocuments } from "@/lib/firebase";
+import { getDocument, subscribeToQuery, addDocument, getDocuments, toggleFavorite, checkIfFavorite } from "@/lib/firebase";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { useQuery } from "@tanstack/react-query";
 
@@ -55,6 +55,8 @@ export default function Restaurant() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const reviewsPerPage = 5;
+  const [liked, setLiked] = useState(false);
+  const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
   
   // Debug effect to track reviews state changes
   useEffect(() => {
@@ -92,6 +94,100 @@ export default function Restaurant() {
       setPickupTime("5-20 min");
     }
   };
+
+  const handleFavorite = async () => {
+    if (!state.user?.uid) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to add favorites",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isFavoriteLoading || !restaurantId) return;
+
+    setIsFavoriteLoading(true);
+    try {
+      const newLikedState = await toggleFavorite(state.user.uid, restaurantId);
+      setLiked(newLikedState);
+      
+      toast({
+        title: newLikedState ? "Added to favorites" : "Removed from favorites",
+        description: newLikedState 
+          ? `${stall?.name} has been added to your favorites`
+          : `${stall?.name} has been removed from your favorites`,
+      });
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update favorites. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsFavoriteLoading(false);
+    }
+  };
+
+  const handleInfo = () => {
+    toast({
+      title: stall?.name || "Restaurant Info",
+      description: stall?.description || "Food stall serving delicious meals at UB",
+    });
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: stall?.name || "Check out this restaurant",
+          text: `Check out ${stall?.name || "this restaurant"} on UB Food Ordering App!`,
+          url: url,
+        });
+        toast({
+          title: "Shared successfully",
+          description: "Thanks for sharing!",
+        });
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error("Error sharing:", error);
+        }
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        toast({
+          title: "Link copied!",
+          description: "Restaurant link has been copied to clipboard",
+        });
+      } catch (error) {
+        console.error("Error copying to clipboard:", error);
+        toast({
+          title: "Error",
+          description: "Failed to copy link. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      if (state.user?.uid && restaurantId) {
+        try {
+          const isFavorite = await checkIfFavorite(state.user.uid, restaurantId);
+          setLiked(isFavorite);
+        } catch (error) {
+          console.error("Error checking favorite status:", error);
+        }
+      }
+    };
+
+    checkFavoriteStatus();
+  }, [state.user?.uid, restaurantId]);
 
   useEffect(() => {
     if (restaurantId) {
@@ -304,13 +400,34 @@ export default function Restaurant() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="rounded-full text-white hover:bg-red-700">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleInfo}
+              data-testid="button-info"
+              className="rounded-full text-white hover:bg-red-700"
+            >
               <Info className="w-5 h-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="rounded-full text-white hover:bg-red-700">
-              <Heart className="w-5 h-5" />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleFavorite}
+              disabled={isFavoriteLoading}
+              data-testid="button-favorite"
+              className="rounded-full text-white hover:bg-red-700"
+            >
+              <Heart className={`w-5 h-5 transition-colors ${
+                liked ? "fill-red-500" : ""
+              }`} />
             </Button>
-            <Button variant="ghost" size="icon" className="rounded-full text-white hover:bg-red-700">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleShare}
+              data-testid="button-share"
+              className="rounded-full text-white hover:bg-red-700"
+            >
               <Share className="w-5 h-5" />
             </Button>
           </div>

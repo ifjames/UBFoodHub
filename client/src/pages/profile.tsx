@@ -70,6 +70,13 @@ export default function Profile() {
 
   const generalItems = [
     { 
+      icon: Settings, 
+      title: "Settings", 
+      subtitle: isAdminOrStallOwner ? "Admin/Staff access restricted" : "Account preferences",
+      locked: isAdminOrStallOwner,
+      action: () => setLocation("/settings")
+    },
+    { 
       icon: HelpCircle, 
       title: "Help center", 
       subtitle: isAdminOrStallOwner ? "Admin/Staff access restricted" : "FAQs and support",
@@ -131,11 +138,12 @@ export default function Profile() {
             </button>
             <h1 className="text-lg font-semibold">Account</h1>
           </div>
-          {/* Hide settings button for admin and stall owners */}
+          {/* Settings button - mobile only */}
           {!isAdminOrStallOwner && (
             <button 
               onClick={() => setLocation("/settings")}
-              className="text-red-200 hover:text-white p-2 hover:bg-red-700 rounded-full transition-colors"
+              className="text-red-200 hover:text-white p-2 hover:bg-red-700 rounded-full transition-colors md:hidden"
+              data-testid="button-settings-mobile"
             >
               <Settings className="h-5 w-5" />
             </button>
@@ -209,8 +217,9 @@ export default function Profile() {
             {generalItems.map((item, index) => (
               <Card 
                 key={index} 
-                className={`${item.locked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-md'} transition-shadow`}
+                className={`${item.locked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-md'} transition-shadow ${item.title === 'Settings' ? 'hidden md:block' : ''}`}
                 onClick={item.locked ? undefined : item.action}
+                data-testid={`card-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
               >
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">

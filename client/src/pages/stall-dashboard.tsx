@@ -284,7 +284,8 @@ export default function StallDashboard() {
         stock: parseInt(itemForm.stock.toString()) || 0,
         stallId: stallId,
         customizations: itemForm.customizations.filter(c => c.name.trim() !== ""),
-        createdAt: new Date()
+        createdAt: new Date(),
+        displayOrder: editingItem?.displayOrder ?? menuItems.length
       };
       
       console.log("Saving menu item with stallId:", stallId);
@@ -356,6 +357,53 @@ export default function StallDashboard() {
       toast({
         title: "Error",
         description: "Failed to delete menu item",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleMenuItemDragEnd = async (result: any) => {
+    if (!result.destination) return;
+
+    const sourceIndex = result.source.index;
+    const destIndex = result.destination.index;
+
+    if (sourceIndex === destIndex) return;
+
+    const sortedItems = [...filteredMenuItems].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+    const [movedItem] = sortedItems.splice(sourceIndex, 1);
+    sortedItems.splice(destIndex, 0, movedItem);
+
+    const updatedItems = sortedItems.map((item, index) => ({
+      ...item,
+      displayOrder: index
+    }));
+
+    setMenuItems(prevItems => {
+      const itemsMap = new Map(prevItems.map(item => [item.id, item]));
+      updatedItems.forEach(updated => {
+        if (itemsMap.has(updated.id)) {
+          itemsMap.set(updated.id, updated);
+        }
+      });
+      return Array.from(itemsMap.values());
+    });
+
+    try {
+      await Promise.all(
+        updatedItems.map(item =>
+          updateDocument("menuItems", item.id, { displayOrder: item.displayOrder })
+        )
+      );
+      toast({
+        title: "Success",
+        description: "Menu order updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating menu order:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update menu order",
         variant: "destructive",
       });
     }
@@ -1278,77 +1326,103 @@ export default function StallDashboard() {
               </CardContent>
             </Card>
 
-            <div className="grid gap-4">
-              {filteredMenuItems.map((item) => (
-                <Card key={item.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                        {item.image ? (
-                          <img src={item.image} alt={item.name} className="w-full h-full object-cover rounded-lg" />
-                        ) : (
-                          <ImageIcon className="w-8 h-8 text-gray-400" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-[#6d031e]">{item.name}</h3>
-                          {item.isPopular && <Star className="w-4 h-4 text-yellow-500 fill-current" />}
-                        </div>
-                        <p className="text-sm text-gray-600">{item.description}</p>
-                        <div className="flex items-center gap-3 mt-1">
-                          <p className="text-lg font-bold text-gray-900">₱{item.price?.toFixed(2)}</p>
-                          <Badge 
-                            variant="outline" 
-                            className={`${
-                              (item.stock ?? 0) === 0 
-                                ? 'bg-red-50 text-red-700 border-red-200' 
-                                : (item.stock ?? 0) < 10 
-                                  ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                                  : 'bg-green-50 text-green-700 border-green-200'
-                            }`}
+            <DragDropContext onDragEnd={handleMenuItemDragEnd}>
+              <Droppable droppableId="menu-items">
+                {(provided) => (
+                  <div
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className="grid gap-4"
+                  >
+                    {filteredMenuItems.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)).map((item, index) => (
+                      <Draggable key={item.id} draggableId={item.id} index={index}>
+                        {(provided, snapshot) => (
+                          <Card
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className={snapshot.isDragging ? "shadow-lg" : ""}
                           >
-                            Stock: {item.stock ?? 0}
-                          </Badge>
-                        </div>
-                        {item.customizations && item.customizations.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {item.customizations.map((custom: any, index: number) => (
-                              <Badge key={index} variant="outline" className="text-xs">
-                                {custom.name} {custom.price > 0 ? `+₱${custom.price}` : ''}
-                              </Badge>
-                            ))}
-                          </div>
+                            <CardContent className="p-4">
+                              <div className="flex items-center gap-4">
+                                <div
+                                  {...provided.dragHandleProps}
+                                  className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+                                  data-testid={`drag-handle-${item.id}`}
+                                >
+                                  <GripVertical className="w-5 h-5" />
+                                </div>
+                                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                                  {item.image ? (
+                                    <img src={item.image} alt={item.name} className="w-full h-full object-cover rounded-lg" />
+                                  ) : (
+                                    <ImageIcon className="w-8 h-8 text-gray-400" />
+                                  )}
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <h3 className="font-semibold text-[#6d031e]">{item.name}</h3>
+                                    {item.isPopular && <Star className="w-4 h-4 text-yellow-500 fill-current" />}
+                                  </div>
+                                  <p className="text-sm text-gray-600">{item.description}</p>
+                                  <div className="flex items-center gap-3 mt-1">
+                                    <p className="text-lg font-bold text-gray-900">₱{item.price?.toFixed(2)}</p>
+                                    <Badge 
+                                      variant="outline" 
+                                      className={`${
+                                        (item.stock ?? 0) === 0 
+                                          ? 'bg-red-50 text-red-700 border-red-200' 
+                                          : (item.stock ?? 0) < 10 
+                                            ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                            : 'bg-green-50 text-green-700 border-green-200'
+                                      }`}
+                                    >
+                                      Stock: {item.stock ?? 0}
+                                    </Badge>
+                                  </div>
+                                  {item.customizations && item.customizations.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mt-2">
+                                      {item.customizations.map((custom: any, index: number) => (
+                                        <Badge key={index} variant="outline" className="text-xs">
+                                          {custom.name} {custom.price > 0 ? `+₱${custom.price}` : ''}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    checked={item.isAvailable}
+                                    onCheckedChange={() => toggleItemAvailability(item.id, item.isAvailable)}
+                                  />
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => editMenuItem(item)}
+                                    className="text-gray-700 border-gray-300 hover:bg-gray-100 hover:text-gray-900"
+                                    data-testid={`button-edit-${item.id}`}
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => deleteMenuItem(item.id)}
+                                    className="text-red-700 border-red-300 hover:bg-red-100 hover:border-red-400"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
                         )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={item.isAvailable}
-                          onCheckedChange={() => toggleItemAvailability(item.id, item.isAvailable)}
-                        />
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => editMenuItem(item)}
-                          className="text-gray-700 border-gray-300 hover:bg-gray-100 hover:text-gray-900"
-                          data-testid={`button-edit-${item.id}`}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => deleteMenuItem(item.id)}
-                          className="text-red-700 border-red-300 hover:bg-red-100 hover:border-red-400"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
           </motion.div>
         )}
 

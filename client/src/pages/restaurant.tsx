@@ -52,6 +52,7 @@ export default function Restaurant() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [reviewsWithOrderDetails, setReviewsWithOrderDetails] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [dynamicCompletionTime, setDynamicCompletionTime] = useState<string>("");
   
   // Debug effect to track reviews state changes
   useEffect(() => {
@@ -60,12 +61,44 @@ export default function Restaurant() {
 
   const restaurantId = params.id;
 
+  // Calculate dynamic order completion time based on completed orders
+  const calculateCompletionTime = async (stallId: string) => {
+    try {
+      const completedOrders = await getDocuments("orders", "stallId", "==", stallId);
+      const ordersWithTimes = completedOrders.filter(
+        (order: any) => order.status === "completed" && order.createdAt && order.updatedAt
+      );
+
+      if (ordersWithTimes.length > 0) {
+        const totalMinutes = ordersWithTimes.reduce((sum: number, order: any) => {
+          const createdAt = order.createdAt.toDate();
+          const updatedAt = order.updatedAt.toDate();
+          const diffMs = updatedAt - createdAt;
+          const diffMinutes = Math.floor(diffMs / (1000 * 60));
+          return sum + diffMinutes;
+        }, 0);
+
+        const avgMinutes = Math.round(totalMinutes / ordersWithTimes.length);
+        const minTime = Math.max(10, avgMinutes - 5);
+        const maxTime = avgMinutes + 5;
+        setDynamicCompletionTime(`${minTime}-${maxTime} min`);
+      } else {
+        setDynamicCompletionTime("15-30 min");
+      }
+    } catch (error) {
+      console.error("Error calculating completion time:", error);
+      setDynamicCompletionTime("15-30 min");
+    }
+  };
+
   useEffect(() => {
     if (restaurantId) {
       // Get stall information
       getDocument("stalls", restaurantId).then((doc) => {
         if (doc.exists()) {
           setStall({ id: doc.id, ...doc.data() });
+          // Calculate dynamic order completion time
+          calculateCompletionTime(restaurantId);
         }
       });
 
@@ -301,12 +334,9 @@ export default function Restaurant() {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-sm md:text-base text-gray-600 mb-4">
-          <div className="flex items-center gap-1">
-            <Clock className="w-4 h-4 md:w-5 md:h-5" />
-            <span>Pickup ready in {stall.deliveryTime || "15-40 min"}</span>
-          </div>
-          <span>No additional fees for pickup</span>
+        <div className="flex items-center gap-1 text-sm md:text-base text-gray-600 mb-4">
+          <Clock className="w-4 h-4 md:w-5 md:h-5" />
+          <span>Pickup ready in {dynamicCompletionTime || "15-30 min"}</span>
         </div>
 
 

@@ -38,17 +38,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         body: formData
       });
 
-      if (!response.ok) {
-        throw new Error('ImgBB upload failed');
-      }
-
       const data = await response.json() as any;
+      
+      if (!response.ok) {
+        console.error('ImgBB API Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          data: data,
+          apiKey: IMGBB_API_KEY ? 'Set' : 'Missing'
+        });
+        throw new Error(`ImgBB upload failed: ${data.error?.message || response.statusText}`);
+      }
       
       // Return the image URL
       res.json({ url: data.data.url });
-    } catch (error) {
-      console.error("Image upload error:", error);
-      res.status(500).json({ message: "Failed to upload image" });
+    } catch (error: any) {
+      console.error("Image upload error:", error.message || error);
+      res.status(500).json({ message: error.message || "Failed to upload image" });
     }
   });
 

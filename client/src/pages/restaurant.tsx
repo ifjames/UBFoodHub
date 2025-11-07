@@ -459,7 +459,7 @@ export default function Restaurant() {
             <p className="text-gray-600">Loading reviews...</p>
           </div>
         ) : reviewsWithOrderDetails && reviewsWithOrderDetails.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-4 max-h-[500px] md:max-h-[600px] overflow-y-auto">
             {reviewsWithOrderDetails.map((review) => (
               <div
                 key={review.id}

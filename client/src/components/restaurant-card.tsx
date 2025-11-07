@@ -4,7 +4,6 @@ import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
 import { toggleFavorite, checkIfFavorite } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
 
 interface RestaurantCardProps {
   restaurant: {
@@ -27,13 +26,6 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { state } = useStore();
   const { toast } = useToast();
-
-  const { data: stats } = useQuery<{
-    priceRange: string | null;
-    avgCompletionTime: string | null;
-  }>({
-    queryKey: ['/api/restaurants', restaurant.id, 'stats'],
-  });
 
   useEffect(() => {
     const checkFavoriteStatus = async () => {
@@ -116,12 +108,12 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
           {restaurant.name}
         </h3>
         
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-start justify-between gap-2">
           <p className="text-xs text-gray-500 line-clamp-1" data-testid={`text-price-${restaurant.id}`}>
-            {stats?.priceRange || '--'}
+            {restaurant.priceRange || '--'}
           </p>
           
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
             <div className="flex items-center gap-0.5">
               <Star className="h-3.5 w-3.5 text-orange-400 fill-orange-400" />
               <span className="text-xs font-medium text-gray-700">
@@ -129,9 +121,9 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
               </span>
             </div>
             
-            {stats?.avgCompletionTime && (
+            {restaurant.deliveryTime && (
               <span className="text-xs text-gray-500" data-testid={`text-time-${restaurant.id}`}>
-                {stats.avgCompletionTime}
+                {restaurant.deliveryTime}
               </span>
             )}
           </div>

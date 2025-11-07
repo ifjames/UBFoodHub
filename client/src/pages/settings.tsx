@@ -331,11 +331,11 @@ export default function Settings() {
       return;
     }
 
-    // Validate file size (max 10MB for Cloudinary)
-    if (file.size > 10 * 1024 * 1024) {
+    // Validate file size (max 32MB for ImgBB)
+    if (file.size > 32 * 1024 * 1024) {
       toast({
         title: "File too large",
-        description: "Please select an image smaller than 10MB.",
+        description: "Please select an image smaller than 32MB.",
         variant: "destructive",
       });
       return;
@@ -343,7 +343,6 @@ export default function Settings() {
 
     setIsUpdatingProfile(true);
     try {
-      // Check both store user and Firebase auth
       if (!state.user) {
         toast({
           title: "Not logged in",
@@ -352,120 +351,62 @@ export default function Settings() {
         });
         return;
       }
-      
-      // Force wait for Firebase auth to be ready with timeout
-      const authPromise = auth.authStateReady();
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Auth timeout')), 5000);
+
+      // Upload image to ImgBB via backend
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const uploadResponse = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
       });
-      
-      try {
-        await Promise.race([authPromise, timeoutPromise]);
-      } catch (error) {
-        if (error.message === 'Auth timeout') {
-          console.warn("Firebase auth taking too long, continuing anyway");
-        }
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload image');
       }
-      
+
+      const { url: photoURL } = await uploadResponse.json();
+
+      // Wait for Firebase auth to be ready
+      await auth.authStateReady();
       let user = auth.currentUser;
-      
+
       // If user is still null, wait for auth state change
       if (!user) {
-        console.log("Waiting for auth state change...");
         user = await new Promise((resolve) => {
           const unsubscribe = auth.onAuthStateChanged((authUser) => {
             unsubscribe();
             resolve(authUser);
           });
           
-          // Timeout after 3 seconds
           setTimeout(() => {
             unsubscribe();
             resolve(null);
           }, 3000);
         });
       }
-      
-      console.log("Profile picture - Current user:", user ? "Found" : "Not found");
-      console.log("Store user:", state.user?.email);
-      
-      // Use store user data if Firebase auth user is null but we have store user
-      const userEmail = user?.email || state.user?.email;
-      const userUid = user?.uid || state.user?.uid;
-      
-      if (!userEmail || !userUid) {
-        toast({
-          title: "Authentication required",
-          description: "Please log out and log back in to continue.",
-          variant: "destructive",
-        });
-        setLocation("/login");
-        return;
-      }
 
-      // If we don't have Firebase user object, we need to get it properly
-      if (!user) {
-        console.log("Firebase user not found, but store user exists. Continuing with store data.");
-        // For profile picture upload, we need the Firebase user object
-        // Let's try to wait a bit more for Firebase auth to sync
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        user = auth.currentUser;
-        
-        if (!user) {
-          toast({
-            title: "Authentication sync issue",
-            description: "Please refresh the page to sync your authentication state.",
-            variant: "destructive",
+      // Update Firebase Auth profile if user is available
+      if (user) {
+        try {
+          await updateProfile(user, { photoURL });
+          
+          // Update Firestore document
+          await updateDocument("users", user.uid, {
+            photoURL,
+            updatedAt: new Date()
           });
-          return;
+        } catch (error) {
+          console.log("Firebase update skipped:", error);
         }
-      }
-
-      // Upload to Cloudinary using signed upload
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('api_key', import.meta.env.VITE_CLOUDINARY_API_KEY || '914293414295782');
-      formData.append('timestamp', Math.floor(Date.now() / 1000).toString());
-      formData.append('folder', `ub-foodhub/profile-pictures/${user.uid}`);
-      
-      // For now, use unsigned upload (we'll need to create an upload preset)
-      // Instead, let's use a simple approach with base64 encoding
-
-      // Convert file to base64 and store it temporarily
-      // For now, let's use a simple data URL approach
-      const reader = new FileReader();
-      const photoURL = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-
-      console.log("About to update profile with photoURL, user:", user?.email);
-
-      // Update Firebase Auth profile
-      await updateProfile(user, {
-        photoURL: photoURL
-      });
-
-      console.log("Firebase profile updated successfully");
-
-      // Update user document in Firestore (optional - skip if it fails)
-      try {
-        await updateDocument("users", user.uid, {
-          photoURL: photoURL,
-          updatedAt: new Date()
-        });
-      } catch (firestoreError) {
-        console.log("Firestore update skipped:", firestoreError);
-        // Continue anyway as the auth profile was updated
       }
 
       // Update local state
       dispatch({
         type: "SET_USER",
         payload: {
-          ...state.user!,
-          photoURL: photoURL
+          ...state.user,
+          photoURL
         }
       });
 
@@ -482,6 +423,9 @@ export default function Settings() {
       });
     } finally {
       setIsUpdatingProfile(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -731,26 +675,7 @@ export default function Settings() {
                       <h3 className="font-semibold text-gray-800 text-lg">
                         {state.user?.fullName || "Student Name"}
                       </h3>
-                      <p className="text-sm text-gray-600 mb-3">Click the camera icon to update your picture</p>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={syncGoogleProfilePicture}
-                        disabled={isUpdatingProfile}
-                        className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                      >
-                        {isUpdatingProfile ? (
-                          <>
-                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
-                            Syncing...
-                          </>
-                        ) : (
-                          <>
-                            <Camera className="h-3 w-3 mr-2" />
-                            Sync Google Photo
-                          </>
-                        )}
-                      </Button>
+                      <p className="text-sm text-gray-600">Click the camera icon to update your picture</p>
                     </div>
                   </div>
                   <input
@@ -1038,25 +963,6 @@ export default function Settings() {
                   {state.user?.fullName || "Student Name"}
                 </h3>
                 <p className="text-sm text-gray-600">Tap the camera icon to update</p>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={syncGoogleProfilePicture}
-                  disabled={isUpdatingProfile}
-                  className="mt-2 text-blue-600 border-blue-200 hover:bg-blue-50"
-                >
-                  {isUpdatingProfile ? (
-                    <>
-                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
-                      Syncing...
-                    </>
-                  ) : (
-                    <>
-                      <Camera className="h-3 w-3 mr-2" />
-                      Sync Google Photo
-                    </>
-                  )}
-                </Button>
               </div>
             </div>
             <input

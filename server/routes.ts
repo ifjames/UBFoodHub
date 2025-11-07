@@ -22,7 +22,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No image file provided" });
       }
 
-      const IMGBB_API_KEY = process.env.IMGBB_API_KEY || "7dba7ac9b1a4a279b72a9c1b38c2b5c0";
+      const IMGBB_API_KEY = process.env.IMGBB_API_KEY;
+      
+      if (!IMGBB_API_KEY) {
+        return res.status(500).json({ message: "Image upload service not configured" });
+      }
       
       // Convert buffer to base64
       const base64Image = req.file.buffer.toString('base64');

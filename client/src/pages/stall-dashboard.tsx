@@ -61,6 +61,7 @@ import CancellationRequestManagement from "@/components/orders/cancellation-requ
 import NotificationService from "@/lib/notification-service";
 import BottomNav from "@/components/layout/bottom-nav";
 import QRScanner from "@/components/qr-scanner";
+import { ImageUpload } from "@/components/image-upload";
 
 
 export default function StallDashboard() {
@@ -1839,39 +1840,32 @@ export default function StallDashboard() {
                 {/* Stall Image */}
                 <div>
                   <Label htmlFor="stall-image" className="text-sm font-medium">
-                    Stall Image URL
+                    Stall Image
                   </Label>
                   {isEditingStall ? (
-                    <div className="mt-1 space-y-2">
-                      <Input
-                        id="stall-image"
+                    <div className="mt-1">
+                      <ImageUpload
                         value={stallForm.image}
-                        onChange={(e) => setStallForm(prev => ({ ...prev, image: e.target.value }))}
-                        placeholder="https://example.com/stall-image.jpg"
+                        onChange={(url) => setStallForm(prev => ({ ...prev, image: url }))}
                       />
-                      <p className="text-xs text-gray-600">
-                        Provide a URL for your stall's image. This will be shown to customers.
+                      <p className="text-xs text-gray-600 mt-2">
+                        Upload an image for your stall. This will be shown to customers.
                       </p>
                     </div>
                   ) : (
                     <div className="mt-2">
                       {stallInfo?.image ? (
-                        <div className="space-y-2">
-                          <img
-                            src={stallInfo.image}
-                            alt={stallInfo.name}
-                            className="w-32 h-32 object-cover rounded-lg border"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                            }}
-                          />
-                          <p className="text-xs text-gray-600 break-all">
-                            {stallInfo.image}
-                          </p>
-                        </div>
+                        <img
+                          src={stallInfo.image}
+                          alt={stallInfo.name}
+                          className="w-full max-w-md h-48 object-cover rounded-lg border"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
+                        />
                       ) : (
-                        <div className="w-32 h-32 bg-gray-100 rounded-lg border flex items-center justify-center">
+                        <div className="w-full max-w-md h-48 bg-gray-100 rounded-lg border flex items-center justify-center">
                           <div className="text-center">
                             <ImageIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                             <p className="text-xs text-gray-500">No image</p>
@@ -2001,13 +1995,12 @@ export default function StallDashboard() {
             </div>
 
             <div>
-              <Label htmlFor="image">Image URL</Label>
-              <Input
-                id="image"
+              <Label htmlFor="image">Menu Item Image</Label>
+              <ImageUpload
                 value={itemForm.image}
-                onChange={(e) => setItemForm(prev => ({ ...prev, image: e.target.value }))}
-                placeholder="https://example.com/image.jpg"
+                onChange={(url) => setItemForm(prev => ({ ...prev, image: url }))}
               />
+              <p className="text-xs text-gray-500 mt-1">Upload an image for this menu item</p>
             </div>
 
             <div className="space-y-3">

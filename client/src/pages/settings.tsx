@@ -647,22 +647,25 @@ export default function Settings() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="flex items-center space-x-6">
-                    <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center relative overflow-hidden">
-                      {state.user?.photoURL ? (
-                        <img 
-                          src={state.user.photoURL} 
-                          alt={state.user.fullName}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-[#6d031e] text-3xl font-semibold">
-                          {state.user?.fullName?.charAt(0) || "U"}
-                        </span>
-                      )}
+                    <div className="relative">
+                      <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center overflow-hidden">
+                        {state.user?.photoURL ? (
+                          <img 
+                            src={state.user.photoURL} 
+                            alt={state.user.fullName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-[#6d031e] text-3xl font-semibold">
+                            {state.user?.fullName?.charAt(0) || "U"}
+                          </span>
+                        )}
+                      </div>
                       <button
                         onClick={handleProfilePictureUpdate}
                         disabled={isUpdatingProfile}
-                        className="absolute bottom-0 right-0 w-8 h-8 bg-[#6d031e] text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors disabled:opacity-50 border-2 border-white shadow-lg"
+                        className="absolute top-0 right-0 w-8 h-8 bg-[#6d031e] text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors disabled:opacity-50 border-2 border-white shadow-lg"
+                        data-testid="button-upload-profile-picture"
                       >
                         {isUpdatingProfile ? (
                           <div className="animate-spin rounded-full h-4 w-4 border border-white border-t-transparent"></div>
@@ -934,22 +937,25 @@ export default function Settings() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center space-x-4">
-              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center relative overflow-hidden">
-                {state.user?.photoURL ? (
-                  <img 
-                    src={state.user.photoURL} 
-                    alt={state.user.fullName}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-[#6d031e] text-2xl font-semibold">
-                    {state.user?.fullName?.charAt(0) || "U"}
-                  </span>
-                )}
+              <div className="relative">
+                <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center overflow-hidden">
+                  {state.user?.photoURL ? (
+                    <img 
+                      src={state.user.photoURL} 
+                      alt={state.user.fullName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-[#6d031e] text-2xl font-semibold">
+                      {state.user?.fullName?.charAt(0) || "U"}
+                    </span>
+                  )}
+                </div>
                 <button
                   onClick={handleProfilePictureUpdate}
                   disabled={isUpdatingProfile}
-                  className="absolute bottom-0 right-0 w-7 h-7 bg-[#6d031e] text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors disabled:opacity-50 border-2 border-white shadow-sm"
+                  className="absolute top-0 right-0 w-7 h-7 bg-[#6d031e] text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors disabled:opacity-50 border-2 border-white shadow-sm"
+                  data-testid="button-upload-profile-picture-mobile"
                 >
                   {isUpdatingProfile ? (
                     <div className="animate-spin rounded-full h-3 w-3 border border-white border-t-transparent"></div>

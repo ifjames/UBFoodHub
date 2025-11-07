@@ -2,8 +2,55 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, insertCartItemSchema, insertOrderSchema, insertReviewSchema } from "@shared/schema";
+import multer from "multer";
+import FormData from "form-data";
+import fetch from "node-fetch";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup multer for file uploads
+  const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 32 * 1024 * 1024, // 32MB max
+    }
+  });
+
+  // Image upload route
+  app.post("/api/upload-image", upload.single("image"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file provided" });
+      }
+
+      const IMGBB_API_KEY = process.env.IMGBB_API_KEY || "7dba7ac9b1a4a279b72a9c1b38c2b5c0";
+      
+      // Convert buffer to base64
+      const base64Image = req.file.buffer.toString('base64');
+      
+      // Create form data for ImgBB
+      const formData = new FormData();
+      formData.append('image', base64Image);
+      
+      // Upload to ImgBB
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('ImgBB upload failed');
+      }
+
+      const data = await response.json() as any;
+      
+      // Return the image URL
+      res.json({ url: data.data.url });
+    } catch (error) {
+      console.error("Image upload error:", error);
+      res.status(500).json({ message: "Failed to upload image" });
+    }
+  });
+
   // Auth routes
   app.post("/api/auth/login", async (req, res) => {
     try {

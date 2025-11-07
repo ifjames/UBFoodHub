@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { ArrowLeft, Search, ChevronDown, ChevronUp, MessageCircle, Phone, Mail } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp, MessageCircle, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocation } from "wouter";
 import BottomNav from "@/components/layout/bottom-nav";
@@ -10,7 +9,6 @@ import { usePageTitle } from "@/hooks/use-page-title";
 export default function HelpCenter() {
   usePageTitle("Help Center");
   const [, setLocation] = useLocation();
-  const [searchQuery, setSearchQuery] = useState("");
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
 
   const faqs = [
@@ -75,11 +73,6 @@ export default function HelpCenter() {
     }
   ];
 
-  const filteredFAQs = faqs.filter(faq =>
-    faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const toggleFAQ = (index: number) => {
     setExpandedFAQ(expandedFAQ === index ? null : index);
   };
@@ -113,17 +106,6 @@ export default function HelpCenter() {
       </div>
 
       <div className="p-4 space-y-6 pb-20 md:pb-8 max-w-4xl mx-auto">
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-          <Input
-            placeholder="Search for help..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-
         {/* Quick Contact */}
         <Card>
           <CardHeader>
@@ -153,14 +135,9 @@ export default function HelpCenter() {
             <CardTitle>Frequently Asked Questions</CardTitle>
           </CardHeader>
           <CardContent>
-            {filteredFAQs.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">No FAQs found matching your search.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {filteredFAQs.map((faq, index) => (
-                  <div key={index} className="border rounded-lg">
+            <div className="space-y-3">
+              {faqs.map((faq, index) => (
+                <div key={index} className="border rounded-lg">
                     <button
                       onClick={() => toggleFAQ(index)}
                       className="w-full p-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
@@ -177,10 +154,9 @@ export default function HelpCenter() {
                         <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
                       </div>
                     )}
-                  </div>
-                ))}
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
 

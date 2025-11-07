@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useStore } from "@/lib/store";
 import { toggleFavorite, checkIfFavorite } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 
 interface RestaurantCardProps {
   restaurant: {
@@ -28,6 +29,13 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { state } = useStore();
   const { toast } = useToast();
+
+  const { data: stats } = useQuery<{
+    priceRange: string | null;
+    avgCompletionTime: string | null;
+  }>({
+    queryKey: ['/api/restaurants', restaurant.id, 'stats'],
+  });
 
   // Check if restaurant is favorited when component mounts
   useEffect(() => {
@@ -123,9 +131,11 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
           </div>
         </div>
         
-        <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-          {restaurant.deliveryTime} • {restaurant.priceRange} • {restaurant.category}
-        </p>
+        {(stats?.avgCompletionTime || stats?.priceRange) && (
+          <p className="text-sm md:text-base text-gray-600 leading-relaxed" data-testid={`text-stats-${restaurant.id}`}>
+            {[stats.avgCompletionTime, stats.priceRange].filter(Boolean).join(' • ')}
+          </p>
+        )}
       </CardContent>
     </Card>
   );

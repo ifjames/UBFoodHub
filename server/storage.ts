@@ -17,6 +17,10 @@ export interface IStorage {
   getRestaurant(id: number): Promise<Restaurant | undefined>;
   createRestaurant(restaurant: InsertRestaurant): Promise<Restaurant>;
   updateRestaurant(id: number, restaurant: Partial<InsertRestaurant>): Promise<Restaurant | undefined>;
+  getRestaurantStats(restaurantId: number): Promise<{
+    priceRange: string | null;
+    avgCompletionTime: string | null;
+  }>;
   
   // Menu Items
   getMenuItems(restaurantId: number): Promise<MenuItem[]>;
@@ -243,6 +247,44 @@ export class MemStorage implements IStorage {
       return updatedRestaurant;
     }
     return undefined;
+  }
+
+  async getRestaurantStats(restaurantId: number): Promise<{
+    priceRange: string | null;
+    avgCompletionTime: string | null;
+  }> {
+    const menuItems = Array.from(this.menuItems.values()).filter(
+      item => item.restaurantId === restaurantId
+    );
+
+    let priceRange: string | null = null;
+    if (menuItems.length > 0) {
+      const prices = menuItems.map(item => parseFloat(item.price as string));
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      priceRange = `₱${minPrice.toFixed(0)}-${maxPrice.toFixed(0)}`;
+    }
+
+    const completedOrders = Array.from(this.orders.values()).filter(
+      order => order.restaurantId === restaurantId && order.status === 'completed' && order.createdAt && order.updatedAt
+    );
+
+    let avgCompletionTime: string | null = null;
+    if (completedOrders.length > 0) {
+      const totalMinutes = completedOrders.reduce((sum, order) => {
+        const created = new Date(order.createdAt!).getTime();
+        const updated = new Date(order.updatedAt!).getTime();
+        const diffInMinutes = Math.round((updated - created) / (1000 * 60));
+        return sum + diffInMinutes;
+      }, 0);
+      
+      const avgMinutes = Math.round(totalMinutes / completedOrders.length);
+      const minEstimate = Math.max(5, avgMinutes - 5);
+      const maxEstimate = avgMinutes + 5;
+      avgCompletionTime = `${minEstimate}-${maxEstimate} min`;
+    }
+
+    return { priceRange, avgCompletionTime };
   }
 
   // Menu item methods

@@ -89,54 +89,50 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
 
   return (
     <div 
-      className="group relative bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden border border-gray-200"
+      className="group relative bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden border border-gray-200"
       onClick={() => setLocation(`/restaurant/${restaurant.id}`)}
       data-testid={`card-restaurant-${restaurant.id}`}
     >
-      <div className="flex flex-row h-28 md:h-32">
-        <div className="relative w-28 md:w-36 flex-shrink-0">
-          <img
-            src={restaurant.image || "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=300"}
-            alt={restaurant.name}
-            className="w-full h-full object-cover"
-          />
-          <button
-            onClick={handleLike}
-            disabled={isLoading}
-            data-testid={`button-favorite-${restaurant.id}`}
-            className="absolute top-2 right-2 w-7 h-7 bg-white/90 backdrop-blur-sm shadow-md rounded-full flex items-center justify-center hover:scale-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed z-10"
-          >
-            <Heart className={`h-3.5 w-3.5 transition-colors ${
-              liked ? "text-red-500 fill-red-500" : "text-gray-500"
-            } ${isLoading ? "opacity-50" : ""}`} />
-          </button>
-        </div>
+      <div className="relative aspect-[3/2] overflow-hidden bg-gray-100">
+        <img
+          src={restaurant.image || "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=300"}
+          alt={restaurant.name}
+          className="w-full h-full object-cover"
+        />
+        <button
+          onClick={handleLike}
+          disabled={isLoading}
+          data-testid={`button-favorite-${restaurant.id}`}
+          className="absolute top-2 right-2 w-7 h-7 bg-white/90 backdrop-blur-sm shadow-md rounded-full flex items-center justify-center hover:scale-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed z-10"
+        >
+          <Heart className={`h-3.5 w-3.5 transition-colors ${
+            liked ? "text-red-500 fill-red-500" : "text-gray-500"
+          } ${isLoading ? "opacity-50" : ""}`} />
+        </button>
+      </div>
 
-        <div className="flex-1 p-3 md:p-4 flex flex-col justify-between min-w-0">
-          <div className="space-y-1">
-            <h3 className="font-semibold text-gray-900 text-sm md:text-base line-clamp-1" data-testid={`text-name-${restaurant.id}`}>
-              {restaurant.name}
-            </h3>
-            {stats?.priceRange && (
-              <p className="text-xs md:text-sm text-gray-500" data-testid={`text-price-${restaurant.id}`}>
-                {stats.priceRange}
-              </p>
-            )}
-          </div>
-
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1">
-              <Star className="h-3.5 w-3.5 text-orange-400 fill-orange-400" />
-              <span className="text-xs md:text-sm font-medium text-gray-700">
+      <div className="p-2.5">
+        <h3 className="font-semibold text-gray-900 text-xs mb-0.5 line-clamp-1" data-testid={`text-name-${restaurant.id}`}>
+          {restaurant.name}
+        </h3>
+        
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-[10px] text-gray-500 line-clamp-1" data-testid={`text-price-${restaurant.id}`}>
+            {stats?.priceRange || '--'}
+          </p>
+          
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-0.5">
+              <Star className="h-3 w-3 text-orange-400 fill-orange-400" />
+              <span className="text-[10px] font-medium text-gray-700">
                 {restaurant.rating && restaurant.rating !== "0" ? restaurant.rating : "New"}
               </span>
             </div>
             
             {stats?.avgCompletionTime && (
-              <div className="flex items-center gap-1 text-gray-500" data-testid={`text-time-${restaurant.id}`}>
-                <Clock className="h-3.5 w-3.5" />
-                <span className="text-xs md:text-sm font-medium">{stats.avgCompletionTime}</span>
-              </div>
+              <span className="text-[10px] text-gray-500" data-testid={`text-time-${restaurant.id}`}>
+                {stats.avgCompletionTime}
+              </span>
             )}
           </div>
         </div>

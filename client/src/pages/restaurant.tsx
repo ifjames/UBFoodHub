@@ -170,7 +170,10 @@ export default function Restaurant() {
       console.log("Looking for menu items with stallId:", restaurantId);
       const menuUnsubscribe = subscribeToQuery("menuItems", "stallId", "==", restaurantId, (items) => {
         console.log("Menu items loaded for restaurant:", restaurantId, items);
-        setMenuItems(items.filter(item => item.isAvailable));
+        const sortedItems = items
+          .filter(item => item.isAvailable)
+          .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+        setMenuItems(sortedItems);
       });
 
       return () => {

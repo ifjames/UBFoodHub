@@ -25,7 +25,8 @@ import {
   User,
   Banknote,
   Coins,
-  Check
+  Check,
+  GripVertical
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,6 +61,7 @@ import CancellationRequestManagement from "@/components/orders/cancellation-requ
 import NotificationService from "@/lib/notification-service";
 import BottomNav from "@/components/layout/bottom-nav";
 import QRScanner from "@/components/qr-scanner";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 
 export default function StallDashboard() {
@@ -1328,7 +1330,8 @@ export default function StallDashboard() {
                           size="sm"
                           variant="outline"
                           onClick={() => editMenuItem(item)}
-                          className="border-gray-300 hover:bg-gray-100"
+                          className="text-gray-700 border-gray-300 hover:bg-gray-100 hover:text-gray-900"
+                          data-testid={`button-edit-${item.id}`}
                         >
                           <Edit className="w-4 h-4" />
                         </Button>

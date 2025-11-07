@@ -5,6 +5,7 @@ import { insertUserSchema, insertCartItemSchema, insertOrderSchema, insertReview
 import multer from "multer";
 import FormData from "form-data";
 import fetch from "node-fetch";
+import { config } from "./config";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup multer for file uploads
@@ -22,11 +23,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No image file provided" });
       }
 
-      const IMGBB_API_KEY = process.env.IMGBB_API_KEY;
-      
-      if (!IMGBB_API_KEY) {
-        return res.status(500).json({ message: "Image upload service not configured" });
-      }
+      const IMGBB_API_KEY = process.env.IMGBB_API_KEY || config.IMGBB_API_KEY;
       
       // Convert buffer to base64
       const base64Image = req.file.buffer.toString('base64');

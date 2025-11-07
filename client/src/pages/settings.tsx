@@ -678,7 +678,7 @@ export default function Settings() {
                       <h3 className="font-semibold text-gray-800 text-lg">
                         {state.user?.fullName || "Student Name"}
                       </h3>
-                      <p className="text-sm text-gray-600">Click the camera icon to update your picture</p>
+                      <p className="text-sm text-gray-600">Click the camera icon to update your picture. PNG, JPG, GIF up to 32MB</p>
                     </div>
                   </div>
                   <input
@@ -968,7 +968,7 @@ export default function Settings() {
                 <h3 className="font-medium text-gray-800">
                   {state.user?.fullName || "Student Name"}
                 </h3>
-                <p className="text-sm text-gray-600">Tap the camera icon to update</p>
+                <p className="text-sm text-gray-600">Tap the camera icon to update. PNG, JPG, GIF up to 32MB</p>
               </div>
             </div>
             <input

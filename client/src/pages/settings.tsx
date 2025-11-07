@@ -562,9 +562,6 @@ export default function Settings() {
           {/* Desktop Header */}
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-            <div className="text-sm text-gray-500">
-              Account: {state.user?.email}
-            </div>
           </div>
 
           {/* Desktop Grid Layout */}

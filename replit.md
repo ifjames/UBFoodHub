@@ -23,6 +23,12 @@ Preferred communication style: Simple, everyday language.
   - Implemented graceful fallback handling with accurate status reporting when Firebase Admin SDK is unavailable
   - Completely removed categories management feature (tab, UI, state, and all related functions)
   - Streamlined stall owner account creation form by removing student number, phone number fields, and stall information section (stalls are now created separately)
+- **Menu Item Ordering System** (November 2025):
+  - Implemented HTML5 native drag-and-drop functionality for menu items in stall dashboard after React 18 compatibility issues with popular drag-and-drop libraries (@hello-pangea/dnd, react-beautiful-dnd)
+  - Added `displayOrder` field to menu items in Firestore for persistent ordering
+  - Stall owners can now easily rearrange menu items by dragging and dropping with visual feedback
+  - Student-facing restaurant view displays menu items in stall owner's preferred order
+  - Fixed Edit button hover styling in menu items to maintain proper text visibility
 
 ## System Architecture
 

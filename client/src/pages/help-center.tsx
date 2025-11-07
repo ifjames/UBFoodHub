@@ -88,10 +88,11 @@ export default function HelpCenter() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="text-white p-4 bg-[#820d2a]">
-        <div className="flex items-center">
+        <div className="flex items-center max-w-4xl mx-auto">
           <button
             onClick={() => setLocation("/profile")}
             className="mr-4 p-2 hover:bg-red-700 rounded-full"
+            data-testid="button-back-help"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -99,7 +100,7 @@ export default function HelpCenter() {
         </div>
       </header>
 
-      <div className="p-4 space-y-6 pb-20">
+      <div className="p-4 space-y-6 pb-20 md:pb-8 max-w-4xl mx-auto">
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />

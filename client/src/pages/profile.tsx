@@ -90,12 +90,13 @@ export default function Profile() {
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <header className="text-white p-4 bg-[#820d2a]">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 max-w-4xl mx-auto">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowLoyalty(false)}
               className="text-white hover:bg-red-700 -ml-2"
+              data-testid="button-back-loyalty"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
@@ -103,7 +104,7 @@ export default function Profile() {
           </div>
         </header>
 
-        <div className="p-4 pb-20 md:pb-8">
+        <div className="p-4 pb-20 md:pb-8 max-w-4xl mx-auto">
           <LoyaltyDashboard />
         </div>
 
@@ -234,57 +235,6 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Order History and Settings for larger screens */}
-        <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
-          <Card 
-            className={`${isAdminOrStallOwner ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-md'} transition-shadow`}
-            onClick={isAdminOrStallOwner ? undefined : () => setLocation("/orders")}
-          >
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 rounded-lg bg-red-50">
-                    <FileText className="h-5 w-5 text-[#6d031e]" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-800">Order History</p>
-                    <p className="text-sm text-gray-600">
-                      {isAdminOrStallOwner ? "Admin/Staff access restricted" : "View all your past orders"}
-                    </p>
-                  </div>
-                </div>
-                {isAdminOrStallOwner ? (
-                  <Lock className="h-4 w-4 text-gray-400" />
-                ) : (
-                  <ArrowLeft className="h-4 w-4 text-gray-400 rotate-180" />
-                )}
-              </div>
-            </CardContent>
-          </Card>
-          
-          {/* Additional Settings card for desktop - hidden for admin/stall owners */}
-          {!isAdminOrStallOwner && (
-            <Card 
-              className="cursor-pointer hover:shadow-md transition-shadow md:block hidden"
-              onClick={() => setLocation("/settings")}
-            >
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 rounded-lg bg-blue-50">
-                      <Settings className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-800">Settings</p>
-                      <p className="text-sm text-gray-600">Manage your account preferences</p>
-                    </div>
-                  </div>
-                  <ArrowLeft className="h-4 w-4 text-gray-400 rotate-180" />
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
 
         {/* Logout Button */}
         <Button

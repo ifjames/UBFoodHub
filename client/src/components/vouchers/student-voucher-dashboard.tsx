@@ -202,12 +202,13 @@ export default function StudentVoucherDashboard({ onBack }: StudentVoucherDashbo
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm sticky top-0 z-40">
-        <div className="flex items-center p-4 bg-[#820d2a]">
+        <div className="flex items-center p-4 bg-[#820d2a] max-w-4xl mx-auto">
           <Button
             variant="ghost"
             size="icon"
             onClick={onBack}
             className="mr-3 text-white hover:bg-white/20"
+            data-testid="button-back-vouchers"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
@@ -219,7 +220,7 @@ export default function StudentVoucherDashboard({ onBack }: StudentVoucherDashbo
       </div>
 
       {/* Desktop Layout Container */}
-      <div className="max-w-4xl mx-auto p-4 space-y-4">
+      <div className="max-w-4xl mx-auto p-4 pb-24 md:pb-8 space-y-4">
         {/* Manual Voucher Code Entry */}
         <Card className="bg-white">
           <CardHeader className="pb-3">

@@ -104,29 +104,29 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
       </div>
 
       <div className="p-3">
-        <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-1" data-testid={`text-name-${restaurant.id}`}>
-          {restaurant.name}
-        </h3>
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <h3 className="font-semibold text-gray-900 text-sm line-clamp-1" data-testid={`text-name-${restaurant.id}`}>
+            {restaurant.name}
+          </h3>
+          
+          <div className="flex items-center gap-0.5 flex-shrink-0">
+            <Star className="h-3.5 w-3.5 text-orange-400 fill-orange-400" />
+            <span className="text-xs font-medium text-gray-700">
+              {restaurant.rating && restaurant.rating !== "0" ? restaurant.rating : "New"}
+            </span>
+          </div>
+        </div>
         
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center justify-between gap-2">
           <p className="text-xs text-gray-500 line-clamp-1" data-testid={`text-price-${restaurant.id}`}>
             {restaurant.priceRange || '--'}
           </p>
           
-          <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
-            <div className="flex items-center gap-0.5">
-              <Star className="h-3.5 w-3.5 text-orange-400 fill-orange-400" />
-              <span className="text-xs font-medium text-gray-700">
-                {restaurant.rating && restaurant.rating !== "0" ? restaurant.rating : "New"}
-              </span>
-            </div>
-            
-            {restaurant.deliveryTime && (
-              <span className="text-xs text-gray-500" data-testid={`text-time-${restaurant.id}`}>
-                {restaurant.deliveryTime}
-              </span>
-            )}
-          </div>
+          {restaurant.deliveryTime && (
+            <span className="text-xs text-gray-500 flex-shrink-0" data-testid={`text-time-${restaurant.id}`}>
+              {restaurant.deliveryTime}
+            </span>
+          )}
         </div>
       </div>
     </div>

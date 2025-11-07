@@ -546,8 +546,8 @@ export default function Settings() {
       {/* Desktop Layout */}
       <div className="hidden md:block min-h-screen bg-gray-50 pt-20">
         <div className="max-w-7xl mx-auto px-6 py-8">
-          {/* Desktop Back Button */}
-          <div className="mb-6">
+          {/* Desktop Header */}
+          <div className="flex items-center gap-4 mb-8">
             <Button
               variant="ghost"
               onClick={() => setLocation("/profile")}
@@ -557,10 +557,6 @@ export default function Settings() {
               <ArrowLeft className="w-5 h-5 mr-2" />
               Back to Profile
             </Button>
-          </div>
-
-          {/* Desktop Header */}
-          <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
           </div>
 

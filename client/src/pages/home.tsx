@@ -30,6 +30,7 @@ export default function Home() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const [stallRatings, setStallRatings] = useState<{[key: string]: {rating: number, reviewCount: number}}>({});
+  const [stallStats, setStallStats] = useState<{[key: string]: {priceRange: string, deliveryTime: string}}>({});
   const [userFavorites, setUserFavorites] = useState<string[]>([]);
   const { state } = useStore();
 
@@ -110,6 +111,68 @@ export default function Home() {
     }
   };
 
+  // Calculate dynamic price ranges and delivery times for all stalls
+  const calculateStallStats = async (stallsData: any[]) => {
+    try {
+      const statsMap: {[key: string]: {priceRange: string, deliveryTime: string}} = {};
+      
+      // Fetch menu items and orders for all stalls in parallel
+      const statsPromises = stallsData.map(async (stall) => {
+        try {
+          // Fetch menu items for this stall
+          const menuItems = await getDocuments("menuItems", "stallId", "==", stall.id);
+          
+          // Calculate price range
+          let priceRange = "₱--";
+          if (menuItems.length > 0) {
+            const prices = menuItems.map((item: any) => parseFloat(item.price || 0));
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
+            priceRange = `₱${Math.round(minPrice)}-${Math.round(maxPrice)}`;
+          }
+          
+          // Fetch completed orders for this stall
+          const completedOrders = await getDocuments("orders", "stallId", "==", stall.id);
+          const completedOnly = completedOrders.filter((order: any) => order.status === 'completed');
+          
+          // Calculate average completion time
+          let deliveryTime = "15-30 min";
+          if (completedOnly.length > 0) {
+            const totalMinutes = completedOnly.reduce((sum: number, order: any) => {
+              const createdAt = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
+              const updatedAt = order.updatedAt?.toDate ? order.updatedAt.toDate() : new Date(order.updatedAt);
+              const diffInMinutes = Math.round((updatedAt.getTime() - createdAt.getTime()) / (1000 * 60));
+              return sum + diffInMinutes;
+            }, 0);
+            
+            const avgMinutes = Math.round(totalMinutes / completedOnly.length);
+            const minEstimate = Math.max(5, avgMinutes - 5);
+            const maxEstimate = avgMinutes + 5;
+            deliveryTime = `${minEstimate}-${maxEstimate} min`;
+          }
+          
+          return { stallId: stall.id, priceRange, deliveryTime };
+        } catch (error) {
+          console.error(`Error calculating stats for stall ${stall.id}:`, error);
+          return { stallId: stall.id, priceRange: "₱--", deliveryTime: "15-30 min" };
+        }
+      });
+      
+      const stallStatsResults = await Promise.allSettled(statsPromises);
+      
+      stallStatsResults.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          const { stallId, priceRange, deliveryTime } = result.value;
+          statsMap[stallId] = { priceRange, deliveryTime };
+        }
+      });
+      
+      setStallStats(statsMap);
+    } catch (error) {
+      console.error("Error calculating stall stats:", error);
+    }
+  };
+
   useEffect(() => {
     setIsLoading(true);
     // Subscribe to real-time stalls data
@@ -128,7 +191,10 @@ export default function Home() {
       // Optimized: Start these calculations in background after displaying stalls
       setIsLoadingRatings(true);
       setTimeout(async () => {
-        await calculateStallRatings(activeStalls);
+        await Promise.all([
+          calculateStallRatings(activeStalls),
+          calculateStallStats(activeStalls)
+        ]);
         setIsLoadingRatings(false);
       }, 100);
     });
@@ -277,8 +343,8 @@ export default function Home() {
                       ? stallRatings[stall.id].rating.toString() 
                       : "0",
                     reviewCount: stallRatings[stall.id]?.reviewCount || 0,
-                    deliveryTime: stall.deliveryTime || "15-30 min",
-                    priceRange: stall.priceRange || "₱50-200",
+                    deliveryTime: stallStats[stall.id]?.deliveryTime || stall.deliveryTime || "15-30 min",
+                    priceRange: stallStats[stall.id]?.priceRange || stall.priceRange || "₱--",
                     category: stall.category,
                     deliveryFee: stall.deliveryFee || "Free"
                   }}

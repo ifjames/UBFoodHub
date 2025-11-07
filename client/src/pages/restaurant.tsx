@@ -18,6 +18,7 @@ import { useStore } from "@/lib/store";
 import { motion, AnimatePresence } from "framer-motion";
 import { getDocument, subscribeToQuery, addDocument, getDocuments } from "@/lib/firebase";
 import { usePageTitle } from "@/hooks/use-page-title";
+import { useQuery } from "@tanstack/react-query";
 
 interface MenuItemType {
   id: string;
@@ -52,7 +53,6 @@ export default function Restaurant() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [reviewsWithOrderDetails, setReviewsWithOrderDetails] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [dynamicCompletionTime, setDynamicCompletionTime] = useState<string>("");
   
   // Debug effect to track reviews state changes
   useEffect(() => {
@@ -60,34 +60,34 @@ export default function Restaurant() {
   }, [reviews]);
 
   const restaurantId = params.id;
+  const [pickupTime, setPickupTime] = useState<string>("5-20 min");
 
-  // Calculate dynamic order completion time based on completed orders
-  const calculateCompletionTime = async (stallId: string) => {
+  // Calculate dynamic pickup time based on queue length
+  const calculatePickupTime = async (stallId: string) => {
     try {
-      const completedOrders = await getDocuments("orders", "stallId", "==", stallId);
-      const ordersWithTimes = completedOrders.filter(
-        (order: any) => order.status === "completed" && order.createdAt && order.updatedAt
+      const allOrders = await getDocuments("orders", "stallId", "==", stallId);
+      const queueOrders = allOrders.filter((order: any) => 
+        order.status === 'pending' || order.status === 'preparing'
       );
-
-      if (ordersWithTimes.length > 0) {
-        const totalMinutes = ordersWithTimes.reduce((sum: number, order: any) => {
-          const createdAt = order.createdAt.toDate();
-          const updatedAt = order.updatedAt.toDate();
-          const diffMs = updatedAt - createdAt;
-          const diffMinutes = Math.floor(diffMs / (1000 * 60));
-          return sum + diffMinutes;
-        }, 0);
-
-        const avgMinutes = Math.round(totalMinutes / ordersWithTimes.length);
-        const minTime = Math.max(10, avgMinutes - 5);
-        const maxTime = avgMinutes + 5;
-        setDynamicCompletionTime(`${minTime}-${maxTime} min`);
+      
+      const queueLength = queueOrders.length;
+      
+      if (queueLength === 0) {
+        setPickupTime("5 min");
       } else {
-        setDynamicCompletionTime("15-30 min");
+        const baseTime = 5;
+        const timePerOrder = 1.5;
+        const minTime = Math.max(5, baseTime + Math.floor(queueLength * timePerOrder * 0.8));
+        const maxTime = Math.min(30, baseTime + Math.ceil(queueLength * timePerOrder * 1.2));
+        
+        const time = queueLength <= 2 
+          ? "5-8 min"
+          : `${minTime}-${maxTime} min`;
+        setPickupTime(time);
       }
     } catch (error) {
-      console.error("Error calculating completion time:", error);
-      setDynamicCompletionTime("15-30 min");
+      console.error("Error calculating pickup time:", error);
+      setPickupTime("5-20 min");
     }
   };
 
@@ -97,10 +97,16 @@ export default function Restaurant() {
       getDocument("stalls", restaurantId).then((doc) => {
         if (doc.exists()) {
           setStall({ id: doc.id, ...doc.data() });
-          // Calculate dynamic order completion time
-          calculateCompletionTime(restaurantId);
         }
       });
+
+      // Calculate initial pickup time
+      calculatePickupTime(restaurantId);
+
+      // Refresh pickup time every 30 seconds
+      const pickupTimeInterval = setInterval(() => {
+        calculatePickupTime(restaurantId);
+      }, 30000);
 
       // Subscribe to reviews for real-time updates
       console.log("Setting up reviews subscription for restaurant:", restaurantId);
@@ -178,6 +184,7 @@ export default function Restaurant() {
 
       return () => {
         console.log("Cleaning up subscriptions for restaurant:", restaurantId);
+        clearInterval(pickupTimeInterval);
         menuUnsubscribe();
         reviewsUnsubscribe();
       };
@@ -339,7 +346,7 @@ export default function Restaurant() {
 
         <div className="flex items-center gap-1 text-sm md:text-base text-gray-600 mb-4">
           <Clock className="w-4 h-4 md:w-5 md:h-5" />
-          <span>Pickup ready in {dynamicCompletionTime || "15-30 min"}</span>
+          <span>Pickup ready in {pickupTime}</span>
         </div>
 
 

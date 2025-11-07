@@ -132,24 +132,27 @@ export default function Home() {
             priceRange = `₱${Math.round(minPrice)}-${Math.round(maxPrice)}`;
           }
           
-          // Fetch completed orders for this stall
-          const completedOrders = await getDocuments("orders", "stallId", "==", stall.id);
-          const completedOnly = completedOrders.filter((order: any) => order.status === 'completed');
+          // Fetch current orders to calculate queue-based delivery time
+          const allOrders = await getDocuments("orders", "stallId", "==", stall.id);
+          const queueOrders = allOrders.filter((order: any) => 
+            order.status === 'pending' || order.status === 'preparing'
+          );
           
-          // Calculate average completion time
-          let deliveryTime = "15-30 min";
-          if (completedOnly.length > 0) {
-            const totalMinutes = completedOnly.reduce((sum: number, order: any) => {
-              const createdAt = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
-              const updatedAt = order.updatedAt?.toDate ? order.updatedAt.toDate() : new Date(order.updatedAt);
-              const diffInMinutes = Math.round((updatedAt.getTime() - createdAt.getTime()) / (1000 * 60));
-              return sum + diffInMinutes;
-            }, 0);
+          // Calculate delivery time based on current queue length
+          const queueLength = queueOrders.length;
+          let deliveryTime = "5 min";
+          
+          if (queueLength > 0) {
+            // Formula: Base time (5 min) + (queue * 1.5 min per order)
+            // Capped at 30 minutes max
+            const baseTime = 5;
+            const timePerOrder = 1.5;
+            const minTime = Math.max(5, baseTime + Math.floor(queueLength * timePerOrder * 0.8));
+            const maxTime = Math.min(30, baseTime + Math.ceil(queueLength * timePerOrder * 1.2));
             
-            const avgMinutes = Math.round(totalMinutes / completedOnly.length);
-            const minEstimate = Math.max(5, avgMinutes - 5);
-            const maxEstimate = avgMinutes + 5;
-            deliveryTime = `${minEstimate}-${maxEstimate} min`;
+            deliveryTime = queueLength <= 2 
+              ? "5-8 min"
+              : `${minTime}-${maxTime} min`;
           }
           
           return { stallId: stall.id, priceRange, deliveryTime };

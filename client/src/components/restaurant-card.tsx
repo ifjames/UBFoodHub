@@ -122,11 +122,10 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
             {restaurant.priceRange || '--'}
           </p>
           
-          {restaurant.deliveryTime && (
-            <span className="text-xs text-gray-500 flex-shrink-0" data-testid={`text-time-${restaurant.id}`}>
-              {restaurant.deliveryTime}
-            </span>
-          )}
+          <span className="text-xs text-gray-500 flex-shrink-0 flex items-center gap-1" data-testid={`text-time-${restaurant.id}`}>
+            <Clock className="h-3 w-3" />
+            {restaurant.deliveryTime || '5-20 min'}
+          </span>
         </div>
       </div>
     </div>

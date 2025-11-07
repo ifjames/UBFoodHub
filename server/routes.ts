@@ -126,6 +126,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/restaurants/:id/pickup-time", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const orders = await storage.getAllOrders();
+      
+      // Count pending and preparing orders for this restaurant
+      const queueLength = orders.filter(
+        order => order.restaurantId === id && 
+        (order.status === "pending" || order.status === "preparing")
+      ).length;
+      
+      // Calculate pickup time based on queue length
+      // Formula: Base time (5 min) + (queue * 1.5 min per order)
+      // Capped at 30 minutes max
+      const baseTime = 5;
+      const timePerOrder = 1.5;
+      const minTime = Math.max(5, baseTime + Math.floor(queueLength * timePerOrder * 0.8));
+      const maxTime = Math.min(30, baseTime + Math.ceil(queueLength * timePerOrder * 1.2));
+      
+      const pickupTime = queueLength === 0 
+        ? "5 min" 
+        : queueLength <= 2 
+          ? "5-8 min"
+          : `${minTime}-${maxTime} min`;
+      
+      res.json({ 
+        queueLength,
+        pickupTime,
+        estimatedMinutes: Math.floor((minTime + maxTime) / 2)
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // Menu routes
   app.get("/api/restaurants/:id/menu", async (req, res) => {
     try {

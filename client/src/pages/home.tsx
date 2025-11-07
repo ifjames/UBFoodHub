@@ -32,6 +32,7 @@ export default function Home() {
   const [stallRatings, setStallRatings] = useState<{[key: string]: {rating: number, reviewCount: number}}>({});
   const [stallStats, setStallStats] = useState<{[key: string]: {priceRange: string, deliveryTime: string}}>({});
   const [userFavorites, setUserFavorites] = useState<string[]>([]);
+  const [allMenuItems, setAllMenuItems] = useState<any[]>([]);
   const { state } = useStore();
 
   // Redirect admin and stall owners to their dashboards
@@ -204,6 +205,17 @@ export default function Home() {
     };
   }, []);
 
+  // Fetch all menu items for search functionality
+  useEffect(() => {
+    const unsubscribeMenuItems = subscribeToCollection("menuItems", (menuItemsData) => {
+      setAllMenuItems(menuItemsData);
+    });
+
+    return () => {
+      unsubscribeMenuItems();
+    };
+  }, []);
+
   // Load user favorites with real-time updates
   useEffect(() => {
     if (state.user?.uid) {
@@ -225,12 +237,23 @@ export default function Home() {
   }, [state.user?.uid]);
 
   const filteredStalls = stalls.filter((stall) => {
-    const matchesSearch =
-      stall.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (stall.category && stall.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (stall.categories && stall.categories.some((cat: string) => cat.toLowerCase().includes(searchQuery.toLowerCase())));
+    const query = searchQuery.toLowerCase();
     
-    return matchesSearch;
+    // Match by stall name
+    const matchesStallName = stall.name.toLowerCase().includes(query);
+    
+    // Match by category
+    const matchesCategory = 
+      (stall.category && stall.category.toLowerCase().includes(query)) ||
+      (stall.categories && stall.categories.some((cat: string) => cat.toLowerCase().includes(query)));
+    
+    // Match by menu items
+    const matchesMenuItem = allMenuItems.some((item) => 
+      item.stallId === stall.id && 
+      item.name.toLowerCase().includes(query)
+    );
+    
+    return matchesStallName || matchesCategory || matchesMenuItem;
   }).sort((a, b) => {
     // Sort favorites first, then alphabetical
     // Check both string and numeric ID formats since Firebase uses string IDs

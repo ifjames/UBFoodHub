@@ -85,7 +85,7 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
       onClick={() => setLocation(`/restaurant/${restaurant.id}`)}
       data-testid={`card-restaurant-${restaurant.id}`}
     >
-      <div className="relative aspect-[16/9] overflow-hidden bg-gray-100">
+      <div className="relative aspect-[16/9] md:aspect-[16/9] overflow-hidden bg-gray-100 h-28 md:h-auto">
         <img
           src={restaurant.image || "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=300"}
           alt={restaurant.name}
@@ -95,35 +95,35 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
           onClick={handleLike}
           disabled={isLoading}
           data-testid={`button-favorite-${restaurant.id}`}
-          className="absolute top-2 right-2 w-7 h-7 bg-white/90 backdrop-blur-sm shadow-md rounded-full flex items-center justify-center hover:scale-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed z-10"
+          className="absolute top-1.5 right-1.5 md:top-2 md:right-2 w-6 h-6 md:w-7 md:h-7 bg-white/90 backdrop-blur-sm shadow-md rounded-full flex items-center justify-center hover:scale-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed z-10"
         >
-          <Heart className={`h-3.5 w-3.5 transition-colors ${
+          <Heart className={`h-3 w-3 md:h-3.5 md:w-3.5 transition-colors ${
             liked ? "text-red-500 fill-red-500" : "text-gray-500"
           } ${isLoading ? "opacity-50" : ""}`} />
         </button>
       </div>
 
-      <div className="p-3">
-        <div className="flex items-center justify-between gap-2 mb-1">
-          <h3 className="font-semibold text-gray-900 text-sm line-clamp-1" data-testid={`text-name-${restaurant.id}`}>
+      <div className="p-2 md:p-3">
+        <div className="flex items-center justify-between gap-2 mb-0.5 md:mb-1">
+          <h3 className="font-semibold text-gray-900 text-xs md:text-sm line-clamp-1" data-testid={`text-name-${restaurant.id}`}>
             {restaurant.name}
           </h3>
           
           <div className="flex items-center gap-0.5 flex-shrink-0">
-            <Star className="h-3.5 w-3.5 text-orange-400 fill-orange-400" />
-            <span className="text-xs font-medium text-gray-700">
+            <Star className="h-3 w-3 md:h-3.5 md:w-3.5 text-orange-400 fill-orange-400" />
+            <span className="text-[10px] md:text-xs font-medium text-gray-700">
               {restaurant.rating && restaurant.rating !== "0" ? restaurant.rating : "New"}
             </span>
           </div>
         </div>
         
         <div className="flex items-center justify-between gap-2">
-          <p className="text-xs text-gray-500 line-clamp-1" data-testid={`text-price-${restaurant.id}`}>
+          <p className="text-[10px] md:text-xs text-gray-500 line-clamp-1" data-testid={`text-price-${restaurant.id}`}>
             {restaurant.priceRange || '--'}
           </p>
           
-          <span className="text-xs text-gray-500 flex-shrink-0 flex items-center gap-1" data-testid={`text-time-${restaurant.id}`}>
-            <Clock className="h-3 w-3" />
+          <span className="text-[10px] md:text-xs text-gray-500 flex-shrink-0 flex items-center gap-0.5 md:gap-1" data-testid={`text-time-${restaurant.id}`}>
+            <Clock className="h-2.5 w-2.5 md:h-3 md:w-3" />
             {restaurant.deliveryTime || '5-20 min'}
           </span>
         </div>

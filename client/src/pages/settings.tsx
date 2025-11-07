@@ -169,7 +169,7 @@ export default function Settings() {
       
       try {
         await Promise.race([authPromise, timeoutPromise]);
-      } catch (error) {
+      } catch (error: any) {
         if (error.message === 'Auth timeout') {
           console.warn("Firebase auth taking too long, continuing anyway");
         }
@@ -600,20 +600,20 @@ export default function Settings() {
                       <Button
                         variant="outline"
                         onClick={async () => {
-                          await createNotification(state.user?.uid || "", {
-                            type: "test",
-                            title: "Test Notification",
-                            message: "This is a test notification from UB FoodHub! 🎉",
-                            data: {}
-                          });
-                          notificationService.showNotification(
-                            "Test Notification",
-                            "This is a test notification from UB FoodHub! 🎉"
-                          );
-                          toast({
-                            title: "Test notification sent",
-                            description: "Check your notifications to see if it worked!",
-                          });
+                          try {
+                            await notificationService.sendTestNotification();
+                            toast({
+                              title: "Test notification sent",
+                              description: "Check your notifications to see if it worked!",
+                            });
+                          } catch (error) {
+                            console.error("Error sending test notification:", error);
+                            toast({
+                              title: "Test failed",
+                              description: "Could not send test notification. Please check your permission settings.",
+                              variant: "destructive",
+                            });
+                          }
                         }}
                         className="w-full md:w-auto"
                       >

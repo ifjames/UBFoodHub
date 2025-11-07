@@ -5,7 +5,7 @@ import { insertUserSchema, insertCartItemSchema, insertOrderSchema, insertReview
 import multer from "multer";
 import FormData from "form-data";
 import fetch from "node-fetch";
-import { config } from "./config";
+import { config } from "./config.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup multer for file uploads

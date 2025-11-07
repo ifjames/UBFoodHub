@@ -664,7 +664,7 @@ export default function Settings() {
                       <button
                         onClick={handleProfilePictureUpdate}
                         disabled={isUpdatingProfile}
-                        className="absolute top-0 right-0 w-8 h-8 bg-[#6d031e] text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors disabled:opacity-50 border-2 border-white shadow-lg"
+                        className="absolute bottom-0 right-0 w-8 h-8 bg-[#6d031e] text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors disabled:opacity-50 border-2 border-white shadow-lg"
                         data-testid="button-upload-profile-picture"
                       >
                         {isUpdatingProfile ? (
@@ -954,7 +954,7 @@ export default function Settings() {
                 <button
                   onClick={handleProfilePictureUpdate}
                   disabled={isUpdatingProfile}
-                  className="absolute top-0 right-0 w-7 h-7 bg-[#6d031e] text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors disabled:opacity-50 border-2 border-white shadow-sm"
+                  className="absolute bottom-0 right-0 w-7 h-7 bg-[#6d031e] text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors disabled:opacity-50 border-2 border-white shadow-sm"
                   data-testid="button-upload-profile-picture-mobile"
                 >
                   {isUpdatingProfile ? (

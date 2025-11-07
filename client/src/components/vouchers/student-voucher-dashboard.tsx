@@ -199,16 +199,16 @@ export default function StudentVoucherDashboard({ onBack }: StudentVoucherDashbo
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm sticky top-0 z-40">
+    <div className="min-h-screen bg-gray-50 md:pt-20">
+      {/* Mobile Header */}
+      <div className="bg-white shadow-sm sticky top-0 z-40 md:hidden">
         <div className="flex items-center p-4 bg-[#820d2a] max-w-4xl mx-auto">
           <Button
             variant="ghost"
             size="icon"
             onClick={onBack}
             className="mr-3 text-white hover:bg-white/20"
-            data-testid="button-back-vouchers"
+            data-testid="button-back-vouchers-mobile"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
@@ -217,6 +217,18 @@ export default function StudentVoucherDashboard({ onBack }: StudentVoucherDashbo
             <h1 className="text-lg font-semibold text-white">My Vouchers</h1>
           </div>
         </div>
+      </div>
+      {/* Desktop Back Button */}
+      <div className="hidden md:block max-w-4xl mx-auto pt-6 px-4">
+        <Button
+          variant="ghost"
+          onClick={onBack}
+          className="text-gray-700 hover:bg-gray-100 hover:text-gray-900 -ml-2"
+          data-testid="button-back-vouchers-desktop"
+        >
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Back to Profile
+        </Button>
       </div>
 
       {/* Desktop Layout Container */}

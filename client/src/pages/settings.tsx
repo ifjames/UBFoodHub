@@ -544,19 +544,24 @@ export default function Settings() {
       </header>
 
       {/* Desktop Layout */}
-      <div className="hidden md:block min-h-screen bg-gray-50">
+      <div className="hidden md:block min-h-screen bg-gray-50 pt-20">
         <div className="max-w-7xl mx-auto px-6 py-8">
+          {/* Desktop Back Button */}
+          <div className="mb-6">
+            <Button
+              variant="ghost"
+              onClick={() => setLocation("/profile")}
+              className="text-gray-700 hover:bg-gray-100 hover:text-gray-900 -ml-2"
+              data-testid="button-back-settings-desktop"
+            >
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              Back to Profile
+            </Button>
+          </div>
+
           {/* Desktop Header */}
           <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setLocation("/profile")}
-                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
-              >
-                <ArrowLeft className="h-5 w-5 text-gray-600" />
-              </button>
-              <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-            </div>
+            <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
             <div className="text-sm text-gray-500">
               Account: {state.user?.email}
             </div>

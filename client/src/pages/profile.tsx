@@ -94,22 +94,34 @@ export default function Profile() {
 
   if (showLoyalty) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="text-white p-4 bg-[#820d2a]">
+      <div className="min-h-screen bg-gray-50 md:pt-20">
+        {/* Mobile Header */}
+        <header className="text-white p-4 bg-[#820d2a] md:hidden">
           <div className="flex items-center gap-3 max-w-4xl mx-auto">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowLoyalty(false)}
               className="text-white hover:bg-red-700 -ml-2"
-              data-testid="button-back-loyalty"
+              data-testid="button-back-loyalty-mobile"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <h1 className="text-xl font-semibold">Loyalty Points</h1>
           </div>
         </header>
+        {/* Desktop Back Button */}
+        <div className="hidden md:block max-w-4xl mx-auto pt-6 px-4">
+          <Button
+            variant="ghost"
+            onClick={() => setShowLoyalty(false)}
+            className="text-gray-700 hover:bg-gray-100 hover:text-gray-900 -ml-2"
+            data-testid="button-back-loyalty-desktop"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            Back to Profile
+          </Button>
+        </div>
 
         <div className="p-4 pb-20 md:pb-8 max-w-4xl mx-auto">
           <LoyaltyDashboard />

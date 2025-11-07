@@ -1,4 +1,5 @@
 import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocation } from "wouter";
 import BottomNav from "@/components/layout/bottom-nav";
@@ -9,20 +10,32 @@ export default function TermsPolicies() {
   const [, setLocation] = useLocation();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="text-white p-4 bg-[#820d2a]">
+    <div className="min-h-screen bg-gray-50 md:pt-20">
+      {/* Mobile Header */}
+      <header className="text-white p-4 bg-[#820d2a] md:hidden">
         <div className="flex items-center max-w-4xl mx-auto">
           <button
             onClick={() => setLocation("/profile")}
             className="mr-4 p-2 hover:bg-red-700 rounded-full"
-            data-testid="button-back-terms"
+            data-testid="button-back-terms-mobile"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
           <h1 className="text-lg font-semibold">Terms & Policies</h1>
         </div>
       </header>
+      {/* Desktop Back Button */}
+      <div className="hidden md:block max-w-4xl mx-auto pt-6 px-4">
+        <Button
+          variant="ghost"
+          onClick={() => setLocation("/profile")}
+          className="text-gray-700 hover:bg-gray-100 hover:text-gray-900 -ml-2"
+          data-testid="button-back-terms-desktop"
+        >
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Back to Profile
+        </Button>
+      </div>
 
       <div className="p-4 space-y-6 pb-20 md:pb-8 max-w-4xl mx-auto">
         {/* Terms of Service */}

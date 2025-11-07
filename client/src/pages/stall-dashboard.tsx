@@ -61,7 +61,6 @@ import CancellationRequestManagement from "@/components/orders/cancellation-requ
 import NotificationService from "@/lib/notification-service";
 import BottomNav from "@/components/layout/bottom-nav";
 import QRScanner from "@/components/qr-scanner";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 
 export default function StallDashboard() {
@@ -113,6 +112,10 @@ export default function StallDashboard() {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+  
+  // HTML5 Drag and drop state
+  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
+  const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollContainerRef.current) return;
@@ -362,17 +365,37 @@ export default function StallDashboard() {
     }
   };
 
-  const handleMenuItemDragEnd = async (result: any) => {
-    if (!result.destination) return;
+  const handleDragStart = (e: React.DragEvent, itemId: string) => {
+    setDraggedItemId(itemId);
+    e.dataTransfer.effectAllowed = "move";
+  };
 
-    const sourceIndex = result.source.index;
-    const destIndex = result.destination.index;
+  const handleDragOver = (e: React.DragEvent, itemId: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverItemId(itemId);
+  };
 
-    if (sourceIndex === destIndex) return;
+  const handleDrop = async (e: React.DragEvent, dropItemId: string) => {
+    e.preventDefault();
+    setDragOverItemId(null);
+
+    if (!draggedItemId || draggedItemId === dropItemId) {
+      setDraggedItemId(null);
+      return;
+    }
 
     const sortedItems = [...filteredMenuItems].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
-    const [movedItem] = sortedItems.splice(sourceIndex, 1);
-    sortedItems.splice(destIndex, 0, movedItem);
+    const draggedIndex = sortedItems.findIndex(item => item.id === draggedItemId);
+    const dropIndex = sortedItems.findIndex(item => item.id === dropItemId);
+
+    if (draggedIndex === -1 || dropIndex === -1) {
+      setDraggedItemId(null);
+      return;
+    }
+
+    const [movedItem] = sortedItems.splice(draggedIndex, 1);
+    sortedItems.splice(dropIndex, 0, movedItem);
 
     const updatedItems = sortedItems.map((item, index) => ({
       ...item,
@@ -388,6 +411,8 @@ export default function StallDashboard() {
       });
       return Array.from(itemsMap.values());
     });
+
+    setDraggedItemId(null);
 
     try {
       await Promise.all(
@@ -407,6 +432,11 @@ export default function StallDashboard() {
         variant: "destructive",
       });
     }
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItemId(null);
+    setDragOverItemId(null);
   };
 
   // Stall editing functions
@@ -1326,31 +1356,30 @@ export default function StallDashboard() {
               </CardContent>
             </Card>
 
-            <DragDropContext onDragEnd={handleMenuItemDragEnd}>
-              <Droppable droppableId="menu-items">
-                {(provided) => (
-                  <div
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
-                    className="grid gap-4"
-                  >
-                    {filteredMenuItems.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)).map((item, index) => (
-                      <Draggable key={item.id} draggableId={item.id} index={index}>
-                        {(provided, snapshot) => (
-                          <Card
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            className={snapshot.isDragging ? "shadow-lg" : ""}
-                          >
-                            <CardContent className="p-4">
-                              <div className="flex items-center gap-4">
-                                <div
-                                  {...provided.dragHandleProps}
-                                  className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
-                                  data-testid={`drag-handle-${item.id}`}
-                                >
-                                  <GripVertical className="w-5 h-5" />
-                                </div>
+            <div className="grid gap-4">
+              {filteredMenuItems.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)).map((item) => (
+                <Card
+                  key={item.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, item.id)}
+                  onDragOver={(e) => handleDragOver(e, item.id)}
+                  onDrop={(e) => handleDrop(e, item.id)}
+                  onDragEnd={handleDragEnd}
+                  className={`${
+                    draggedItemId === item.id ? "opacity-50" : ""
+                  } ${
+                    dragOverItemId === item.id ? "border-2 border-[#6d031e]" : ""
+                  } transition-all`}
+                  data-testid={`menu-card-${item.id}`}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <div
+                        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+                        data-testid={`drag-handle-${item.id}`}
+                      >
+                        <GripVertical className="w-5 h-5" />
+                      </div>
                                 <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
                                   {item.image ? (
                                     <img src={item.image} alt={item.name} className="w-full h-full object-cover rounded-lg" />
@@ -1408,6 +1437,7 @@ export default function StallDashboard() {
                                     variant="outline"
                                     onClick={() => deleteMenuItem(item.id)}
                                     className="text-red-700 border-red-300 hover:bg-red-100 hover:border-red-400"
+                                    data-testid={`button-delete-${item.id}`}
                                   >
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
@@ -1415,14 +1445,8 @@ export default function StallDashboard() {
                               </div>
                             </CardContent>
                           </Card>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
+              ))}
+            </div>
           </motion.div>
         )}
 

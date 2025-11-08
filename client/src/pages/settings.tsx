@@ -332,9 +332,12 @@ export default function Settings() {
         return;
       }
 
-      // Upload image directly to ImgBB
+      // Upload image directly to ImgHippo
       const { uploadImageToImgBB } = await import('@/lib/imgbb-upload');
-      const photoURL = await uploadImageToImgBB(file);
+      const uploadedURL = await uploadImageToImgBB(file);
+      
+      // Add timestamp to ensure cache busting
+      const photoURL = `${uploadedURL}${uploadedURL.includes('?') ? '&' : '?'}v=${Date.now()}`;
 
       // Wait for Firebase auth to be ready
       await auth.authStateReady();
@@ -370,7 +373,7 @@ export default function Settings() {
         }
       }
 
-      // Update local state
+      // Update local state with timestamped URL to force re-render
       dispatch({
         type: "SET_USER",
         payload: {
@@ -621,6 +624,7 @@ export default function Settings() {
                             src={state.user.photoURL} 
                             alt={state.user.fullName}
                             className="w-full h-full object-cover"
+                            key={state.user.photoURL}
                           />
                         ) : (
                           <span className="text-[#6d031e] text-3xl font-semibold">
@@ -919,6 +923,7 @@ export default function Settings() {
                       src={state.user.photoURL} 
                       alt={state.user.fullName}
                       className="w-full h-full object-cover"
+                      key={state.user.photoURL}
                     />
                   ) : (
                     <span className="text-[#6d031e] text-2xl font-semibold">

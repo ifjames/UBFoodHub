@@ -670,19 +670,21 @@ export default function AdminDashboard() {
                 <div className="space-y-4">
                   {sortedUsers.map((user) => {
                     const userStall = user.role === 'stall_owner' ? stalls.find(s => s.ownerId === user.uid) : null;
-                    const displayImage = user.role === 'admin' ? null : user.role === 'stall_owner' ? userStall?.image : user.photoURL;
+                    const displayImage = user.role === 'admin' 
+                      ? '/logo.png' 
+                      : user.role === 'stall_owner' 
+                        ? userStall?.image 
+                        : user.photoURL;
                     
                     return (
                     <div key={user.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg gap-4">
                       <div className="flex items-start gap-3 flex-1 min-w-0">
-                        {user.role !== 'admin' && (
-                          <Avatar className="w-12 h-12 shrink-0">
-                            <AvatarImage src={displayImage} alt={user.fullName} />
-                            <AvatarFallback className="bg-[#6d031e] text-white">
-                              {user.fullName?.charAt(0) || 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                        )}
+                        <Avatar className="w-12 h-12 shrink-0">
+                          <AvatarImage src={displayImage} alt={user.fullName} />
+                          <AvatarFallback className="bg-[#6d031e] text-white">
+                            {user.fullName?.charAt(0) || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
                         <div className="flex-1 min-w-0">
                           <h3 className="font-medium truncate">{user.fullName}</h3>
                           <p className="text-sm text-gray-600 truncate">{user.email}</p>

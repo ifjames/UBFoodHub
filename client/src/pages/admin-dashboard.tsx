@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -667,30 +668,44 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {sortedUsers.map((user) => (
+                  {sortedUsers.map((user) => {
+                    const userStall = user.role === 'stall_owner' ? stalls.find(s => s.ownerId === user.uid) : null;
+                    const displayImage = user.role === 'admin' ? null : user.role === 'stall_owner' ? userStall?.image : user.photoURL;
+                    
+                    return (
                     <div key={user.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg gap-4">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium truncate">{user.fullName}</h3>
-                        <p className="text-sm text-gray-600 truncate">{user.email}</p>
-                        <div className="flex items-center gap-2 mt-2 flex-wrap">
-                          <Badge variant={user.role === 'admin' ? 'destructive' : user.role === 'stall_owner' ? 'default' : 'secondary'}>
-                            {user.role.replace('_', ' ').toUpperCase()}
-                          </Badge>
-                          {user.studentId && (
-                            <Badge variant="outline">ID: {user.studentId}</Badge>
-                          )}
-                          {user.emailVerified ? (
-                            <Badge variant="default" className="bg-green-100 text-green-800">
-                              Verified
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        {user.role !== 'admin' && (
+                          <Avatar className="w-12 h-12 shrink-0">
+                            <AvatarImage src={displayImage} alt={user.fullName} />
+                            <AvatarFallback className="bg-[#6d031e] text-white">
+                              {user.fullName?.charAt(0) || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">{user.fullName}</h3>
+                          <p className="text-sm text-gray-600 truncate">{user.email}</p>
+                          <div className="flex items-center gap-2 mt-2 flex-wrap">
+                            <Badge variant={user.role === 'admin' ? 'destructive' : user.role === 'stall_owner' ? 'default' : 'secondary'}>
+                              {user.role.replace('_', ' ').toUpperCase()}
                             </Badge>
-                          ) : (
-                            <Badge variant="destructive" className="bg-red-100 text-red-800">
-                              Unverified
+                            {user.studentId && (
+                              <Badge variant="outline">ID: {user.studentId}</Badge>
+                            )}
+                            {user.emailVerified ? (
+                              <Badge variant="default" className="bg-green-100 text-green-800">
+                                Verified
+                              </Badge>
+                            ) : (
+                              <Badge variant="destructive" className="bg-red-100 text-red-800">
+                                Unverified
+                              </Badge>
+                            )}
+                            <Badge variant={(user.isActive !== false) ? "default" : "secondary"}>
+                              {(user.isActive !== false) ? "Active" : "Inactive"}
                             </Badge>
-                          )}
-                          <Badge variant={(user.isActive !== false) ? "default" : "secondary"}>
-                            {(user.isActive !== false) ? "Active" : "Inactive"}
-                          </Badge>
+                          </div>
                         </div>
                       </div>
                       <div className="flex gap-2">
@@ -729,7 +744,8 @@ export default function AdminDashboard() {
                         )}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>

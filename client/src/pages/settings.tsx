@@ -321,26 +321,6 @@ export default function Settings() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please select an image file.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate file size (max 32MB for ImgBB)
-    if (file.size > 32 * 1024 * 1024) {
-      toast({
-        title: "File too large",
-        description: "Please select an image smaller than 32MB.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsUpdatingProfile(true);
     try {
       if (!state.user) {
@@ -352,20 +332,9 @@ export default function Settings() {
         return;
       }
 
-      // Upload image to ImgBB via backend
-      const formData = new FormData();
-      formData.append('image', file);
-
-      const uploadResponse = await fetch('/api/upload-image', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload image');
-      }
-
-      const { url: photoURL } = await uploadResponse.json();
+      // Upload image directly to ImgBB
+      const { uploadImageToImgBB } = await import('@/lib/imgbb-upload');
+      const photoURL = await uploadImageToImgBB(file);
 
       // Wait for Firebase auth to be ready
       await auth.authStateReady();
@@ -418,7 +387,7 @@ export default function Settings() {
       console.error("Error updating profile picture:", error);
       toast({
         title: "Update failed",
-        description: "Failed to update profile picture. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to update profile picture. Please try again.",
         variant: "destructive",
       });
     } finally {

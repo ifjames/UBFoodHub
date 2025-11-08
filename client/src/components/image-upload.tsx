@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Upload, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { uploadImageToImgBB } from "@/lib/imgbb-upload";
 
 interface ImageUploadProps {
   value?: string;
@@ -17,39 +18,15 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      setError("Please select an image file");
-      return;
-    }
-
-    // Validate file size (max 32MB as per ImgBB)
-    if (file.size > 32 * 1024 * 1024) {
-      setError("Image size must be less than 32MB");
-      return;
-    }
-
     setError(null);
     setUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("image", file);
-
-      const response = await fetch("/api/upload-image", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to upload image");
-      }
-
-      const data = await response.json();
-      onChange(data.url);
+      const url = await uploadImageToImgBB(file);
+      onChange(url);
     } catch (err) {
       console.error("Upload error:", err);
-      setError("Failed to upload image. Please try again.");
+      setError(err instanceof Error ? err.message : "Failed to upload image. Please try again.");
     } finally {
       setUploading(false);
     }

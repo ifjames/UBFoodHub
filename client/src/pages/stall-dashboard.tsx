@@ -1319,7 +1319,7 @@ export default function StallDashboard() {
                         variant="outline"
                         onClick={() => setCurrentPage(currentPage - 1)}
                         disabled={currentPage === 1}
-                        className="text-[#6d031e]"
+                        className="text-[#6d031e] hover:text-[#6d031e]"
                       >
                         ← Previous
                       </Button>
@@ -1335,7 +1335,7 @@ export default function StallDashboard() {
                             size="sm"
                             variant={currentPage === pageNum ? "default" : "outline"}
                             onClick={() => setCurrentPage(pageNum)}
-                            className={currentPage === pageNum ? "bg-[#6d031e] hover:bg-red-800 text-white" : ""}
+                            className={currentPage === pageNum ? "bg-[#6d031e] hover:bg-red-800 text-white" : "text-[#6d031e] hover:text-[#6d031e]"}
                           >
                             {pageNum}
                           </Button>
@@ -1348,6 +1348,7 @@ export default function StallDashboard() {
                             size="sm"
                             variant="outline"
                             onClick={() => setCurrentPage(totalPages)}
+                            className="text-[#6d031e] hover:text-[#6d031e]"
                           >
                             {totalPages}
                           </Button>
@@ -1361,7 +1362,7 @@ export default function StallDashboard() {
                         variant="outline"
                         onClick={() => setCurrentPage(currentPage + 1)}
                         disabled={currentPage === totalPages}
-                        className="text-[#6d031e]"
+                        className="text-[#6d031e] hover:text-[#6d031e]"
                       >
                         Next →
                       </Button>
@@ -1859,6 +1860,7 @@ export default function StallDashboard() {
                         }
                       }}
                       variant="outline"
+                      className="text-gray-700 hover:text-gray-700"
                     >
                       Cancel
                     </Button>

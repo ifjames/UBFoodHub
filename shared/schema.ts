@@ -10,6 +10,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   fullName: text("full_name").notNull(),
   studentId: text("student_id"),
+  phoneNumber: text("phone_number"),
   role: text("role").notNull().default("student"), // student, stall_owner, admin
   createdAt: timestamp("created_at").defaultNow(),
 });

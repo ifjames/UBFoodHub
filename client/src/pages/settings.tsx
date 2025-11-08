@@ -802,6 +802,14 @@ export default function Settings() {
                       {state.user?.studentId || "Not available"}
                     </p>
                   </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Phone Number</Label>
+                      <p className="text-sm text-gray-600 mt-1 p-2 bg-gray-50 rounded border">
+                        {state.user?.phoneNumber || "Not available"}
+                      </p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -1084,6 +1092,10 @@ export default function Settings() {
             <div>
               <Label>Role</Label>
               <p className="text-sm text-gray-600 mt-1 capitalize">{state.user?.role || "Student"}</p>
+            </div>
+            <div>
+              <Label>Phone Number</Label>
+              <p className="text-sm text-gray-600 mt-1">{state.user?.phoneNumber || "Not available"}</p>
             </div>
           </CardContent>
         </Card>

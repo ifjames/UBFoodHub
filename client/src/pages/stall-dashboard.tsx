@@ -125,6 +125,11 @@ export default function StallDashboard() {
   // HTML5 Drag and drop state
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
   const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
+  
+  // Touch drag state
+  const [touchStartY, setTouchStartY] = useState<number>(0);
+  const [touchCurrentY, setTouchCurrentY] = useState<number>(0);
+  const [isTouchDragging, setIsTouchDragging] = useState(false);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollContainerRef.current) return;
@@ -446,6 +451,98 @@ export default function StallDashboard() {
   const handleDragEnd = () => {
     setDraggedItemId(null);
     setDragOverItemId(null);
+  };
+
+  // Touch event handlers for mobile drag and drop
+  const handleTouchStart = (e: React.TouchEvent, itemId: string) => {
+    setDraggedItemId(itemId);
+    setIsTouchDragging(true);
+    setTouchStartY(e.touches[0].clientY);
+    setTouchCurrentY(e.touches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isTouchDragging || !draggedItemId) return;
+    
+    setTouchCurrentY(e.touches[0].clientY);
+    
+    // Find the element at the current touch position
+    const touch = e.touches[0];
+    const elementAtPoint = document.elementFromPoint(touch.clientX, touch.clientY);
+    
+    if (elementAtPoint) {
+      // Find the closest card element
+      const cardElement = elementAtPoint.closest('[data-menu-item-id]');
+      if (cardElement) {
+        const hoveredItemId = cardElement.getAttribute('data-menu-item-id');
+        if (hoveredItemId && hoveredItemId !== draggedItemId) {
+          setDragOverItemId(hoveredItemId);
+        }
+      }
+    }
+  };
+
+  const handleTouchEnd = async (e: React.TouchEvent) => {
+    if (!isTouchDragging || !draggedItemId) return;
+    
+    e.preventDefault();
+    
+    const dropItemId = dragOverItemId;
+    setIsTouchDragging(false);
+    setDragOverItemId(null);
+    
+    if (!dropItemId || draggedItemId === dropItemId) {
+      setDraggedItemId(null);
+      return;
+    }
+
+    const sortedItems = [...filteredMenuItems].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+    const draggedIndex = sortedItems.findIndex(item => item.id === draggedItemId);
+    const dropIndex = sortedItems.findIndex(item => item.id === dropItemId);
+
+    if (draggedIndex === -1 || dropIndex === -1) {
+      setDraggedItemId(null);
+      return;
+    }
+
+    const [movedItem] = sortedItems.splice(draggedIndex, 1);
+    sortedItems.splice(dropIndex, 0, movedItem);
+
+    const updatedItems = sortedItems.map((item, index) => ({
+      ...item,
+      displayOrder: index
+    }));
+
+    setMenuItems(prevItems => {
+      const itemsMap = new Map(prevItems.map(item => [item.id, item]));
+      updatedItems.forEach(updated => {
+        if (itemsMap.has(updated.id)) {
+          itemsMap.set(updated.id, updated);
+        }
+      });
+      return Array.from(itemsMap.values());
+    });
+
+    setDraggedItemId(null);
+
+    try {
+      await Promise.all(
+        updatedItems.map(item =>
+          updateDocument("menuItems", item.id, { displayOrder: item.displayOrder })
+        )
+      );
+      toast({
+        title: "Success",
+        description: "Menu order updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating menu order:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update menu order",
+        variant: "destructive",
+      });
+    }
   };
 
   // Stall editing functions
@@ -1455,12 +1552,16 @@ export default function StallDashboard() {
                   onDragOver={(e) => handleDragOver(e, item.id)}
                   onDrop={(e) => handleDrop(e, item.id)}
                   onDragEnd={handleDragEnd}
+                  onTouchStart={(e) => handleTouchStart(e, item.id)}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
                   className={`${
                     draggedItemId === item.id ? "opacity-50" : ""
                   } ${
                     dragOverItemId === item.id ? "border-2 border-[#6d031e]" : ""
-                  } transition-all`}
+                  } transition-all touch-none`}
                   data-testid={`menu-card-${item.id}`}
+                  data-menu-item-id={item.id}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">

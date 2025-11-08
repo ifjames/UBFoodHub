@@ -1517,7 +1517,6 @@ export default function StallDashboard() {
                                     size="sm"
                                     variant="outline"
                                     onClick={() => editMenuItem(item)}
-                                    className="text-gray-700 border-gray-300 hover:bg-gray-100 hover:text-gray-900"
                                     data-testid={`button-edit-${item.id}`}
                                   >
                                     <Edit className="w-4 h-4" />
@@ -1526,7 +1525,7 @@ export default function StallDashboard() {
                                     size="sm"
                                     variant="outline"
                                     onClick={() => deleteMenuItem(item.id)}
-                                    className="text-red-700 border-red-300 hover:bg-red-100 hover:border-red-400"
+                                    className="text-red-700 border-red-300"
                                     data-testid={`button-delete-${item.id}`}
                                   >
                                     <Trash2 className="w-4 h-4" />

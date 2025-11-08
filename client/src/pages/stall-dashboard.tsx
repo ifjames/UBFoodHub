@@ -26,7 +26,8 @@ import {
   Banknote,
   Coins,
   Check,
-  GripVertical
+  GripVertical,
+  Lock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,6 +54,7 @@ import {
   increment,
   runTransaction
 } from "@/lib/firebase";
+import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { collection, getDocs, doc } from "firebase/firestore";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { useLocation } from "wouter";
@@ -96,6 +98,12 @@ export default function StallDashboard() {
     isActive: true,
   });
   const [isEditingStall, setIsEditingStall] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [itemForm, setItemForm] = useState({
     name: "",
     description: "",
@@ -504,6 +512,86 @@ export default function StallDashboard() {
         description: "Failed to logout",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Please fill in all password fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "New passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!auth.currentUser || !auth.currentUser.email) {
+      toast({
+        title: "Error",
+        description: "No user is currently logged in",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsChangingPassword(true);
+
+    try {
+      const credential = EmailAuthProvider.credential(
+        auth.currentUser.email,
+        passwordForm.currentPassword
+      );
+
+      await reauthenticateWithCredential(auth.currentUser, credential);
+      await updatePassword(auth.currentUser, passwordForm.newPassword);
+
+      toast({
+        title: "Success",
+        description: "Password changed successfully",
+      });
+
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (error: any) {
+      console.error("Error changing password:", error);
+      
+      let errorMessage = "Failed to change password";
+      if (error.code === "auth/wrong-password") {
+        errorMessage = "Current password is incorrect";
+      } else if (error.code === "auth/weak-password") {
+        errorMessage = "Password is too weak";
+      } else if (error.code === "auth/requires-recent-login") {
+        errorMessage = "Please log out and log back in before changing your password";
+      }
+
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -1913,6 +2001,81 @@ export default function StallDashboard() {
                     </div>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Password Change Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-[#6d031e] flex items-center gap-2">
+                  <Lock className="w-5 h-5" />
+                  Change Password
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="current-password" className="text-sm font-medium">
+                    Current Password
+                  </Label>
+                  <Input
+                    id="current-password"
+                    type="password"
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                    placeholder="Enter current password"
+                    className="mt-1"
+                    data-testid="input-current-password"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="new-password" className="text-sm font-medium">
+                    New Password
+                  </Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                    placeholder="Enter new password (min. 6 characters)"
+                    className="mt-1"
+                    data-testid="input-new-password"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="confirm-password" className="text-sm font-medium">
+                    Confirm New Password
+                  </Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    placeholder="Re-enter new password"
+                    className="mt-1"
+                    data-testid="input-confirm-password"
+                  />
+                </div>
+
+                <Button
+                  onClick={handleChangePassword}
+                  disabled={isChangingPassword}
+                  className="bg-[#6d031e] text-white hover:bg-red-700"
+                  data-testid="button-change-password"
+                >
+                  {isChangingPassword ? (
+                    <>
+                      <Clock className="w-4 h-4 mr-2 animate-spin" />
+                      Changing Password...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Change Password
+                    </>
+                  )}
+                </Button>
               </CardContent>
             </Card>
           </motion.div>

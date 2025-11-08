@@ -2276,7 +2276,7 @@ export default function StallDashboard() {
                   size="sm"
                   variant="outline"
                   onClick={addCustomization}
-                  className="text-red-700 border-red-300 hover:bg-red-100 hover:border-red-400"
+                  className="text-red-700 border-red-300"
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   Add Option
@@ -2303,7 +2303,7 @@ export default function StallDashboard() {
                     size="sm"
                     variant="outline"
                     onClick={() => removeCustomization(index)}
-                    className="text-red-700 border-red-300 hover:bg-red-100"
+                    className="text-red-700 border-red-300"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -2342,7 +2342,7 @@ export default function StallDashboard() {
               <Button
                 variant="outline"
                 onClick={() => setIsMenuDialogOpen(false)}
-                className="border-red-300 text-red-700 hover:bg-red-100 hover:border-red-400"
+                className="border-red-300 text-red-700"
               >
                 Cancel
               </Button>

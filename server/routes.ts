@@ -25,6 +25,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const IMGBB_API_KEY = process.env.IMGBB_API_KEY || config.IMGBB_API_KEY;
       
+      if (!IMGBB_API_KEY) {
+        console.error('ImgBB API key is missing');
+        return res.status(500).json({ message: "Image upload service not configured" });
+      }
+      
       // Convert buffer to base64
       const base64Image = req.file.buffer.toString('base64');
       
@@ -45,15 +50,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: response.status,
           statusText: response.statusText,
           data: data,
-          apiKey: IMGBB_API_KEY ? 'Set' : 'Missing'
+          apiKey: IMGBB_API_KEY ? 'Present' : 'Missing'
         });
-        throw new Error(`ImgBB upload failed: ${data.error?.message || response.statusText}`);
+        const errorMessage = data.error?.message || data.message || response.statusText || "Image upload failed";
+        return res.status(response.status || 500).json({ message: errorMessage });
+      }
+      
+      if (!data.data || !data.data.url) {
+        console.error('ImgBB returned invalid response:', data);
+        return res.status(500).json({ message: "Invalid response from image upload service" });
       }
       
       // Return the image URL
       res.json({ url: data.data.url });
     } catch (error: any) {
-      console.error("Image upload error:", error.message || error);
+      console.error("Image upload error:", error);
       res.status(500).json({ message: error.message || "Failed to upload image" });
     }
   });

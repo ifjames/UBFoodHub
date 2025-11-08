@@ -133,6 +133,7 @@ export default function Checkout() {
           userId: state.user?.id,
           customerName: state.user?.fullName || "Student",
           customerEmail: state.user?.email || "Not provided",
+          customerPhone: state.user?.phoneNumber || "Not provided",
           studentId: state.user?.studentId || "Not provided",
           stallId,
           stallName: stallData?.name || "Unknown Stall",

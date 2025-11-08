@@ -2378,6 +2378,7 @@ export default function StallDashboard() {
                   <p><span className="font-medium">Name:</span> {selectedOrder.customerName || 'Student'}</p>
                   <p><span className="font-medium">Student ID:</span> {selectedOrder.studentId || 'Not provided'}</p>
                   <p><span className="font-medium">Email:</span> {selectedOrder.customerEmail || 'Not provided'}</p>
+                  <p><span className="font-medium">Phone:</span> {selectedOrder.customerPhone || 'Not provided'}</p>
                   <p><span className="font-medium">Order Date:</span> {new Date(selectedOrder.createdAt?.toDate ? selectedOrder.createdAt.toDate() : selectedOrder.createdAt).toLocaleString()}</p>
                   <div className="flex items-center gap-2">
                     <span className="font-medium">Status:</span>

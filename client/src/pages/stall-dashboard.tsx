@@ -1566,76 +1566,80 @@ export default function StallDashboard() {
                   data-menu-item-id={item.id}
                 >
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4">
                       <div
-                        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+                        className="hidden md:block cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
                         data-testid={`drag-handle-${item.id}`}
                       >
                         <GripVertical className="w-5 h-5" />
                       </div>
-                                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                                  {item.image ? (
-                                    <img src={item.image} alt={item.name} className="w-full h-full object-cover rounded-lg" />
-                                  ) : (
-                                    <ImageIcon className="w-8 h-8 text-gray-400" />
-                                  )}
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <h3 className="font-semibold text-[#6d031e]">{item.name}</h3>
-                                    {item.isPopular && <Star className="w-4 h-4 text-yellow-500 fill-current" />}
-                                  </div>
-                                  <p className="text-sm text-gray-600">{item.description}</p>
-                                  <div className="flex items-center gap-3 mt-1">
-                                    <p className="text-lg font-bold text-gray-900">₱{item.price?.toFixed(2)}</p>
-                                    <Badge 
-                                      variant="outline" 
-                                      className={`${
-                                        (item.stock ?? 0) === 0 
-                                          ? 'bg-red-50 text-red-700 border-red-200' 
-                                          : (item.stock ?? 0) < 10 
-                                            ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                                            : 'bg-green-50 text-green-700 border-green-200'
-                                      }`}
-                                    >
-                                      Stock: {item.stock ?? 0}
-                                    </Badge>
-                                  </div>
-                                  {item.customizations && item.customizations.length > 0 && (
-                                    <div className="flex flex-wrap gap-1 mt-2">
-                                      {item.customizations.map((custom: any, index: number) => (
-                                        <Badge key={index} variant="outline" className="text-xs">
-                                          {custom.name} {custom.price > 0 ? `+₱${custom.price}` : ''}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Switch
-                                    checked={item.isAvailable}
-                                    onCheckedChange={() => toggleItemAvailability(item.id, item.isAvailable)}
-                                  />
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => editMenuItem(item)}
-                                    data-testid={`button-edit-${item.id}`}
-                                  >
-                                    <Edit className="w-4 h-4" />
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setItemToDelete(item.id)}
-                                    className="text-red-700 border-red-300"
-                                    data-testid={`button-delete-${item.id}`}
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </CardContent>
+                      
+                      <div className="flex items-start gap-3 flex-1 w-full">
+                        <div className="w-16 h-16 flex-shrink-0 bg-gray-100 rounded-lg flex items-center justify-center">
+                          {item.image ? (
+                            <img src={item.image} alt={item.name} className="w-full h-full object-cover rounded-lg" />
+                          ) : (
+                            <ImageIcon className="w-8 h-8 text-gray-400" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-semibold text-[#6d031e]">{item.name}</h3>
+                            {item.isPopular && <Star className="w-4 h-4 text-yellow-500 fill-current" />}
+                          </div>
+                          <p className="text-sm text-gray-600 line-clamp-2">{item.description}</p>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <p className="text-lg font-bold text-gray-900">₱{item.price?.toFixed(2)}</p>
+                            <Badge 
+                              variant="outline" 
+                              className={`${
+                                (item.stock ?? 0) === 0 
+                                  ? 'bg-red-50 text-red-700 border-red-200' 
+                                  : (item.stock ?? 0) < 10 
+                                    ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                    : 'bg-green-50 text-green-700 border-green-200'
+                              }`}
+                            >
+                              Stock: {item.stock ?? 0}
+                            </Badge>
+                          </div>
+                          {item.customizations && item.customizations.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {item.customizations.map((custom: any, index: number) => (
+                                <Badge key={index} variant="outline" className="text-xs">
+                                  {custom.name} {custom.price > 0 ? `+₱${custom.price}` : ''}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 w-full md:w-auto justify-end md:justify-start">
+                        <Switch
+                          checked={item.isAvailable}
+                          onCheckedChange={() => toggleItemAvailability(item.id, item.isAvailable)}
+                        />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => editMenuItem(item)}
+                          data-testid={`button-edit-${item.id}`}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setItemToDelete(item.id)}
+                          className="text-red-700 border-red-300"
+                          data-testid={`button-delete-${item.id}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
                           </Card>
               ))}
             </div>

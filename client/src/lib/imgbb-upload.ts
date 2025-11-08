@@ -1,6 +1,6 @@
 import imageCompression from 'browser-image-compression';
 
-const IMGBB_API_KEY = "7dba7ac9b1a4a279b72a9c1b38c2b5c0";
+const IMGHIPPO_API_KEY = "2b8412a9475beae3245838063d0c2a8e";
 
 export async function uploadImageToImgBB(file: File): Promise<string> {
   if (!file.type.startsWith('image/')) {
@@ -29,9 +29,10 @@ export async function uploadImageToImgBB(file: File): Promise<string> {
   }
 
   const formData = new FormData();
-  formData.append('image', fileToUpload);
+  formData.append('file', fileToUpload);
+  formData.append('api_key', IMGHIPPO_API_KEY);
 
-  const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+  const response = await fetch('https://api.imghippo.com/v1/upload', {
     method: 'POST',
     body: formData,
   });

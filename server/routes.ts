@@ -23,22 +23,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No image file provided" });
       }
 
-      const IMGBB_API_KEY = process.env.IMGBB_API_KEY || config.IMGBB_API_KEY;
+      const IMGHIPPO_API_KEY = process.env.IMGHIPPO_API_KEY || config.IMGHIPPO_API_KEY;
       
-      if (!IMGBB_API_KEY) {
-        console.error('ImgBB API key is missing');
+      if (!IMGHIPPO_API_KEY) {
+        console.error('ImgHippo API key is missing');
         return res.status(500).json({ message: "Image upload service not configured" });
       }
       
       // Convert buffer to base64
       const base64Image = req.file.buffer.toString('base64');
       
-      // Create form data for ImgBB
+      // Create form data for ImgHippo
       const formData = new FormData();
-      formData.append('image', base64Image);
+      formData.append('file', base64Image);
+      formData.append('api_key', IMGHIPPO_API_KEY);
       
-      // Upload to ImgBB
-      const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+      // Upload to ImgHippo
+      const response = await fetch('https://api.imghippo.com/v1/upload', {
         method: 'POST',
         body: formData
       });
@@ -46,18 +47,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = await response.json() as any;
       
       if (!response.ok) {
-        console.error('ImgBB API Error:', {
+        console.error('ImgHippo API Error:', {
           status: response.status,
           statusText: response.statusText,
           data: data,
-          apiKey: IMGBB_API_KEY ? 'Present' : 'Missing'
+          apiKey: IMGHIPPO_API_KEY ? 'Present' : 'Missing'
         });
         const errorMessage = data.error?.message || data.message || response.statusText || "Image upload failed";
         return res.status(response.status || 500).json({ message: errorMessage });
       }
       
       if (!data.data || !data.data.url) {
-        console.error('ImgBB returned invalid response:', data);
+        console.error('ImgHippo returned invalid response:', data);
         return res.status(500).json({ message: "Invalid response from image upload service" });
       }
       

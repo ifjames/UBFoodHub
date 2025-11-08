@@ -1,4 +1,4 @@
 export const config = {
-  IMGBB_API_KEY:
-    process.env.IMGBB_API_KEY || "7dba7ac9b1a4a279b72a9c1b38c2b5c0",
+  IMGHIPPO_API_KEY:
+    process.env.IMGHIPPO_API_KEY || "2b8412a9475beae3245838063d0c2a8e",
 };

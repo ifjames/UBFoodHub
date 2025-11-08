@@ -6,7 +6,22 @@ UB FoodHub is a mobile web application for the University of Batangas canteen ec
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
-## Recent Changes (January 2025)
+## Recent Changes (November 2025)
+- **Role-Based Access Control** (November 8, 2025):
+  - Fixed critical security vulnerability where users could access dashboards for other roles by typing URLs directly
+  - Enhanced AuthGuard component with `allowedRoles` prop to enforce role-based route protection
+  - Admin routes (/admin, /admin/vouchers) now only accessible by admin users
+  - Stall dashboard (/stall-dashboard) now only accessible by stall_owner users
+  - Unauthorized access attempts automatically redirect users to their appropriate dashboard
+  - Security logging added for unauthorized access attempts
+- **404 Page Redesign** (November 8, 2025):
+  - Completely redesigned 404 page to match UB FoodHub maroon branding and design system
+  - Features animated liquid glass background effects with floating particles
+  - Displays large "404" text with gradient maroon colors and user-friendly messaging
+  - Includes UB FoodHub logo with smooth animations
+  - Smart navigation buttons that redirect users to their role-appropriate dashboard
+  - "Go Home" and "Go Back" buttons for easy navigation recovery
+  - Removed developer-focused messages in favor of user-friendly content
 - **Email Verification Enforcement**: Implemented complete blocking of unverified student accounts at authentication level. Students cannot access any part of the application until email is verified.
 - **UI Enhancement**: Fixed logout button hover styling in profile page to maintain red text color instead of turning white.
 - **Sign-up Flow Fix**: Fixed account creation getting stuck by using session storage flag to bypass email verification during account creation process.

@@ -244,8 +244,24 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
+    try {
+      await updateDocument("users", userId, { isActive: !currentStatus });
+      toast({
+        title: "User status updated",
+        description: `User account has been ${!currentStatus ? 'activated' : 'deactivated'}.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error updating user",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
-  const handleDeleteUser = async (userId: string) => {
+  // Removed handleDeleteUser - admins can only activate/deactivate accounts
+  const handleDeleteUser_DISABLED = async (userId: string) => {
     try {
       // Delete user from Firebase Authentication via backend
       const authResponse = await fetch(`/api/admin/delete-user/${userId}`, {
@@ -672,6 +688,9 @@ export default function AdminDashboard() {
                               Unverified
                             </Badge>
                           )}
+                          <Badge variant={(user.isActive !== false) ? "default" : "secondary"}>
+                            {(user.isActive !== false) ? "Active" : "Inactive"}
+                          </Badge>
                         </div>
                       </div>
                       <div className="flex gap-2">
@@ -698,28 +717,15 @@ export default function AdminDashboard() {
                           </Button>
                         )}
                         {user.role !== 'admin' && (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="destructive" size="sm" className="shrink-0">
-                                <Trash2 className="w-4 h-4 sm:mr-2" />
-                                <span className="hidden sm:inline">Delete</span>
-                              </Button>
-                            </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete User Account</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete {user.fullName}'s account? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDeleteUser(user.id)}>
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                          <Button
+                            variant={(user.isActive !== false) ? "secondary" : "default"}
+                            size="sm"
+                            onClick={() => handleToggleUserStatus(user.id, user.isActive !== false)}
+                            className="shrink-0"
+                            data-testid={`button-toggle-user-${user.id}`}
+                          >
+                            {(user.isActive !== false) ? "Deactivate" : "Activate"}
+                          </Button>
                         )}
                       </div>
                     </div>

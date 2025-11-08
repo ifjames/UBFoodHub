@@ -133,6 +133,17 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
             const userData = userDoc.data();
             const userRole = userData.role || 'student';
             const isEmailVerified = firebaseUser.emailVerified || userData.emailVerified || false;
+            const isActive = userData.isActive !== undefined ? userData.isActive : true; // Default to true for backward compatibility
+            
+            // Check if account is deactivated - block authentication completely
+            if (isActive === false) {
+              console.log("Account is deactivated, signing out:", firebaseUser.email);
+              sessionStorage.setItem('loginError', 'Your account has been deactivated by an administrator. Please contact support for assistance.');
+              await logOut();
+              dispatch({ type: "SET_USER", payload: null });
+              window.location.href = "/login";
+              return;
+            }
             
             // Sync email verification status from Firebase Auth to Firestore if it has changed
             if (userData.emailVerified !== firebaseUser.emailVerified && firebaseUser.emailVerified) {

@@ -1,4 +1,4 @@
-import { useState, FormEvent, useMemo } from "react";
+import { useState, FormEvent, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Eye,
@@ -21,6 +21,20 @@ export default function LoginPage() {
   const { signIn, signUp, signInWithGoogle } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+
+  // Check for login error from sessionStorage (e.g., deactivated account)
+  useEffect(() => {
+    const loginError = sessionStorage.getItem('loginError');
+    if (loginError) {
+      toast({
+        title: "Account Deactivated",
+        description: loginError,
+        variant: "destructive",
+        duration: 6000,
+      });
+      sessionStorage.removeItem('loginError');
+    }
+  }, [toast]);
 
   // Simple state management without dependencies
   const [authMode, setAuthMode] = useState<"social" | "email">("social");

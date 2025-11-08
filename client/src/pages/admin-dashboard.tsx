@@ -669,7 +669,8 @@ export default function AdminDashboard() {
               <CardContent>
                 <div className="space-y-4">
                   {sortedUsers.map((user) => {
-                    const userStall = user.role === 'stall_owner' ? stalls.find(s => s.ownerId === user.uid) : null;
+                    const userStall = user.role === 'stall_owner' ? stalls.find(s => s.ownerId === user.id) : null;
+                    
                     const displayImage = user.role === 'admin' 
                       ? '/logo.png' 
                       : user.role === 'stall_owner' 

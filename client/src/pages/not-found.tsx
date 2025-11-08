@@ -169,7 +169,7 @@ export default function NotFound() {
               <Button
                 onClick={handleGoBack}
                 variant="outline"
-                className="w-full border-[#6d031e] text-[#6d031e] hover:bg-[#6d031e]/10"
+                className="w-full border-[#6d031e] text-[#6d031e] hover:bg-[#6d031e]/10 hover:text-[#6d031e]"
                 data-testid="button-go-back"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />

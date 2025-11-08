@@ -37,6 +37,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
@@ -104,6 +105,7 @@ export default function StallDashboard() {
     confirmPassword: "",
   });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [itemForm, setItemForm] = useState({
     name: "",
     description: "",
@@ -1625,7 +1627,7 @@ export default function StallDashboard() {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    onClick={() => deleteMenuItem(item.id)}
+                                    onClick={() => setItemToDelete(item.id)}
                                     className="text-red-700 border-red-300"
                                     data-testid={`button-delete-${item.id}`}
                                   >
@@ -2619,6 +2621,32 @@ export default function StallDashboard() {
           )}
         </DialogContent>
       </Dialog>
+      
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-[#6d031e]">Delete Menu Item?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this menu item? This action cannot be undone and will permanently remove the item from your menu.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setItemToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (itemToDelete) {
+                  deleteMenuItem(itemToDelete);
+                  setItemToDelete(null);
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       {/* QR Scanner Component */}
       <QRScanner

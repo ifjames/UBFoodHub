@@ -69,17 +69,17 @@ function Router() {
       </Route>
 
       <Route path="/admin">
-        <AuthGuard>
+        <AuthGuard allowedRoles={["admin"]}>
           <AdminDashboard />
         </AuthGuard>
       </Route>
       <Route path="/admin/vouchers">
-        <AuthGuard>
+        <AuthGuard allowedRoles={["admin"]}>
           <AdminVouchers />
         </AuthGuard>
       </Route>
       <Route path="/stall-dashboard">
-        <AuthGuard>
+        <AuthGuard allowedRoles={["stall_owner"]}>
           <StallDashboard />
         </AuthGuard>
       </Route>

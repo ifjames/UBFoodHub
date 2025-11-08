@@ -6,9 +6,10 @@ import NotificationService from "@/lib/notification-service";
 
 interface AuthGuardProps {
   children: ReactNode;
+  allowedRoles?: string[];
 }
 
-export default function AuthGuard({ children }: AuthGuardProps) {
+export default function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
   const { state } = useStore();
   const [, setLocation] = useLocation();
   const [showProfileCompletion, setShowProfileCompletion] = useState(false);
@@ -24,6 +25,26 @@ export default function AuthGuard({ children }: AuthGuardProps) {
       // Clear user state and redirect to login immediately
       setLocation("/login");
       return;
+    }
+
+    // Role-based access control
+    if (allowedRoles && allowedRoles.length > 0) {
+      const userRole = state.user.role;
+      
+      if (!allowedRoles.includes(userRole)) {
+        // User doesn't have permission, redirect to their appropriate dashboard
+        console.warn(`Unauthorized access attempt: User role "${userRole}" tried to access route requiring roles: ${allowedRoles.join(", ")}`);
+        
+        // Redirect based on user's actual role
+        if (userRole === "admin") {
+          setLocation("/admin");
+        } else if (userRole === "stall_owner") {
+          setLocation("/stall-dashboard");
+        } else {
+          setLocation("/");
+        }
+        return;
+      }
     }
 
     // Check if user needs to complete their profile (missing student ID or phone number)
@@ -47,7 +68,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
         notificationService.sendVerificationNotification();
       }
     }
-  }, [state.user, setLocation]);
+  }, [state.user, setLocation, allowedRoles]);
 
   if (!state.user) {
     return (

@@ -1,0 +1,36 @@
+vite v5.4.19 building for production...
+✓ 2523 modules transformed.
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) /home/runner/workspace/client/src/lib/firebase.ts is dynamically imported by /home/runner/workspace/client/src/App.tsx, /home/runner/workspace/client/src/lib/notification-service.ts, /home/runner/workspace/client/src/lib/store.tsx, /home/runner/workspace/client/src/lib/store.tsx, /home/runner/workspace/client/src/lib/store.tsx but also statically imported by /home/runner/workspace/client/src/App.tsx, /home/runner/workspace/client/src/components/admin/broadcast-notification.tsx, /home/runner/workspace/client/src/components/layout/desktop-nav.tsx, /home/runner/workspace/client/src/components/loyalty/loyalty-dashboard.tsx, /home/runner/workspace/client/src/components/notifications/notification-bell.tsx, /home/runner/workspace/client/src/components/notifications/notification-center.tsx, /home/runner/workspace/client/src/components/orders/cancellation-request-management.tsx, /home/runner/workspace/client/src/components/orders/order-cancellation-request.tsx, /home/runner/workspace/client/src/components/profile-completion-modal.tsx, /home/runner/workspace/client/src/components/restaurant-card.tsx, /home/runner/workspace/client/src/components/vouchers/student-voucher-dashboard.tsx, /home/runner/workspace/client/src/components/vouchers/voucher-create-modal.tsx, /home/runner/workspace/client/src/components/vouchers/voucher-redemption-modal.tsx, /home/runner/workspace/client/src/lib/notifications.ts, /home/runner/workspace/client/src/lib/store.tsx, /home/runner/workspace/client/src/pages/admin-dashboard.tsx, /home/runner/workspace/client/src/pages/admin-vouchers.tsx, /home/runner/workspace/client/src/pages/cart.tsx, /home/runner/workspace/client/src/pages/checkout.tsx, /home/runner/workspace/client/src/pages/home.tsx, /home/runner/workspace/client/src/pages/orders.tsx, /home/runner/workspace/client/src/pages/profile.tsx, /home/runner/workspace/client/src/pages/restaurant.tsx, /home/runner/workspace/client/src/pages/settings.tsx, /home/runner/workspace/client/src/pages/stall-dashboard.tsx, dynamic import will not move module into another chunk.
+
+../dist/public/index.html                     0.49 kB │ gzip:   0.31 kB
+../dist/public/assets/index-DaKHdqSL.css    119.49 kB │ gzip:  18.75 kB
+../dist/public/assets/index-D-5jIsz0.js   1,507.21 kB │ gzip: 413.74 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 12.36s
+
+  dist/index.js  38.4kb
+
+⚡ Done in 9ms
+~/workspace$ firebase deploy
+
+=== Deploying to 'ubianfoodhub'...
+
+i  deploying hosting
+i  hosting[ubianfoodhub]: beginning deploy...
+i  hosting[ubianfoodhub]: found 7 files in dist/public
+✔  hosting[ubianfoodhub]: file upload complete
+i  hosting[ubianfoodhub]: finalizing version...
+✔  hosting[ubianfoodhub]: version finalized
+i  hosting[ubianfoodhub]: releasing new version...
+✔  hosting[ubianfoodhub]: release complete
+
+✔  Deploy complete!
+
+Project Console: https://console.firebase.google.com/project/ubianfoodhub/overview
+Hosting URL: https://ubianfoodhub.web.app
+~/workspace$ 

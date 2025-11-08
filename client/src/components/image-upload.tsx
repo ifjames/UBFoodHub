@@ -46,6 +46,14 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
             alt="Uploaded image"
             className="w-full h-48 object-cover rounded-lg border border-gray-200"
           />
+          {uploading && (
+            <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+              <div className="text-center text-white">
+                <Loader2 className="w-10 h-10 animate-spin mx-auto mb-2" />
+                <p className="text-sm font-medium">Uploading...</p>
+              </div>
+            </div>
+          )}
           <Button
             type="button"
             variant="destructive"

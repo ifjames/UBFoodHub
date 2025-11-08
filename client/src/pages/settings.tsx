@@ -627,6 +627,14 @@ export default function Settings() {
                             {state.user?.fullName?.charAt(0) || "U"}
                           </span>
                         )}
+                        {isUpdatingProfile && (
+                          <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                            <div className="text-center text-white">
+                              <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent mx-auto mb-1"></div>
+                              <p className="text-xs font-medium">Uploading...</p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <button
                         onClick={handleProfilePictureUpdate}
@@ -916,6 +924,14 @@ export default function Settings() {
                     <span className="text-[#6d031e] text-2xl font-semibold">
                       {state.user?.fullName?.charAt(0) || "U"}
                     </span>
+                  )}
+                  {isUpdatingProfile && (
+                    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                      <div className="text-center text-white">
+                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mx-auto mb-1"></div>
+                        <p className="text-xs font-medium">Uploading...</p>
+                      </div>
+                    </div>
                   )}
                 </div>
                 <button

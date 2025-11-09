@@ -384,194 +384,223 @@ export default function Restaurant() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header - Desktop optimized */}
       <motion.div 
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         className="bg-white shadow-sm sticky top-0 z-40"
       >
-        <div className="flex items-center justify-between p-4 bg-[#820d2a]">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setLocation("/")}
-            className="rounded-full text-white hover:bg-red-700"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={handleInfo}
-              data-testid="button-info"
-              className="rounded-full text-white hover:bg-red-700"
-            >
-              <Info className="w-5 h-5" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={handleFavorite}
-              disabled={isFavoriteLoading}
-              data-testid="button-favorite"
-              className="rounded-full text-white hover:bg-red-700"
-            >
-              <Heart className={`w-5 h-5 transition-colors ${
-                liked ? "fill-red-500" : ""
-              }`} />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={handleShare}
-              data-testid="button-share"
-              className="rounded-full text-white hover:bg-red-700"
-            >
-              <Share className="w-5 h-5" />
-            </Button>
+        <div className="bg-[#820d2a] md:py-4">
+          <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
+            <div className="flex items-center justify-between py-3 md:py-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLocation("/")}
+                className="rounded-full text-white hover:bg-red-700"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <div className="flex items-center gap-2 md:gap-3">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={handleInfo}
+                  data-testid="button-info"
+                  className="rounded-full text-white hover:bg-red-700"
+                >
+                  <Info className="w-5 h-5" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={handleFavorite}
+                  disabled={isFavoriteLoading}
+                  data-testid="button-favorite"
+                  className="rounded-full text-white hover:bg-red-700"
+                >
+                  <Heart className={`w-5 h-5 transition-colors ${
+                    liked ? "fill-red-500" : ""
+                  }`} />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={handleShare}
+                  data-testid="button-share"
+                  className="rounded-full text-white hover:bg-red-700"
+                >
+                  <Share className="w-5 h-5" />
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </motion.div>
 
-      {/* Restaurant Info */}
+      {/* Restaurant Hero Section - Desktop optimized */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-white p-4 md:p-6 mb-2"
+        className="bg-white border-b"
       >
-        <div className="flex items-center mb-2 md:mb-4">
-          {stall.image && (
-            <img 
-              src={stall.image} 
-              alt={stall.name}
-              className="w-16 h-16 md:w-24 md:h-24 rounded-lg mr-4 object-cover"
-            />
-          )}
-          <div className="flex-1">
-            <h1 className="text-xl md:text-3xl font-bold text-gray-900">{stall.name}</h1>
-            <div className="flex items-center gap-1 mt-1 md:mt-2">
-              <Star className="w-4 h-4 md:w-5 md:h-5 text-yellow-400 fill-current" />
-              <span className="text-sm md:text-base font-medium">
-                {actualRating > 0 ? actualRating.toString() : "No ratings"}
-              </span>
-              {actualReviewCount > 0 && (
-                <span className="text-sm md:text-base text-gray-600">({actualReviewCount} ratings)</span>
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-12">
+          <div className="flex flex-col md:flex-row md:items-start md:gap-8 lg:gap-12">
+            {stall.image && (
+              <div className="hidden md:block">
+                <img 
+                  src={stall.image} 
+                  alt={stall.name}
+                  className="w-32 h-32 lg:w-40 lg:h-40 rounded-xl object-cover shadow-md"
+                />
+              </div>
+            )}
+            <div className="flex md:hidden items-center mb-4">
+              {stall.image && (
+                <img 
+                  src={stall.image} 
+                  alt={stall.name}
+                  className="w-16 h-16 rounded-lg mr-4 object-cover"
+                />
               )}
+              <div className="flex-1">
+                <h1 className="text-xl font-bold text-gray-900">{stall.name}</h1>
+                <div className="flex items-center gap-1 mt-1">
+                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                  <span className="text-sm font-medium">
+                    {actualRating > 0 ? actualRating.toString() : "No ratings"}
+                  </span>
+                  {actualReviewCount > 0 && (
+                    <span className="text-sm text-gray-600">({actualReviewCount} ratings)</span>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex-1">
+              <h1 className="hidden md:block text-3xl lg:text-4xl font-bold text-gray-900 mb-3">
+                {stall.name}
+              </h1>
+              <div className="hidden md:flex items-center gap-2 mb-4">
+                <Star className="w-6 h-6 text-yellow-400 fill-current" />
+                <span className="text-xl font-semibold">
+                  {actualRating > 0 ? actualRating.toString() : "No ratings"}
+                </span>
+                {actualReviewCount > 0 && (
+                  <span className="text-lg text-gray-600">({actualReviewCount} ratings)</span>
+                )}
+              </div>
+              <div className="flex items-center gap-2 text-sm md:text-base text-gray-600">
+                <Clock className="w-5 h-5 md:w-6 md:h-6 text-[#820d2a]" />
+                <span className="font-medium">Pickup ready in {pickupTime}</span>
+              </div>
             </div>
           </div>
         </div>
-
-        <div className="flex items-center gap-1 text-sm md:text-base text-gray-600 mb-4">
-          <Clock className="w-4 h-4 md:w-5 md:h-5" />
-          <span>Pickup ready in {pickupTime}</span>
-        </div>
-
-
       </motion.div>
 
-
-
-      {/* Search Bar */}
+      {/* Search Bar - Desktop optimized */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
-        className="bg-white p-4 mb-2"
+        className="bg-white border-b md:bg-gray-50 md:py-6"
       >
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder={`Search in ${stall.name}...`}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-gray-50 border-gray-200"
-          />
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-0">
+          <div className="relative max-w-2xl">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Input
+              placeholder={`Search in ${stall.name}...`}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-12 md:h-12 md:text-base bg-white border-gray-300 shadow-sm"
+            />
+          </div>
         </div>
       </motion.div>
 
-      {/* Menu Items */}
-      <div className="p-4 space-y-4 pb-24 md:pb-8">
-        {/* Desktop Grid Layout */}
-        <div className="md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6 md:max-w-7xl md:mx-auto md:space-y-0">
-        <AnimatePresence>
-          {filteredItems.map((item, index) => (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ delay: 0.1 * index }}
-              onClick={() => openCustomization(item)}
-              className="bg-white rounded-lg p-4 md:p-6 shadow-sm hover:shadow-lg transition-all cursor-pointer mb-4 md:mb-0"
-            >
-              <div className="flex gap-4 md:flex-col">
-                {/* Image First on Desktop */}
+      {/* Menu Items - Desktop optimized */}
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-12 pb-24 md:pb-12">
+        <h2 className="hidden md:block text-2xl font-bold text-gray-900 mb-8">Menu</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+          <AnimatePresence>
+            {filteredItems.map((item, index) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ delay: 0.05 * index }}
+                onClick={() => openCustomization(item)}
+                className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer group"
+              >
                 {item.image && (
-                  <div className="w-20 h-20 md:w-full md:h-40 rounded-lg bg-gray-100 overflow-hidden md:mb-4 order-2 md:order-1">
+                  <div className="relative w-full h-48 md:h-56 bg-gray-100 overflow-hidden">
                     <img 
                       src={item.image} 
                       alt={item.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
+                    <div className="absolute top-3 right-3 flex gap-2">
+                      {item.isPopular && (
+                        <Badge className="bg-blue-500 text-white shadow-lg">NEW!</Badge>
+                      )}
+                      {(item.stock ?? 0) === 0 && (
+                        <Badge className="bg-gray-900 text-white shadow-lg">Out of Stock</Badge>
+                      )}
+                    </div>
                   </div>
                 )}
                 
-                <div className="flex-1 order-1 md:order-2">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-medium text-gray-900 md:text-lg">{item.name}</h3>
-                    <div className="flex gap-1">
-                      {item.isPopular && (
-                        <Badge className="bg-red-100 text-red-700 text-xs">NEW!</Badge>
-                      )}
-                      {(item.stock ?? 0) === 0 && (
-                        <Badge className="bg-gray-100 text-gray-700 text-xs">Out of Stock</Badge>
-                      )}
-                    </div>
-                  </div>
-                  <p className="text-sm md:text-base text-gray-600 mb-2 md:mb-4">{item.description}</p>
+                <div className="p-4 md:p-5">
+                  <h3 className="font-semibold text-gray-900 text-base md:text-lg mb-2 line-clamp-1">
+                    {item.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-2 min-h-[40px]">
+                    {item.description}
+                  </p>
                   <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-gray-900 md:text-lg">₱{item.price}</span>
+                    <div className="flex flex-col gap-1">
+                      <span className="font-bold text-[#820d2a] text-xl">₱{item.price}</span>
                       {(item.stock ?? 0) > 0 && (item.stock ?? 0) < 10 && (
-                        <span className="text-xs text-yellow-600">Only {item.stock} left</span>
+                        <span className="text-xs text-orange-600 font-medium">Only {item.stock} left</span>
                       )}
                     </div>
                     <Button
-                      size="sm"
+                      size="icon"
                       disabled={!item.isAvailable || (item.stock ?? 0) === 0}
-                      className="rounded-full w-8 h-8 md:w-10 md:h-10 p-0 bg-[#6d031e] hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="rounded-full w-11 h-11 bg-[#820d2a] hover:bg-[#6a0a22] disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                       onClick={(e) => {
                         e.stopPropagation();
                         openCustomization(item);
                       }}
                     >
-                      <Plus className="w-4 h-4 md:w-5 md:h-5" />
+                      <Plus className="w-5 h-5" />
                     </Button>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
-          
-        {filteredItems.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-12 md:col-span-full"
-          >
-            <p className="text-gray-600">No items found</p>
-            <p className="text-sm text-gray-500 mt-1">Try adjusting your search or category</p>
-          </motion.div>
-        )}
-        </AnimatePresence>
+              </motion.div>
+            ))}
+            
+            {filteredItems.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="col-span-full text-center py-16"
+              >
+                <p className="text-gray-600 text-lg">No items found</p>
+                <p className="text-sm text-gray-500 mt-2">Try adjusting your search</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
-      {/* Student Reviews Section */}
-      <div className="bg-white p-4 md:p-6 mb-24">
-        <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4">Student Reviews</h2>
+      {/* Student Reviews Section - Desktop optimized */}
+      <div className="bg-white border-t">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12 mb-24 md:mb-0">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-8">Student Reviews</h2>
         
         {isLoading ? (
           <div className="text-center py-4">
@@ -718,9 +747,8 @@ export default function Restaurant() {
             </Button>
           </div>
         )}
+        </div>
       </div>
-
-
 
       {/* Customization Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

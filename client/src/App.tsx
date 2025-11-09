@@ -126,8 +126,21 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           await Promise.race([authPromise, timeoutPromise]);
           clearTimeout(timeoutId);
           
-          // Get user document from Firestore
-          const userDoc = await getDocument("users", firebaseUser.uid);
+          // Get user document from Firestore with retry logic for new Google sign-ins
+          let userDoc = await getDocument("users", firebaseUser.uid);
+          
+          // If document doesn't exist, retry a few times (for new Google sign-in accounts being created)
+          if (!userDoc.exists()) {
+            console.log("User document not found, retrying in case it's being created...");
+            for (let i = 0; i < 3; i++) {
+              await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+              userDoc = await getDocument("users", firebaseUser.uid);
+              if (userDoc.exists()) {
+                console.log(`User document found on retry ${i + 1}`);
+                break;
+              }
+            }
+          }
           
           if (userDoc.exists()) {
             const userData = userDoc.data();
@@ -193,7 +206,11 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
               setIsAuthComplete(true);
             }, 200);
           } else {
-            console.warn("User document not found in Firestore");
+            console.warn("User document not found in Firestore after retries, signing out");
+            // Document still doesn't exist after retries, sign out the user
+            await logOut();
+            dispatch({ type: "SET_USER", payload: null });
+            setIsAuthComplete(true);
           }
         } else {
           // Add a small delay before clearing to prevent race conditions

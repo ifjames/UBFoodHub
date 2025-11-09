@@ -14,7 +14,7 @@ import { useStore } from "@/lib/store";
 import { subscribeToCollection, addDocument, updateDocument, deleteDocument, getCollection, signUp, createDocument, queryCollection } from "@/lib/firebase";
 import { logOut } from "@/lib/firebase";
 import { useLocation } from "wouter";
-import { Users, Store, Plus, Edit, Trash2, LogOut, Settings, BarChart3, Check, AlertTriangle, Bell, Gift, Megaphone, Calendar, Package } from "lucide-react";
+import { Users, Store, Plus, Edit, Trash2, LogOut, Settings, BarChart3, Check, AlertTriangle, Bell, Gift, Megaphone, Calendar, Package, X } from "lucide-react";
 import PenaltyManagement from "@/components/penalties/penalty-management";
 import BroadcastNotification from "@/components/admin/broadcast-notification";
 import NotificationBell from "@/components/notifications/notification-bell";
@@ -429,7 +429,8 @@ export default function AdminDashboard() {
     setIsLoading(true);
     try {
       // Get all users
-      const allUsers = await getCollection("users");
+      const usersSnapshot = await getCollection("users");
+      const allUsers = usersSnapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
       
       // Create notification for each user
       const notificationPromises = allUsers.map((user: any) => 

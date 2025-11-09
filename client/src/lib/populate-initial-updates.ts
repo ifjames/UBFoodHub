@@ -12,7 +12,8 @@ export const initialSystemUpdates = [
       "User authentication with @ub.edu.ph domain restriction",
       "Role-based access control (Students, Stall Owners, Admins)",
       "Email verification system",
-      "Student ID validation"
+      "Student ID validation",
+      "Session management with secure authentication"
     ],
     releaseDate: new Date("2024-11-01"),
     announced: false,
@@ -122,6 +123,180 @@ export const initialSystemUpdates = [
       "Desktop enhancement with split-screen layouts"
     ],
     releaseDate: new Date("2024-11-08"),
+    announced: false,
+  },
+  {
+    version: "1.8",
+    title: "Email Verification Enforcement",
+    description: "Strengthened security by enforcing email verification for all student accounts.",
+    changes: [
+      "Complete blocking of unverified student accounts at authentication level",
+      "Students cannot access any part of the application until email is verified",
+      "Email verification reminders in notifications",
+      "Fixed email verification status syncing from Firebase Auth to Firestore"
+    ],
+    releaseDate: new Date("2024-11-09"),
+    announced: false,
+  },
+  {
+    version: "1.9",
+    title: "Google Sign-In Integration",
+    description: "Seamless authentication with Google accounts for UB email addresses.",
+    changes: [
+      "Automatic account creation for @ub.edu.ph Google sign-ins",
+      "Eliminated manual registration requirement for Google users",
+      "Automatic account syncing (name, profile picture) when logging in",
+      "Merging of manual and Google accounts with same email"
+    ],
+    releaseDate: new Date("2024-11-10"),
+    announced: false,
+  },
+  {
+    version: "2.0",
+    title: "Enhanced User Deletion & Data Cleanup",
+    description: "Complete data removal system for comprehensive user account management.",
+    changes: [
+      "Admin user deletion removes all related user data (orders, notifications, favorites)",
+      "Complete cleanup on account deletion",
+      "Backend API endpoint for Firebase Authentication deletion",
+      "Graceful fallback when Firebase Admin SDK is unavailable",
+      "Accurate status reporting for deletion operations"
+    ],
+    releaseDate: new Date("2024-11-11"),
+    announced: false,
+  },
+  {
+    version: "2.1",
+    title: "Email Verification Dual-Check System",
+    description: "Fixed critical authentication issue for admin-verified users.",
+    changes: [
+      "Authentication now checks both Firebase Auth AND admin verification status",
+      "Admin-verified accounts can access application without email verification",
+      "Fixed issue where admin-verified users couldn't log in",
+      "Dual verification system for enhanced flexibility"
+    ],
+    releaseDate: new Date("2024-11-12"),
+    announced: false,
+  },
+  {
+    version: "2.2",
+    title: "Enhanced Signup Validation & Formatting",
+    description: "Improved data quality with strict input validation and real-time formatting.",
+    changes: [
+      "Student ID validation (exactly 7 numbers only)",
+      "Philippine phone number format (+63 9XX XXX XXXX)",
+      "Real-time input formatting for phone numbers",
+      "Password strength checks",
+      "Abuse prevention measures",
+      "Clear placeholders and error messages for better user guidance"
+    ],
+    releaseDate: new Date("2024-11-13"),
+    announced: false,
+  },
+  {
+    version: "2.3",
+    title: "Admin Dashboard Optimizations",
+    description: "Streamlined admin interface with improved sorting and account creation workflows.",
+    changes: [
+      "Sorting functionality for users and stalls (alphabetical by name and by date)",
+      "Fixed auto-login bug when admin creates accounts",
+      "Added logout call after account creation",
+      "Backend API endpoint for user deletion with Firebase Admin SDK",
+      "Streamlined stall owner account creation form (removed unnecessary fields)",
+      "Stalls now created separately from owner accounts"
+    ],
+    releaseDate: new Date("2024-11-14"),
+    announced: false,
+  },
+  {
+    version: "2.4",
+    title: "Categories Management Removal",
+    description: "Simplified admin dashboard by removing unused categories feature.",
+    changes: [
+      "Completely removed categories management tab",
+      "Removed all categories-related UI components",
+      "Cleaned up categories state management",
+      "Removed all categories-related functions",
+      "Streamlined admin dashboard interface"
+    ],
+    releaseDate: new Date("2024-11-15"),
+    announced: false,
+  },
+  {
+    version: "2.5",
+    title: "Menu Item Drag-and-Drop Ordering",
+    description: "Native HTML5 drag-and-drop for easy menu item reordering in stall dashboard.",
+    changes: [
+      "HTML5 native drag-and-drop for menu items",
+      "Added displayOrder field to Firestore for persistent ordering",
+      "Visual feedback during drag operations",
+      "Student-facing view displays items in stall owner's preferred order",
+      "Fixed Edit button hover styling for better visibility",
+      "React 18 compatible implementation"
+    ],
+    releaseDate: new Date("2024-11-16"),
+    announced: false,
+  },
+  {
+    version: "2.6",
+    title: "Role-Based Access Control Security",
+    description: "Critical security enhancement preventing unauthorized dashboard access.",
+    changes: [
+      "Fixed vulnerability where users could access other role dashboards via direct URLs",
+      "Enhanced AuthGuard with allowedRoles prop for route protection",
+      "Admin routes only accessible by admin users",
+      "Stall dashboard only accessible by stall owners",
+      "Automatic redirection to appropriate dashboard on unauthorized access",
+      "Security logging for unauthorized access attempts"
+    ],
+    releaseDate: new Date("2024-11-17"),
+    announced: false,
+  },
+  {
+    version: "2.7",
+    title: "404 Page Complete Redesign",
+    description: "Brand-new 404 page matching UB FoodHub's maroon branding and design system.",
+    changes: [
+      "Animated liquid glass background with floating particles",
+      "Large 404 text with gradient maroon colors",
+      "UB FoodHub logo with smooth animations",
+      "User-friendly error messaging",
+      "Smart navigation buttons (role-appropriate dashboard redirects)",
+      "Go Home and Go Back buttons for easy recovery",
+      "Removed developer-focused messages"
+    ],
+    releaseDate: new Date("2024-11-18"),
+    announced: false,
+  },
+  {
+    version: "2.8",
+    title: "UI Refinements & Polish",
+    description: "Various user interface improvements for better visual consistency.",
+    changes: [
+      "Fixed logout button hover styling to maintain red text color",
+      "Improved button hover states across the application",
+      "Fixed sign-up flow getting stuck issue",
+      "Session storage flag to bypass verification during account creation",
+      "Enhanced profile page interactions"
+    ],
+    releaseDate: new Date("2024-11-19"),
+    announced: false,
+  },
+  {
+    version: "2.9",
+    title: "System Updates & Changelog Management",
+    description: "Complete update tracking system for administrators to manage version history.",
+    changes: [
+      "Updates tab in admin dashboard",
+      "Real-time Firestore subscription for system_updates collection",
+      "Create Update dialog with version, title, description, changes",
+      "Announce functionality sending notifications to all users",
+      "Pre-populated initial updates covering all features (v1.0-2.9)",
+      "One-click populate button for system update history",
+      "Mobile-responsive 4-column card layout",
+      "Version number, release date, and announcement status display"
+    ],
+    releaseDate: new Date("2024-11-20"),
     announced: false,
   },
 ];

@@ -21,6 +21,7 @@ import NotificationBell from "@/components/notifications/notification-bell";
 import BottomNav from "@/components/layout/bottom-nav";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { Textarea } from "@/components/ui/textarea";
+import { populateInitialUpdates } from "@/lib/populate-initial-updates";
 
 export default function AdminDashboard() {
   usePageTitle("Admin Dashboard");
@@ -464,6 +465,26 @@ export default function AdminDashboard() {
     } catch (error: any) {
       toast({
         title: "Error announcing update",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle populating initial system updates
+  const handlePopulateInitialUpdates = async () => {
+    setIsLoading(true);
+    try {
+      const result = await populateInitialUpdates();
+      toast({
+        title: "Initial updates populated",
+        description: `Successfully added ${result.count} system updates to the database.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error populating updates",
         description: error.message,
         variant: "destructive",
       });
@@ -1075,13 +1096,26 @@ export default function AdminDashboard() {
                       Track and announce system updates to all users
                     </p>
                   </div>
-                  <Dialog open={showNewUpdateDialog} onOpenChange={setShowNewUpdateDialog}>
-                    <DialogTrigger asChild>
-                      <Button className="bg-[#6d031e] hover:bg-red-700 w-full sm:w-auto" data-testid="button-create-update">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create Update
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    {systemUpdates.length === 0 && (
+                      <Button 
+                        onClick={handlePopulateInitialUpdates}
+                        disabled={isLoading}
+                        variant="outline"
+                        className="w-full sm:w-auto"
+                        data-testid="button-populate-updates"
+                      >
+                        <Package className="w-4 h-4 mr-2" />
+                        Populate Initial Updates
                       </Button>
-                    </DialogTrigger>
+                    )}
+                    <Dialog open={showNewUpdateDialog} onOpenChange={setShowNewUpdateDialog}>
+                      <DialogTrigger asChild>
+                        <Button className="bg-[#6d031e] hover:bg-red-700 w-full sm:w-auto" data-testid="button-create-update">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Create Update
+                        </Button>
+                      </DialogTrigger>
                     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Create System Update</DialogTitle>
@@ -1176,7 +1210,8 @@ export default function AdminDashboard() {
                         </div>
                       </form>
                     </DialogContent>
-                  </Dialog>
+                    </Dialog>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>

@@ -44,6 +44,15 @@ Preferred communication style: Simple, everyday language.
   - Stall owners can now easily rearrange menu items by dragging and dropping with visual feedback
   - Student-facing restaurant view displays menu items in stall owner's preferred order
   - Fixed Edit button hover styling in menu items to maintain proper text visibility
+- **System Updates Management** (November 9, 2025):
+  - Added comprehensive Updates tab in admin dashboard for tracking system versions and changes
+  - Real-time subscription to Firestore `system_updates` collection with reverse-chronological ordering
+  - Create Update dialog with version, title, description, and changes list management
+  - Announce functionality that sends notifications to all users about system updates
+  - Pre-defined 19 initial updates (v1.0-2.9) covering ALL documented features and changes
+  - One-click "Populate Initial Updates" button for easy system update history initialization
+  - Mobile-responsive 4-column card layout displaying version, release date, and announcement status
+  - Complete version history from initial launch through all security fixes, UX improvements, and feature additions
 
 ## System Architecture
 

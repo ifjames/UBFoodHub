@@ -1039,7 +1039,7 @@ export default function AdminDashboard() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="shrink-0 text-orange-700 border-orange-300 hover:bg-orange-100"
+                                className="shrink-0 text-orange-700 border-orange-300 hover:bg-orange-100 hover:text-orange-800"
                                 data-testid={`button-reset-user-${user.id}`}
                               >
                                 <Trash2 className="w-4 h-4 sm:mr-2" />

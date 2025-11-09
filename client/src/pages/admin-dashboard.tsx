@@ -100,6 +100,18 @@ export default function AdminDashboard() {
     changeInput: "",
   });
 
+  // Edit system update state
+  const [isEditUpdateDialogOpen, setIsEditUpdateDialogOpen] = useState(false);
+  const [editingUpdate, setEditingUpdate] = useState<any>(null);
+  const [editUpdateForm, setEditUpdateForm] = useState({
+    version: "",
+    title: "",
+    description: "",
+    changes: [] as string[],
+    changeInput: "",
+    releaseDate: "",
+  });
+
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollContainerRef.current) return;
     setIsDragging(true);
@@ -509,6 +521,105 @@ export default function AdminDashboard() {
     setNewUpdateForm({
       ...newUpdateForm,
       changes: newUpdateForm.changes.filter((_, i) => i !== index),
+    });
+  };
+
+  // Handle editing a system update
+  const handleEditUpdate = (update: any) => {
+    setEditingUpdate(update);
+    const releaseDate = update.releaseDate?.toDate 
+      ? update.releaseDate.toDate() 
+      : new Date(update.releaseDate);
+    
+    setEditUpdateForm({
+      version: update.version,
+      title: update.title,
+      description: update.description,
+      changes: update.changes || [],
+      changeInput: "",
+      releaseDate: releaseDate.toISOString().split('T')[0],
+    });
+    setIsEditUpdateDialogOpen(true);
+  };
+
+  // Handle updating system update
+  const handleUpdateSystemUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!editUpdateForm.version || !editUpdateForm.title || !editUpdateForm.description || !editUpdateForm.releaseDate) {
+      toast({
+        title: "Missing fields",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await updateDocument("system_updates", editingUpdate.id, {
+        version: editUpdateForm.version,
+        title: editUpdateForm.title,
+        description: editUpdateForm.description,
+        changes: editUpdateForm.changes,
+        releaseDate: new Date(editUpdateForm.releaseDate),
+      });
+
+      toast({
+        title: "Update modified successfully",
+        description: `Version ${editUpdateForm.version} has been updated.`,
+      });
+
+      setIsEditUpdateDialogOpen(false);
+      setEditingUpdate(null);
+    } catch (error: any) {
+      toast({
+        title: "Error updating system update",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle deleting a system update
+  const handleDeleteUpdate = async (updateId: string, version: string) => {
+    setIsLoading(true);
+    try {
+      await deleteDocument("system_updates", updateId);
+      
+      toast({
+        title: "Update deleted",
+        description: `Version ${version} has been removed from the system.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error deleting update",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Add change to edit form
+  const handleAddEditChange = () => {
+    if (editUpdateForm.changeInput.trim()) {
+      setEditUpdateForm({
+        ...editUpdateForm,
+        changes: [...editUpdateForm.changes, editUpdateForm.changeInput.trim()],
+        changeInput: "",
+      });
+    }
+  };
+
+  // Remove change from edit form
+  const handleRemoveEditChange = (index: number) => {
+    setEditUpdateForm({
+      ...editUpdateForm,
+      changes: editUpdateForm.changes.filter((_, i) => i !== index),
     });
   };
 
@@ -1282,6 +1393,46 @@ export default function AdminDashboard() {
                                   </p>
                                 </div>
                               )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditUpdate(update)}
+                                disabled={isLoading}
+                                data-testid={`button-edit-${update.id}`}
+                              >
+                                <Edit className="w-4 h-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Edit</span>
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    disabled={isLoading}
+                                    data-testid={`button-delete-${update.id}`}
+                                  >
+                                    <Trash2 className="w-4 h-4 sm:mr-2" />
+                                    <span className="hidden sm:inline">Delete</span>
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete System Update</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete version {update.version}? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDeleteUpdate(update.id, update.version)}
+                                      className="bg-red-600 hover:bg-red-700"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </div>
                           </div>
                         </CardContent>
@@ -1510,6 +1661,122 @@ export default function AdminDashboard() {
                 variant="outline"
                 onClick={() => setShowCreateAccountModal(false)}
                 className="border-red-300 text-red-700 hover:bg-red-100"
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit System Update Dialog */}
+      <Dialog open={isEditUpdateDialogOpen} onOpenChange={setIsEditUpdateDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit System Update</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdateSystemUpdate} className="space-y-4">
+            <div>
+              <Label htmlFor="editUpdateVersion">Version Number</Label>
+              <Input
+                id="editUpdateVersion"
+                value={editUpdateForm.version}
+                onChange={(e) => setEditUpdateForm({ ...editUpdateForm, version: e.target.value })}
+                placeholder="e.g., 1.0, 2.1, 3.5.2"
+                required
+                data-testid="input-edit-version"
+              />
+            </div>
+            <div>
+              <Label htmlFor="editUpdateTitle">Update Title</Label>
+              <Input
+                id="editUpdateTitle"
+                value={editUpdateForm.title}
+                onChange={(e) => setEditUpdateForm({ ...editUpdateForm, title: e.target.value })}
+                placeholder="e.g., Enhanced User Experience & Performance"
+                required
+                data-testid="input-edit-title"
+              />
+            </div>
+            <div>
+              <Label htmlFor="editUpdateDescription">Description</Label>
+              <Textarea
+                id="editUpdateDescription"
+                value={editUpdateForm.description}
+                onChange={(e) => setEditUpdateForm({ ...editUpdateForm, description: e.target.value })}
+                placeholder="Detailed description of this update..."
+                rows={4}
+                required
+                data-testid="input-edit-description"
+              />
+            </div>
+            <div>
+              <Label htmlFor="editUpdateReleaseDate">Release Date</Label>
+              <Input
+                id="editUpdateReleaseDate"
+                type="date"
+                value={editUpdateForm.releaseDate}
+                onChange={(e) => setEditUpdateForm({ ...editUpdateForm, releaseDate: e.target.value })}
+                required
+                data-testid="input-edit-release-date"
+              />
+            </div>
+            <div>
+              <Label>Changes/Features (Optional)</Label>
+              <div className="flex gap-2 mt-2">
+                <Input
+                  value={editUpdateForm.changeInput}
+                  onChange={(e) => setEditUpdateForm({ ...editUpdateForm, changeInput: e.target.value })}
+                  placeholder="Add a change or feature..."
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddEditChange();
+                    }
+                  }}
+                  data-testid="input-edit-change"
+                />
+                <Button
+                  type="button"
+                  onClick={handleAddEditChange}
+                  variant="outline"
+                  data-testid="button-add-edit-change"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+              {editUpdateForm.changes.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {editUpdateForm.changes.map((change, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded border">
+                      <span className="text-sm flex-1">{change}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveEditChange(index)}
+                        data-testid={`button-remove-edit-change-${index}`}
+                      >
+                        <X className="w-4 h-4 text-red-600" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2 pt-4">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="flex-1 bg-[#6d031e] hover:bg-red-700"
+              >
+                {isLoading ? "Updating..." : "Update System Update"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsEditUpdateDialogOpen(false)}
+                className="border-gray-300"
               >
                 Cancel
               </Button>

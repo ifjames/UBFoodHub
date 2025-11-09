@@ -776,21 +776,6 @@ export default function Restaurant() {
                   </div>
                 )}
 
-                <div>
-                  <Label className="text-base font-medium">Special instructions</Label>
-                  <p className="text-sm text-gray-600 mb-3">Special requests are subject to the restaurant's approval. Tell us here!</p>
-                  <Textarea
-                    placeholder="e.g. no mayo"
-                    value={specialInstructions}
-                    onChange={(e) => setSpecialInstructions(e.target.value)}
-                    className="resize-none"
-                    maxLength={500}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">{specialInstructions.length}/500</p>
-                </div>
-
-                
-
                 <div className="flex items-center justify-between pt-4 border-t">
                   <div className="flex items-center gap-3">
                     <Button

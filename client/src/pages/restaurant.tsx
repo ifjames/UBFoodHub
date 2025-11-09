@@ -724,85 +724,111 @@ export default function Restaurant() {
 
       {/* Customization Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md md:max-w-2xl mx-auto max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md md:max-w-3xl lg:max-w-4xl mx-auto max-h-[95vh] overflow-y-auto p-0">
           {selectedItem && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="space-y-4"
+              className="flex flex-col"
             >
-              <DialogHeader>
-                {selectedItem.image && (
-                  <div className="w-full h-48 rounded-lg bg-gray-100 overflow-hidden mb-4">
-                    <img 
-                      src={selectedItem.image} 
-                      alt={selectedItem.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                <DialogTitle className="text-xl md:text-2xl font-bold text-left">
-                  {selectedItem.name}
+              {selectedItem.image && (
+                <div className="relative w-full h-64 sm:h-72 md:h-80 lg:h-96 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden border-b">
+                  <img 
+                    src={selectedItem.image} 
+                    alt={selectedItem.name}
+                    className="w-full h-full object-contain p-4 md:p-6"
+                  />
                   {selectedItem.isPopular && (
-                    <Badge className="bg-blue-100 text-blue-700 text-xs ml-2">NEW</Badge>
+                    <Badge className="absolute top-4 right-4 bg-blue-500 text-white shadow-lg">
+                      NEW
+                    </Badge>
                   )}
-                </DialogTitle>
-                <p className="text-gray-600 text-left text-sm md:text-base">{selectedItem.description}</p>
-                <p className="font-semibold text-left text-lg md:text-xl">₱{selectedItem.price}</p>
-              </DialogHeader>
+                </div>
+              )}
 
-              {/* Dynamic Customizations */}
-              <div className="space-y-4 md:space-y-6">
+              <div className="p-4 sm:p-6 md:p-8 space-y-4 md:space-y-6">
+                <div className="space-y-2">
+                  <DialogTitle className="text-2xl md:text-3xl font-bold text-left">
+                    {selectedItem.name}
+                  </DialogTitle>
+                  <p className="text-muted-foreground text-left text-sm md:text-base leading-relaxed">
+                    {selectedItem.description}
+                  </p>
+                  <p className="text-2xl md:text-3xl font-bold text-[#820d2a] text-left">
+                    ₱{selectedItem.price.toFixed(2)}
+                  </p>
+                </div>
+
                 {selectedItem.customizations && selectedItem.customizations.length > 0 && (
-                  <div>
-                    <Label className="text-base md:text-lg font-medium">Customization Options</Label>
-                    <p className="text-sm md:text-base text-gray-600 mb-3">Optional add-ons</p>
-                    <div className="space-y-2 md:space-y-3">
+                  <div className="space-y-3 pt-4 border-t">
+                    <div>
+                      <Label className="text-lg md:text-xl font-semibold">Customize Your Order</Label>
+                      <p className="text-sm text-muted-foreground mt-1">Select your preferred add-ons</p>
+                    </div>
+                    <div className="grid gap-3">
                       {selectedItem.customizations.map((custom, index) => (
-                        <div key={index} className="flex items-center space-x-2 p-3 md:p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                        <div 
+                          key={index} 
+                          className="flex items-center gap-3 p-4 border-2 rounded-lg hover-elevate transition-all cursor-pointer"
+                          onClick={() => setCustomizations({...customizations, [custom.name]: !customizations[custom.name]})}
+                        >
                           <Checkbox 
                             checked={customizations[custom.name] || false}
                             onCheckedChange={(checked) => setCustomizations({...customizations, [custom.name]: checked})}
+                            className="h-5 w-5"
+                            data-testid={`checkbox-customization-${index}`}
                           />
-                          <Label className="flex-1 cursor-pointer">
-                            <span className="md:text-base">{custom.name}</span>
-                            <span className="text-sm md:text-sm text-gray-600 block">
-                              {custom.price > 0 ? `+₱${custom.price.toFixed(2)}` : 'Free'}
-                            </span>
-                          </Label>
+                          <div className="flex-1">
+                            <Label className="text-base font-medium cursor-pointer">
+                              {custom.name}
+                            </Label>
+                          </div>
+                          <span className="text-sm font-semibold text-[#820d2a]">
+                            {custom.price > 0 ? `+₱${custom.price.toFixed(2)}` : 'Free'}
+                          </span>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
 
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      disabled={quantity <= 1}
-                      className="rounded-full"
-                    >
-                      -
-                    </Button>
-                    <span className="text-lg font-medium w-8 text-center">{quantity}</span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setQuantity(Math.min((selectedItem?.stock ?? 0), quantity + 1))}
-                      disabled={quantity >= (selectedItem?.stock ?? 0)}
-                      className="rounded-full"
-                    >
-                      +
-                    </Button>
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t">
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm font-medium text-muted-foreground">Quantity</span>
+                    <div className="flex items-center gap-3">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        disabled={quantity <= 1}
+                        className="rounded-full h-10 w-10"
+                        data-testid="button-decrease-quantity"
+                      >
+                        -
+                      </Button>
+                      <span className="text-xl font-bold w-12 text-center" data-testid="text-quantity">{quantity}</span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setQuantity(Math.min((selectedItem?.stock ?? 0), quantity + 1))}
+                        disabled={quantity >= (selectedItem?.stock ?? 0)}
+                        className="rounded-full h-10 w-10"
+                        data-testid="button-increase-quantity"
+                      >
+                        +
+                      </Button>
+                    </div>
                   </div>
                   <Button
                     onClick={handleAddToCart}
-                    className="hover:bg-gray-900 text-white px-8 bg-[#820d2a]"
+                    className="w-full sm:w-auto bg-[#820d2a] hover:bg-[#6a0a22] text-white px-8 py-6 text-base font-semibold shadow-lg"
+                    data-testid="button-add-to-cart"
                   >
-                    Add to cart
+                    Add to Cart - ₱{(selectedItem.price * quantity + Object.entries(customizations).reduce((sum, [name, checked]) => {
+                      if (!checked) return sum;
+                      const custom = selectedItem.customizations?.find(c => c.name === name);
+                      return sum + (custom?.price || 0);
+                    }, 0)).toFixed(2)}
                   </Button>
                 </div>
               </div>

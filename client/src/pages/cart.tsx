@@ -224,6 +224,7 @@ export default function Cart() {
   const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
   const [appliedVoucher, setAppliedVoucher] = useState<{ discount: number; voucherId: string; code: string } | null>(null);
+  const [showSummary, setShowSummary] = useState(false);
 
   useEffect(() => {
     if (state.user?.id) {
@@ -619,13 +620,37 @@ export default function Cart() {
             />
           </div>
 
-          <div className="border-t pt-3">
+          <div className="border-t pt-3 space-y-2">
+            {showSummary && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-2 text-sm"
+              >
+                <div className="flex justify-between text-gray-600">
+                  <span>Subtotal</span>
+                  <span>₱{baseSubtotal.toFixed(2)}</span>
+                </div>
+                {appliedVoucher && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Voucher Discount ({appliedVoucher.code})</span>
+                    <span>-₱{voucherDiscount.toFixed(2)}</span>
+                  </div>
+                )}
+              </motion.div>
+            )}
             <div className="flex justify-between font-semibold text-lg">
               <span>Total</span>
               <span>₱{subtotal.toFixed(2)}</span>
             </div>
-            <Button variant="link" className="p-0 h-auto text-sm text-gray-600">
-              See summary
+            <Button 
+              variant="link" 
+              className="p-0 h-auto text-sm text-gray-600"
+              onClick={() => setShowSummary(!showSummary)}
+              data-testid="button-toggle-summary"
+            >
+              {showSummary ? "Hide summary" : "See summary"}
             </Button>
           </div>
         </motion.div>

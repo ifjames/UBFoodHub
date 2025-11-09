@@ -14,12 +14,13 @@ import { useStore } from "@/lib/store";
 import { subscribeToCollection, addDocument, updateDocument, deleteDocument, getCollection, signUp, createDocument, queryCollection } from "@/lib/firebase";
 import { logOut } from "@/lib/firebase";
 import { useLocation } from "wouter";
-import { Users, Store, Plus, Edit, Trash2, LogOut, Settings, BarChart3, Check, AlertTriangle, Bell, Gift } from "lucide-react";
+import { Users, Store, Plus, Edit, Trash2, LogOut, Settings, BarChart3, Check, AlertTriangle, Bell, Gift, Megaphone, Calendar, Package } from "lucide-react";
 import PenaltyManagement from "@/components/penalties/penalty-management";
 import BroadcastNotification from "@/components/admin/broadcast-notification";
 import NotificationBell from "@/components/notifications/notification-bell";
 import BottomNav from "@/components/layout/bottom-nav";
 import { usePageTitle } from "@/hooks/use-page-title";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function AdminDashboard() {
   usePageTitle("Admin Dashboard");
@@ -87,6 +88,17 @@ export default function AdminDashboard() {
   const [scrollLeft, setScrollLeft] = useState(0);
   const [activeTab, setActiveTab] = useState("users");
 
+  // System updates state
+  const [systemUpdates, setSystemUpdates] = useState<any[]>([]);
+  const [showNewUpdateDialog, setShowNewUpdateDialog] = useState(false);
+  const [newUpdateForm, setNewUpdateForm] = useState({
+    version: "",
+    title: "",
+    description: "",
+    changes: [] as string[],
+    changeInput: "",
+  });
+
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollContainerRef.current) return;
     setIsDragging(true);
@@ -115,11 +127,20 @@ export default function AdminDashboard() {
     const unsubscribeUsers = subscribeToCollection("users", setUsers);
     const unsubscribeStalls = subscribeToCollection("stalls", setStalls);
     const unsubscribeOrders = subscribeToCollection("orders", setOrders);
+    const unsubscribeUpdates = subscribeToCollection("system_updates", (updates) => {
+      const sortedUpdates = updates.sort((a, b) => {
+        const dateA = a.releaseDate?.toDate ? a.releaseDate.toDate() : new Date(a.releaseDate);
+        const dateB = b.releaseDate?.toDate ? b.releaseDate.toDate() : new Date(b.releaseDate);
+        return dateB.getTime() - dateA.getTime();
+      });
+      setSystemUpdates(sortedUpdates);
+    });
 
     return () => {
       unsubscribeUsers();
       unsubscribeStalls();
       unsubscribeOrders();
+      unsubscribeUpdates();
     };
   }, []);
 
@@ -352,6 +373,121 @@ export default function AdminDashboard() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Handle creating new system update
+  const handleCreateUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!newUpdateForm.version || !newUpdateForm.title || !newUpdateForm.description) {
+      toast({
+        title: "Missing fields",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await addDocument("system_updates", {
+        version: newUpdateForm.version,
+        title: newUpdateForm.title,
+        description: newUpdateForm.description,
+        changes: newUpdateForm.changes,
+        releaseDate: new Date(),
+        announced: false,
+        createdBy: state.user?.id || "admin",
+      });
+
+      toast({
+        title: "Update created successfully",
+        description: `Version ${newUpdateForm.version} has been added to the system.`,
+      });
+
+      setNewUpdateForm({
+        version: "",
+        title: "",
+        description: "",
+        changes: [],
+        changeInput: "",
+      });
+      setShowNewUpdateDialog(false);
+    } catch (error: any) {
+      toast({
+        title: "Error creating update",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle announcing update to all users
+  const handleAnnounceUpdate = async (updateId: string, version: string, title: string) => {
+    setIsLoading(true);
+    try {
+      // Get all users
+      const allUsers = await getCollection("users");
+      
+      // Create notification for each user
+      const notificationPromises = allUsers.map((user: any) => 
+        addDocument("notifications", {
+          userId: user.id,
+          title: `System Update: ${version}`,
+          message: title,
+          type: "announcement",
+          isRead: false,
+          createdAt: new Date(),
+          metadata: {
+            updateId: updateId,
+            version: version,
+          }
+        })
+      );
+
+      await Promise.all(notificationPromises);
+
+      // Mark update as announced
+      await updateDocument("system_updates", updateId, { 
+        announced: true,
+        announcedAt: new Date(),
+        announcedBy: state.user?.id || "admin",
+      });
+
+      toast({
+        title: "Update announced",
+        description: `Notification sent to all ${allUsers.length} users about version ${version}.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error announcing update",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Add change to the changes list
+  const handleAddChange = () => {
+    if (newUpdateForm.changeInput.trim()) {
+      setNewUpdateForm({
+        ...newUpdateForm,
+        changes: [...newUpdateForm.changes, newUpdateForm.changeInput.trim()],
+        changeInput: "",
+      });
+    }
+  };
+
+  // Remove change from list
+  const handleRemoveChange = (index: number) => {
+    setNewUpdateForm({
+      ...newUpdateForm,
+      changes: newUpdateForm.changes.filter((_, i) => i !== index),
+    });
   };
 
   const stallOwners = users.filter(user => user.role === 'stall_owner');
@@ -598,7 +734,8 @@ export default function AdminDashboard() {
               {[
                 { id: "users", label: "Users", icon: Users },
                 { id: "stalls", label: "Stalls", icon: Store },
-                { id: "notifications", label: "Notify", icon: Bell }
+                { id: "notifications", label: "Notify", icon: Bell },
+                { id: "updates", label: "Updates", icon: Package }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -624,10 +761,11 @@ export default function AdminDashboard() {
           </div>
           
           {/* Desktop Grid Navigation */}
-          <TabsList className="hidden md:grid w-full grid-cols-3 text-xs sm:text-sm">
+          <TabsList className="hidden md:grid w-full grid-cols-4 text-xs sm:text-sm">
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="stalls">Stalls</TabsTrigger>
             <TabsTrigger value="notifications">Notify</TabsTrigger>
+            <TabsTrigger value="updates">Updates</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="space-y-4">
@@ -922,6 +1060,199 @@ export default function AdminDashboard() {
                     Notifications will appear in users' notification bells and help keep them informed about important updates.
                   </p>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="updates" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <CardTitle>System Updates</CardTitle>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Track and announce system updates to all users
+                    </p>
+                  </div>
+                  <Dialog open={showNewUpdateDialog} onOpenChange={setShowNewUpdateDialog}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-[#6d031e] hover:bg-red-700 w-full sm:w-auto" data-testid="button-create-update">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Update
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Create System Update</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={handleCreateUpdate} className="space-y-4">
+                        <div>
+                          <Label htmlFor="updateVersion">Version Number</Label>
+                          <Input
+                            id="updateVersion"
+                            value={newUpdateForm.version}
+                            onChange={(e) => setNewUpdateForm({ ...newUpdateForm, version: e.target.value })}
+                            placeholder="e.g., 1.0, 2.1, 3.5.2"
+                            required
+                            data-testid="input-version"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="updateTitle">Update Title</Label>
+                          <Input
+                            id="updateTitle"
+                            value={newUpdateForm.title}
+                            onChange={(e) => setNewUpdateForm({ ...newUpdateForm, title: e.target.value })}
+                            placeholder="e.g., Enhanced User Experience & Performance"
+                            required
+                            data-testid="input-title"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="updateDescription">Description</Label>
+                          <Textarea
+                            id="updateDescription"
+                            value={newUpdateForm.description}
+                            onChange={(e) => setNewUpdateForm({ ...newUpdateForm, description: e.target.value })}
+                            placeholder="Detailed description of this update..."
+                            rows={4}
+                            required
+                            data-testid="input-description"
+                          />
+                        </div>
+                        <div>
+                          <Label>Changes/Features (Optional)</Label>
+                          <div className="flex gap-2 mt-2">
+                            <Input
+                              value={newUpdateForm.changeInput}
+                              onChange={(e) => setNewUpdateForm({ ...newUpdateForm, changeInput: e.target.value })}
+                              placeholder="Add a change or feature..."
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleAddChange();
+                                }
+                              }}
+                              data-testid="input-change"
+                            />
+                            <Button type="button" onClick={handleAddChange} variant="outline" data-testid="button-add-change">
+                              Add
+                            </Button>
+                          </div>
+                          {newUpdateForm.changes.length > 0 && (
+                            <ul className="mt-3 space-y-2">
+                              {newUpdateForm.changes.map((change, index) => (
+                                <li key={index} className="flex items-start gap-2 text-sm">
+                                  <span className="mt-1">•</span>
+                                  <span className="flex-1">{change}</span>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRemoveChange(index)}
+                                    className="text-red-600 hover:text-red-700 h-auto p-0"
+                                    data-testid={`button-remove-change-${index}`}
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </Button>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                        <div className="flex gap-2 pt-4">
+                          <Button type="submit" disabled={isLoading} className="flex-1 bg-[#6d031e] hover:bg-red-700" data-testid="button-submit-update">
+                            {isLoading ? "Creating..." : "Create Update"}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setShowNewUpdateDialog(false)}
+                            className="border-gray-300"
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {systemUpdates.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Package className="w-12 h-12 mx-auto text-gray-400 mb-3" />
+                    <p className="text-gray-600 mb-2">No system updates yet</p>
+                    <p className="text-sm text-gray-500">Create your first update to track system changes</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {systemUpdates.map((update) => (
+                      <Card key={update.id} className="border-2" data-testid={`card-update-${update.id}`}>
+                        <CardContent className="p-4 sm:p-6">
+                          <div className="flex flex-col sm:flex-row justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <Badge variant="default" className="bg-[#6d031e]">
+                                  Version {update.version}
+                                </Badge>
+                                <div className="flex items-center text-sm text-gray-600">
+                                  <Calendar className="w-4 h-4 mr-1" />
+                                  {update.releaseDate?.toDate
+                                    ? update.releaseDate.toDate().toLocaleDateString()
+                                    : new Date(update.releaseDate).toLocaleDateString()}
+                                </div>
+                                {update.announced && (
+                                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                                    <Check className="w-3 h-3 mr-1" />
+                                    Announced
+                                  </Badge>
+                                )}
+                              </div>
+                              <h3 className="font-bold text-lg mb-2" data-testid={`text-update-title-${update.id}`}>{update.title}</h3>
+                              <p className="text-gray-700 mb-3">{update.description}</p>
+                              {update.changes && update.changes.length > 0 && (
+                                <div className="mt-3">
+                                  <p className="text-sm font-semibold text-gray-700 mb-2">Changes:</p>
+                                  <ul className="space-y-1 text-sm text-gray-600">
+                                    {update.changes.map((change: string, index: number) => (
+                                      <li key={index} className="flex items-start gap-2">
+                                        <span className="text-[#6d031e] mt-1">•</span>
+                                        <span>{change}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex sm:flex-col gap-2">
+                              {!update.announced ? (
+                                <Button
+                                  onClick={() => handleAnnounceUpdate(update.id, update.version, update.title)}
+                                  disabled={isLoading}
+                                  className="bg-[#6d031e] hover:bg-red-700 w-full sm:w-auto"
+                                  data-testid={`button-announce-${update.id}`}
+                                >
+                                  <Megaphone className="w-4 h-4 mr-2" />
+                                  Announce
+                                </Button>
+                              ) : (
+                                <div className="text-center">
+                                  <p className="text-xs text-gray-500">Announced on</p>
+                                  <p className="text-xs font-medium">
+                                    {update.announcedAt?.toDate
+                                      ? update.announcedAt.toDate().toLocaleDateString()
+                                      : update.announcedAt ? new Date(update.announcedAt).toLocaleDateString() : 'N/A'}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

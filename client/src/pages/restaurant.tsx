@@ -521,9 +521,9 @@ export default function Restaurant() {
       </motion.div>
 
       {/* Menu Items - Desktop optimized */}
-      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-12 pb-24 md:pb-12">
+      <div className="max-w-7xl mx-auto px-2 md:px-6 lg:px-8 py-4 md:py-12 pb-24 md:pb-12">
         <h2 className="hidden md:block text-2xl font-bold text-gray-900 mb-8">Menu</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-6">
           <AnimatePresence>
             {filteredItems.map((item, index) => (
               <motion.div
@@ -536,47 +536,47 @@ export default function Restaurant() {
                 className="bg-white rounded-lg md:rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer group"
               >
                 {item.image && (
-                  <div className="relative w-full h-36 md:h-56 bg-gray-100 overflow-hidden">
+                  <div className="relative w-full h-24 md:h-56 bg-gray-100 overflow-hidden">
                     <img 
                       src={item.image} 
                       alt={item.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <div className="absolute top-2 right-2 md:top-3 md:right-3 flex gap-1 md:gap-2">
+                    <div className="absolute top-1 right-1 md:top-3 md:right-3 flex gap-1 md:gap-2 flex-col md:flex-row">
                       {item.isPopular && (
-                        <Badge className="bg-blue-500 text-white shadow-lg text-xs">NEW!</Badge>
+                        <Badge className="bg-blue-500 text-white shadow-lg text-[10px] md:text-xs px-1 py-0 md:px-2 md:py-1">NEW</Badge>
                       )}
                       {(item.stock ?? 0) === 0 && (
-                        <Badge className="bg-gray-900 text-white shadow-lg text-xs">Out of Stock</Badge>
+                        <Badge className="bg-gray-900 text-white shadow-lg text-[10px] md:text-xs px-1 py-0 md:px-2 md:py-1">Out</Badge>
                       )}
                     </div>
                   </div>
                 )}
                 
-                <div className="p-3 md:p-5">
-                  <h3 className="font-semibold text-gray-900 text-sm md:text-lg mb-1 md:mb-2 line-clamp-1">
+                <div className="p-2 md:p-5">
+                  <h3 className="font-semibold text-gray-900 text-xs md:text-lg mb-0.5 md:mb-2 line-clamp-1">
                     {item.name}
                   </h3>
-                  <p className="text-xs md:text-sm text-gray-600 mb-2 md:mb-4 line-clamp-2 min-h-[32px] md:min-h-[40px]">
+                  <p className="hidden md:block text-sm text-gray-600 mb-4 line-clamp-2 min-h-[40px]">
                     {item.description}
                   </p>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between gap-1 md:gap-0">
                     <div className="flex flex-col gap-0.5 md:gap-1">
-                      <span className="font-bold text-[#820d2a] text-lg md:text-xl">₱{item.price}</span>
+                      <span className="font-bold text-[#820d2a] text-sm md:text-xl">₱{item.price}</span>
                       {(item.stock ?? 0) > 0 && (item.stock ?? 0) < 10 && (
-                        <span className="text-xs text-orange-600 font-medium">Only {item.stock} left</span>
+                        <span className="text-[10px] md:text-xs text-orange-600 font-medium">{item.stock} left</span>
                       )}
                     </div>
                     <Button
                       size="icon"
                       disabled={!item.isAvailable || (item.stock ?? 0) === 0}
-                      className="rounded-full w-9 h-9 md:w-11 md:h-11 bg-[#820d2a] hover:bg-[#6a0a22] disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                      className="rounded-full w-7 h-7 md:w-11 md:h-11 bg-[#820d2a] hover:bg-[#6a0a22] disabled:opacity-50 disabled:cursor-not-allowed shadow-md self-end md:self-auto"
                       onClick={(e) => {
                         e.stopPropagation();
                         openCustomization(item);
                       }}
                     >
-                      <Plus className="w-4 h-4 md:w-5 md:h-5" />
+                      <Plus className="w-3 h-3 md:w-5 md:h-5" />
                     </Button>
                   </div>
                 </div>

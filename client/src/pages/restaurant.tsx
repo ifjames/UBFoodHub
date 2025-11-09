@@ -600,7 +600,7 @@ export default function Restaurant() {
       {/* Student Reviews Section - Desktop optimized */}
       <div className="bg-white border-t">
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12 mb-24 md:mb-0">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-8">Student Reviews</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-8">Reviews</h2>
         
         {isLoading ? (
           <div className="text-center py-4">

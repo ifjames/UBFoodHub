@@ -16,11 +16,13 @@ import { useAuth } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { TermsDialog } from "@/components/TermsDialog";
+import { useStore } from "@/lib/store";
 
 export default function LoginPage() {
   const { signIn, signUp, signInWithGoogle } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { state } = useStore();
 
   // Check for login error from sessionStorage (e.g., deactivated account)
   useEffect(() => {
@@ -35,6 +37,21 @@ export default function LoginPage() {
       sessionStorage.removeItem('loginError');
     }
   }, [toast]);
+
+  // Redirect authenticated users to their dashboard
+  useEffect(() => {
+    if (state.user) {
+      console.log("User already authenticated, redirecting to dashboard");
+      const userRole = state.user.role;
+      if (userRole === "admin") {
+        setLocation("/admin");
+      } else if (userRole === "stall_owner") {
+        setLocation("/stall-dashboard");
+      } else {
+        setLocation("/");
+      }
+    }
+  }, [state.user, setLocation]);
 
   // Simple state management without dependencies
   const [authMode, setAuthMode] = useState<"social" | "email">("social");
@@ -131,26 +148,15 @@ export default function LoginPage() {
         description: "You've successfully signed in.",
       });
 
-      // Add a small delay to ensure state updates
-      setTimeout(() => {
-        if (result.role === "admin") {
-          console.log("Redirecting to admin dashboard");
-          setLocation("/admin");
-        } else if (result.role === "stall_owner") {
-          console.log("Redirecting to stall dashboard");
-          setLocation("/stall-dashboard");
-        } else {
-          console.log("Redirecting to home");
-          setLocation("/");
-        }
-      }, 100);
+      // Don't immediately redirect - let AuthProvider handle it
+      // This prevents race conditions with authentication state
+      // The AuthProvider will redirect based on role after user is fully synced
     } catch (error: any) {
       toast({
         title: "Login Failed",
         description: error.message || "Invalid email or password",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
@@ -282,16 +288,9 @@ export default function LoginPage() {
         description: "Successfully signed in with Google.",
       });
 
-      // Role-based redirection
-      setTimeout(() => {
-        if (result.role === "admin") {
-          setLocation("/admin");
-        } else if (result.role === "stall_owner") {
-          setLocation("/stall-dashboard");
-        } else {
-          setLocation("/");
-        }
-      }, 100);
+      // Don't immediately redirect - let AuthProvider handle it
+      // This prevents race conditions with authentication state
+      // The AuthProvider will redirect based on role after user is fully synced
     } catch (error: any) {
       console.error("Google auth error:", error);
       toast({
@@ -300,7 +299,6 @@ export default function LoginPage() {
           error.message || "Failed to sign in with Google. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };

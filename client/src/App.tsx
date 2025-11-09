@@ -178,42 +178,20 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
               createdAt: userData.createdAt || new Date(),
             };
 
-            // Delay setting user and completion to ensure loading screen shows properly
+            // Set user in store - let the login page handle redirection
+            dispatch({
+              type: "SET_USER",
+              payload: userPayload
+            });
+            
+            console.log("Firebase auth synced for user:", firebaseUser.email);
+            console.log("User role detected:", userRole);
+            console.log("Firebase current user after sync:", auth.currentUser?.email);
+            
+            // Mark auth as complete after a small delay
             setTimeout(() => {
-              dispatch({
-                type: "SET_USER",
-                payload: userPayload
-              });
-              
-              console.log("Firebase auth synced for user:", firebaseUser.email);
-              console.log("User role detected:", userRole);
-              console.log("Firebase current user after sync:", auth.currentUser?.email);
-              
-              // Mark auth as complete after user is set
-              setTimeout(() => {
-                setIsAuthComplete(true);
-                
-                // Handle role-based redirection after successful login
-                const currentPath = window.location.pathname;
-                console.log("Current path:", currentPath);
-                
-                if (currentPath === "/login") {
-                  console.log("User on login page, redirecting based on role:", userRole);
-                  setTimeout(() => {
-                    if (userRole === "admin") {
-                      console.log("Redirecting admin to dashboard");
-                      window.location.href = "/admin";
-                    } else if (userRole === "stall_owner") {
-                      console.log("Redirecting stall owner to dashboard");
-                      window.location.href = "/stall-dashboard";
-                    } else {
-                      console.log("Redirecting student to home");
-                      window.location.href = "/";
-                    }
-                  }, 500);
-                }
-              }, 200);
-            }, 300);
+              setIsAuthComplete(true);
+            }, 200);
           } else {
             console.warn("User document not found in Firestore");
           }

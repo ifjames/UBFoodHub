@@ -295,6 +295,22 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleResetUserData = async (userId: string, userEmail: string) => {
+    try {
+      await deleteDocument("users", userId);
+      toast({
+        title: "User data reset",
+        description: `Firestore data for ${userEmail} has been removed. The user can now register again.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error resetting user data",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   // Removed handleDeleteUser - admins can only activate/deactivate accounts
   const handleDeleteUser_DISABLED = async (userId: string) => {
     try {
@@ -996,10 +1012,11 @@ export default function AdminDashboard() {
                         )}
                         {user.role !== 'admin' && (
                           <Button 
-                            variant="outline" 
+                            variant="secondary" 
                             size="sm" 
                             onClick={() => handleEditUser(user)}
                             className="shrink-0"
+                            data-testid={`button-edit-user-${user.id}`}
                           >
                             <Edit className="w-4 h-4 sm:mr-2" />
                             <span className="hidden sm:inline">Edit</span>
@@ -1015,6 +1032,43 @@ export default function AdminDashboard() {
                           >
                             {(user.isActive !== false) ? "Deactivate" : "Activate"}
                           </Button>
+                        )}
+                        {user.role !== 'admin' && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="shrink-0 text-orange-700 border-orange-300 hover:bg-orange-100"
+                                data-testid={`button-reset-user-${user.id}`}
+                              >
+                                <Trash2 className="w-4 h-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Reset</span>
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>⚠️ Reset User Data - Confirmation Required</AlertDialogTitle>
+                                <AlertDialogDescription className="space-y-2">
+                                  <p className="font-semibold text-orange-700">Are you absolutely sure you want to reset this account?</p>
+                                  <p><strong>User:</strong> {user.fullName}</p>
+                                  <p><strong>Email:</strong> {user.email}</p>
+                                  <p className="pt-2 border-t">This will <strong>permanently remove</strong> their Firestore document and all associated data. The user will need to register again from scratch.</p>
+                                  <p className="text-sm text-muted-foreground">This action is intended for testing/development purposes only and cannot be undone.</p>
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleResetUserData(user.id, user.email)}
+                                  className="bg-orange-600 hover:bg-orange-700"
+                                  data-testid={`button-confirm-reset-${user.id}`}
+                                >
+                                  Yes, Reset Data
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         )}
                       </div>
                     </div>

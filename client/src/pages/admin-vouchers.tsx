@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
-import { getAllVouchers, deleteVoucher } from "@/lib/firebase";
+import { getAllVouchers, deleteVoucher, getVoucherStats } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import BottomNav from "@/components/layout/bottom-nav";
@@ -72,7 +72,24 @@ export default function AdminVouchers() {
     try {
       setLoading(true);
       const allVouchers = await getAllVouchers();
-      setVouchers((allVouchers || []) as Voucher[]);
+      
+      // Fetch actual usage stats for each voucher from userVouchers collection
+      const vouchersWithStats = await Promise.all(
+        (allVouchers || []).map(async (voucher: any) => {
+          try {
+            const stats = await getVoucherStats(voucher.id);
+            return {
+              ...voucher,
+              currentUsage: stats.totalUsed, // Use actual redemption count
+            };
+          } catch (error) {
+            console.error(`Error getting stats for voucher ${voucher.id}:`, error);
+            return voucher;
+          }
+        })
+      );
+      
+      setVouchers(vouchersWithStats as Voucher[]);
     } catch (error) {
       console.error("Error loading vouchers:", error);
       setVouchers([]);

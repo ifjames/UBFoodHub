@@ -609,7 +609,7 @@ export const validateVoucher = async (userId: string, voucherId: string) => {
 };
 
 // Mark voucher as used (for order placement)
-export const useVoucher = async (voucherId: string) => {
+export const useVoucher = async (voucherId: string, userId?: string, orderId?: string) => {
   try {
     // Get current voucher data
     const voucherDoc = await getDocument("vouchers", voucherId);
@@ -635,6 +635,23 @@ export const useVoucher = async (voucherId: string) => {
     }
     
     await updateDocument("vouchers", voucherId, updateData);
+    
+    // Create userVouchers entry to track this redemption
+    if (userId) {
+      const currentUser = auth.currentUser;
+      await addDocument("userVouchers", {
+        userId: userId,
+        voucherId: voucherId,
+        voucherCode: voucherData.code,
+        isUsed: true,
+        usedAt: new Date().toISOString(),
+        orderId: orderId || null,
+        redeemedAt: new Date().toISOString(),
+        discountAmount: voucherData.discountValue || voucherData.discountAmount || 0,
+        userEmail: currentUser?.email || null,
+      });
+    }
+    
     return { success: true, currentUsage, maxUsage };
   } catch (error) {
     console.error("Error using voucher:", error);

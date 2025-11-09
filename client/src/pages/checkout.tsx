@@ -203,9 +203,10 @@ export default function Checkout() {
 
       // Mark applied voucher as used after successful order
       const appliedVoucherId = localStorage.getItem('appliedVoucherId');
-      if (appliedVoucherId) {
+      if (appliedVoucherId && state.user?.uid) {
         try {
-          await useVoucher(appliedVoucherId);
+          // Pass userId and orderId to create userVouchers entry
+          await useVoucher(appliedVoucherId, state.user.uid, orderId);
           localStorage.removeItem('appliedVoucherId');
         } catch (error) {
           console.error("Error marking voucher as used:", error);

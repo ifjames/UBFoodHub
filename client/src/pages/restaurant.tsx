@@ -752,7 +752,7 @@ export default function Restaurant() {
 
       {/* Customization Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md md:max-w-3xl lg:max-w-4xl mx-auto max-h-[95vh] overflow-y-auto p-0">
+        <DialogContent className="max-w-md md:max-w-xl lg:max-w-2xl mx-auto max-h-[90vh] overflow-y-auto p-0">
           {selectedItem && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -760,7 +760,7 @@ export default function Restaurant() {
               className="flex flex-col"
             >
               {selectedItem.image && (
-                <div className="relative w-full h-64 sm:h-72 md:h-80 lg:h-96 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden border-b">
+                <div className="relative w-full h-64 sm:h-72 md:h-64 lg:h-72 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden border-b">
                   <img 
                     src={selectedItem.image} 
                     alt={selectedItem.name}
@@ -774,30 +774,30 @@ export default function Restaurant() {
                 </div>
               )}
 
-              <div className="p-4 sm:p-6 md:p-8 space-y-4 md:space-y-6">
+              <div className="p-4 sm:p-5 md:p-6 space-y-3 md:space-y-4">
                 <div className="space-y-2">
-                  <DialogTitle className="text-2xl md:text-3xl font-bold text-left">
+                  <DialogTitle className="text-xl md:text-2xl font-bold text-left">
                     {selectedItem.name}
                   </DialogTitle>
-                  <p className="text-muted-foreground text-left text-sm md:text-base leading-relaxed">
+                  <p className="text-muted-foreground text-left text-sm leading-relaxed">
                     {selectedItem.description}
                   </p>
-                  <p className="text-2xl md:text-3xl font-bold text-[#820d2a] text-left">
+                  <p className="text-xl md:text-2xl font-bold text-[#820d2a] text-left">
                     ₱{selectedItem.price.toFixed(2)}
                   </p>
                 </div>
 
                 {selectedItem.customizations && selectedItem.customizations.length > 0 && (
-                  <div className="space-y-3 pt-4 border-t">
+                  <div className="space-y-2 pt-3 border-t">
                     <div>
-                      <Label className="text-lg md:text-xl font-semibold">Customize Your Order</Label>
-                      <p className="text-sm text-muted-foreground mt-1">Select your preferred add-ons</p>
+                      <Label className="text-base md:text-lg font-semibold">Customize Your Order</Label>
+                      <p className="text-xs md:text-sm text-muted-foreground mt-1">Select your preferred add-ons</p>
                     </div>
-                    <div className="grid gap-3">
+                    <div className="grid gap-2">
                       {selectedItem.customizations.map((custom, index) => (
                         <div 
                           key={index} 
-                          className="flex items-center gap-3 p-4 border-2 rounded-lg hover-elevate transition-all cursor-pointer"
+                          className="flex items-center gap-3 p-3 border-2 rounded-lg hover-elevate transition-all cursor-pointer"
                           onClick={() => setCustomizations({...customizations, [custom.name]: !customizations[custom.name]})}
                         >
                           <Checkbox 
@@ -807,7 +807,7 @@ export default function Restaurant() {
                             data-testid={`checkbox-customization-${index}`}
                           />
                           <div className="flex-1">
-                            <Label className="text-base font-medium cursor-pointer">
+                            <Label className="text-sm md:text-base font-medium cursor-pointer">
                               {custom.name}
                             </Label>
                           </div>
@@ -820,27 +820,27 @@ export default function Restaurant() {
                   </div>
                 )}
 
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t">
-                  <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t">
+                  <div className="flex items-center gap-3">
                     <span className="text-sm font-medium text-muted-foreground">Quantity</span>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
                         disabled={quantity <= 1}
-                        className="rounded-full h-10 w-10"
+                        className="rounded-full h-9 w-9"
                         data-testid="button-decrease-quantity"
                       >
                         -
                       </Button>
-                      <span className="text-xl font-bold w-12 text-center" data-testid="text-quantity">{quantity}</span>
+                      <span className="text-lg font-bold w-10 text-center" data-testid="text-quantity">{quantity}</span>
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={() => setQuantity(Math.min((selectedItem?.stock ?? 0), quantity + 1))}
                         disabled={quantity >= (selectedItem?.stock ?? 0)}
-                        className="rounded-full h-10 w-10"
+                        className="rounded-full h-9 w-9"
                         data-testid="button-increase-quantity"
                       >
                         +
@@ -849,7 +849,7 @@ export default function Restaurant() {
                   </div>
                   <Button
                     onClick={handleAddToCart}
-                    className="w-full sm:w-auto bg-[#820d2a] hover:bg-[#6a0a22] text-white px-8 py-6 text-base font-semibold shadow-lg"
+                    className="w-full sm:w-auto bg-[#820d2a] hover:bg-[#6a0a22] text-white px-6 py-5 text-sm md:text-base font-semibold shadow-lg"
                     data-testid="button-add-to-cart"
                   >
                     Add to Cart - ₱{(selectedItem.price * quantity + Object.entries(customizations).reduce((sum, [name, checked]) => {

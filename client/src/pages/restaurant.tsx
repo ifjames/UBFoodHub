@@ -533,36 +533,36 @@ export default function Restaurant() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ delay: 0.05 * index }}
                 onClick={() => openCustomization(item)}
-                className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer group"
+                className="bg-white rounded-lg md:rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer group"
               >
                 {item.image && (
-                  <div className="relative w-full h-48 md:h-56 bg-gray-100 overflow-hidden">
+                  <div className="relative w-full h-36 md:h-56 bg-gray-100 overflow-hidden">
                     <img 
                       src={item.image} 
                       alt={item.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <div className="absolute top-3 right-3 flex gap-2">
+                    <div className="absolute top-2 right-2 md:top-3 md:right-3 flex gap-1 md:gap-2">
                       {item.isPopular && (
-                        <Badge className="bg-blue-500 text-white shadow-lg">NEW!</Badge>
+                        <Badge className="bg-blue-500 text-white shadow-lg text-xs">NEW!</Badge>
                       )}
                       {(item.stock ?? 0) === 0 && (
-                        <Badge className="bg-gray-900 text-white shadow-lg">Out of Stock</Badge>
+                        <Badge className="bg-gray-900 text-white shadow-lg text-xs">Out of Stock</Badge>
                       )}
                     </div>
                   </div>
                 )}
                 
-                <div className="p-4 md:p-5">
-                  <h3 className="font-semibold text-gray-900 text-base md:text-lg mb-2 line-clamp-1">
+                <div className="p-3 md:p-5">
+                  <h3 className="font-semibold text-gray-900 text-sm md:text-lg mb-1 md:mb-2 line-clamp-1">
                     {item.name}
                   </h3>
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2 min-h-[40px]">
+                  <p className="text-xs md:text-sm text-gray-600 mb-2 md:mb-4 line-clamp-2 min-h-[32px] md:min-h-[40px]">
                     {item.description}
                   </p>
                   <div className="flex items-center justify-between">
-                    <div className="flex flex-col gap-1">
-                      <span className="font-bold text-[#820d2a] text-xl">₱{item.price}</span>
+                    <div className="flex flex-col gap-0.5 md:gap-1">
+                      <span className="font-bold text-[#820d2a] text-lg md:text-xl">₱{item.price}</span>
                       {(item.stock ?? 0) > 0 && (item.stock ?? 0) < 10 && (
                         <span className="text-xs text-orange-600 font-medium">Only {item.stock} left</span>
                       )}
@@ -570,13 +570,13 @@ export default function Restaurant() {
                     <Button
                       size="icon"
                       disabled={!item.isAvailable || (item.stock ?? 0) === 0}
-                      className="rounded-full w-11 h-11 bg-[#820d2a] hover:bg-[#6a0a22] disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                      className="rounded-full w-9 h-9 md:w-11 md:h-11 bg-[#820d2a] hover:bg-[#6a0a22] disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                       onClick={(e) => {
                         e.stopPropagation();
                         openCustomization(item);
                       }}
                     >
-                      <Plus className="w-5 h-5" />
+                      <Plus className="w-4 h-4 md:w-5 md:h-5" />
                     </Button>
                   </div>
                 </div>

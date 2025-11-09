@@ -1366,7 +1366,7 @@ export default function StallDashboard() {
                                   size="sm"
                                   onClick={() => cancelOrder(order.id)}
                                   variant="outline"
-                                  className="border-red-300 text-red-700 hover:bg-red-50"
+                                  className="border-red-300 text-red-700 hover:bg-red-50 hover:text-red-800 hover:border-red-400"
                                 >
                                   <X className="w-4 h-4 mr-1" />
                                   Decline

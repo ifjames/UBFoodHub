@@ -611,11 +611,31 @@ export const validateVoucher = async (userId: string, voucherId: string) => {
 // Mark voucher as used (for order placement)
 export const useVoucher = async (voucherId: string) => {
   try {
-    await updateDocument("vouchers", voucherId, {
-      isUsed: true,
-      usedAt: new Date().toISOString()
-    });
-    return { success: true };
+    // Get current voucher data
+    const voucherDoc = await getDocument("vouchers", voucherId);
+    
+    if (!voucherDoc.exists()) {
+      throw new Error("Voucher not found");
+    }
+    
+    const voucherData = voucherDoc.data();
+    const currentUsage = (voucherData.currentUsage || 0) + 1;
+    const maxUsage = voucherData.maxUsage || 1;
+    
+    // Prepare update data
+    const updateData: any = {
+      currentUsage: currentUsage,
+      lastUsedAt: new Date().toISOString()
+    };
+    
+    // Mark as used if it's reached max usage
+    if (currentUsage >= maxUsage) {
+      updateData.isUsed = true;
+      updateData.usedAt = new Date().toISOString();
+    }
+    
+    await updateDocument("vouchers", voucherId, updateData);
+    return { success: true, currentUsage, maxUsage };
   } catch (error) {
     console.error("Error using voucher:", error);
     throw error;

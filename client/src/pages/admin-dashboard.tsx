@@ -36,6 +36,7 @@ export default function AdminDashboard() {
   const [userSort, setUserSort] = useState('name');
   const [stallSort, setStallSort] = useState('name');
   const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [stallSearchQuery, setStallSearchQuery] = useState('');
 
   // New stall form
   const [newStall, setNewStall] = useState({
@@ -670,8 +671,17 @@ export default function AdminDashboard() {
     return 0;
   });
 
+  // Filter stalls based on search query
+  const filteredStalls = stalls.filter(stall => {
+    const matchesSearch = stallSearchQuery === '' || 
+      (stall.name?.toLowerCase().includes(stallSearchQuery.toLowerCase()) ||
+       stall.description?.toLowerCase().includes(stallSearchQuery.toLowerCase()));
+    
+    return matchesSearch;
+  });
+
   // Sort stalls based on selected sort option
-  const sortedStalls = [...stalls].sort((a, b) => {
+  const sortedStalls = [...filteredStalls].sort((a, b) => {
     if (stallSort === 'name') {
       return (a.name || '').localeCompare(b.name || '');
     } else if (stallSort === 'date') {
@@ -1101,18 +1111,9 @@ export default function AdminDashboard() {
           <TabsContent value="stalls" className="space-y-4">
             <Card>
               <CardHeader>
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <CardTitle>Stalls Management</CardTitle>
-                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                    <Select value={stallSort} onValueChange={setStallSort}>
-                      <SelectTrigger className="w-full sm:w-48">
-                        <SelectValue placeholder="Sort by" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="name">Sort by Name</SelectItem>
-                        <SelectItem value="date">Sort by Date Created</SelectItem>
-                      </SelectContent>
-                    </Select>
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <CardTitle>Stalls Management</CardTitle>
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button className="bg-[#6d031e] hover:bg-red-700 w-full sm:w-auto">
@@ -1124,7 +1125,7 @@ export default function AdminDashboard() {
                         <DialogHeader>
                           <DialogTitle>Create New Stall</DialogTitle>
                         </DialogHeader>
-                <form onSubmit={handleCreateStall} className="space-y-4">
+                        <form onSubmit={handleCreateStall} className="space-y-4">
                   <div>
                     <Label htmlFor="stallName">Stall Name</Label>
                     <Input
@@ -1181,6 +1182,27 @@ export default function AdminDashboard() {
                       </form>
                       </DialogContent>
                     </Dialog>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        placeholder="Search by stall name or description..."
+                        value={stallSearchQuery}
+                        onChange={(e) => setStallSearchQuery(e.target.value)}
+                        className="pl-9"
+                        data-testid="input-search-stalls"
+                      />
+                    </div>
+                    <Select value={stallSort} onValueChange={setStallSort}>
+                      <SelectTrigger className="w-full sm:w-48">
+                        <SelectValue placeholder="Sort by" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="name">Sort by Name</SelectItem>
+                        <SelectItem value="date">Sort by Date Created</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </CardHeader>

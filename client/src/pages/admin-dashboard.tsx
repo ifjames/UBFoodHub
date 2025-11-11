@@ -14,7 +14,7 @@ import { useStore } from "@/lib/store";
 import { subscribeToCollection, addDocument, updateDocument, deleteDocument, getCollection, signUp, createDocument, queryCollection } from "@/lib/firebase";
 import { logOut } from "@/lib/firebase";
 import { useLocation } from "wouter";
-import { Users, Store, Plus, Edit, Trash2, LogOut, Settings, BarChart3, Check, AlertTriangle, Bell, Gift, Megaphone, Calendar, Package, X } from "lucide-react";
+import { Users, Store, Plus, Edit, Trash2, LogOut, Settings, BarChart3, Check, AlertTriangle, Bell, Gift, Megaphone, Calendar, Package, X, Search } from "lucide-react";
 import PenaltyManagement from "@/components/penalties/penalty-management";
 import BroadcastNotification from "@/components/admin/broadcast-notification";
 import NotificationBell from "@/components/notifications/notification-bell";
@@ -35,6 +35,7 @@ export default function AdminDashboard() {
   const [userFilter, setUserFilter] = useState('all');
   const [userSort, setUserSort] = useState('name');
   const [stallSort, setStallSort] = useState('name');
+  const [userSearchQuery, setUserSearchQuery] = useState('');
 
   // New stall form
   const [newStall, setNewStall] = useState({
@@ -645,10 +646,16 @@ export default function AdminDashboard() {
   const totalOrders = orders.length;
   const activeStalls = stalls.filter(stall => stall.isActive).length;
 
-  // Filter users based on selected filter
+  // Filter users based on selected filter and search query
   const filteredUsers = users.filter(user => {
-    if (userFilter === 'all') return true;
-    return user.role === userFilter;
+    const matchesRole = userFilter === 'all' || user.role === userFilter;
+    
+    const matchesSearch = userSearchQuery === '' || 
+      (user.fullName?.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+       user.email?.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+       user.studentId?.toLowerCase().includes(userSearchQuery.toLowerCase()));
+    
+    return matchesRole && matchesSearch;
   });
 
   // Sort users based on selected sort option
@@ -920,9 +927,28 @@ export default function AdminDashboard() {
           <TabsContent value="users" className="space-y-4">
             <Card>
               <CardHeader>
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <CardTitle>User Accounts</CardTitle>
-                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <CardTitle>User Accounts</CardTitle>
+                    <Button 
+                      onClick={() => setShowCreateAccountModal(true)}
+                      className="bg-[#6d031e] hover:bg-red-700 w-full sm:w-auto"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Account
+                    </Button>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        placeholder="Search by name, email, or student ID..."
+                        value={userSearchQuery}
+                        onChange={(e) => setUserSearchQuery(e.target.value)}
+                        className="pl-9"
+                        data-testid="input-search-users"
+                      />
+                    </div>
                     <Select value={userFilter} onValueChange={setUserFilter}>
                       <SelectTrigger className="w-full sm:w-48">
                         <SelectValue placeholder="Filter by role" />
@@ -943,13 +969,6 @@ export default function AdminDashboard() {
                         <SelectItem value="date">Sort by Date Created</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Button 
-                      onClick={() => setShowCreateAccountModal(true)}
-                      className="bg-[#6d031e] hover:bg-red-700 w-full sm:w-auto"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create Account
-                    </Button>
                   </div>
                 </div>
               </CardHeader>

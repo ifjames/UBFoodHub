@@ -9,6 +9,7 @@ import {
   Utensils,
   MapPin,
   Lock,
+  ShoppingCart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -364,8 +365,8 @@ export default function Cart() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="bg-white shadow-sm sticky top-0 z-40">
+      <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+        <div className="bg-white shadow-sm">
           <div className="flex items-center p-4 bg-[#820d2a]">
             <Button
               variant="ghost"
@@ -378,8 +379,8 @@ export default function Cart() {
             <h1 className="text-lg font-semibold text-[#ffffff]">Cart</h1>
           </div>
         </div>
-        <div className="flex flex-col items-center justify-center min-h-[60vh] p-8">
-          <div className="text-6xl mb-4">🛒</div>
+        <div className="flex-1 flex flex-col items-center justify-center p-8">
+          <ShoppingCart className="w-16 h-16 text-gray-400 mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
             Your cart is empty
           </h2>

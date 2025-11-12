@@ -92,6 +92,11 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
           src={restaurant.image || "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=300"}
           alt={restaurant.name}
           className="w-full h-full object-cover"
+          loading="lazy"
+          onError={(e) => {
+            e.currentTarget.src = "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=450&fit=crop";
+            e.currentTarget.onerror = null;
+          }}
         />
         <button
           onClick={handleLike}

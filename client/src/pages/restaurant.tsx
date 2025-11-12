@@ -423,7 +423,7 @@ export default function Restaurant() {
       <motion.div 
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className="bg-white shadow-sm sticky top-0 z-40"
+        className="shadow-sm sticky top-0 z-40"
       >
         <div className="bg-[#820d2a] md:py-4">
           <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
@@ -488,6 +488,11 @@ export default function Restaurant() {
                   src={stall.image} 
                   alt={stall.name}
                   className="w-32 h-32 lg:w-40 lg:h-40 rounded-xl object-cover shadow-md"
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.src = "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=400&fit=crop";
+                    e.currentTarget.onerror = null;
+                  }}
                 />
               </div>
             )}
@@ -497,6 +502,11 @@ export default function Restaurant() {
                   src={stall.image} 
                   alt={stall.name}
                   className="w-16 h-16 rounded-lg mr-4 object-cover"
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.src = "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=400&fit=crop";
+                    e.currentTarget.onerror = null;
+                  }}
                 />
               )}
               <div className="flex-1">
@@ -608,6 +618,11 @@ export default function Restaurant() {
                       src={item.image} 
                       alt={item.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=400&fit=crop";
+                        e.currentTarget.onerror = null;
+                      }}
                     />
                     <div className="absolute top-1 right-1 md:top-3 md:right-3 flex gap-1 md:gap-2 flex-col md:flex-row">
                       {item.isPopular && (
@@ -692,6 +707,7 @@ export default function Restaurant() {
                           src={review.userProfile?.photoURL || review.userProfile?.profilePicture} 
                           alt="Profile"
                           className="w-full h-full object-cover"
+                          loading="lazy"
                           onError={(e) => {
                             console.log("Image failed to load:", e.currentTarget.src);
                             e.currentTarget.style.display = 'none';
@@ -832,6 +848,11 @@ export default function Restaurant() {
                     src={selectedItem.image} 
                     alt={selectedItem.name}
                     className="w-full h-full object-contain p-4 md:p-6"
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=600&fit=crop";
+                      e.currentTarget.onerror = null;
+                    }}
                   />
                   {selectedItem.isPopular && (
                     <Badge className="absolute top-4 right-4 bg-blue-500 text-white shadow-lg">

@@ -126,7 +126,7 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
             </span>
             {(restaurant.category || restaurant.categories?.[0]) && (
               <>
-                <span className="mx-1">\u2022</span>
+                <span className="mx-1">•</span>
                 <span className="truncate" data-testid={`text-category-${restaurant.id}`}>
                   {restaurant.category || restaurant.categories?.[0] || 'Uncategorized'}
                 </span>

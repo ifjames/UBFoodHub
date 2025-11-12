@@ -67,6 +67,14 @@ Preferred communication style: Simple, everyday language.
   - Removed category count from analytics section
   - Simplified menu item search to only filter by item name
   - Fixed bullet point rendering issue in restaurant cards (changed unicode escape to actual bullet character)
+- **Menu Item Category Enhancements** (November 12, 2025):
+  - Added category delete functionality in Food Stall Dashboard with item count validation
+  - Categories can only be deleted if no menu items are using them
+  - New categories now appear immediately in dropdown without requiring item save
+  - Added temporary categories state to support instant category creation
+  - Fixed category button hover visibility on Student Dashboard restaurant page
+  - Category badges now display item count for better management
+  - Improved category management UI with visual badges and delete buttons
 
 ## System Architecture
 

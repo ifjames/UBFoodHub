@@ -122,6 +122,9 @@ export default function StallDashboard() {
   });
   const [newCategoryInput, setNewCategoryInput] = useState("");
   const [temporaryCategories, setTemporaryCategories] = useState<string[]>([]);
+  const [isCategoryManagementOpen, setIsCategoryManagementOpen] = useState(false);
+  const [menuItemCategories, setMenuItemCategories] = useState<string[]>([]);
+  const [newCategoryName, setNewCategoryName] = useState("");
 
   // Drag-to-scroll functionality
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -302,8 +305,70 @@ export default function StallDashboard() {
     enrichReviewsWithUserData();
   }, [reviews]);
 
-  // Add new category to stall's categories list
-  // No longer needed - categories are now managed directly on menu items
+  // Extract unique categories from menu items
+  useEffect(() => {
+    const uniqueCategories = Array.from(new Set(menuItems.map(item => item.category).filter(Boolean)));
+    setMenuItemCategories(uniqueCategories);
+  }, [menuItems]);
+
+  // Category management functions
+  const handleAddCategory = () => {
+    const trimmedCategory = newCategoryName.trim();
+    if (!trimmedCategory) {
+      toast({
+        title: "Error",
+        description: "Category name cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (menuItemCategories.includes(trimmedCategory)) {
+      toast({
+        title: "Error",
+        description: "This category already exists",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setMenuItemCategories(prev => [...prev, trimmedCategory]);
+    setNewCategoryName("");
+    toast({
+      title: "Success",
+      description: "Category added successfully",
+    });
+  };
+
+  const handleDeleteCategoryFromManagement = async (categoryToDelete: string) => {
+    try {
+      // Find all menu items with this category
+      const itemsWithCategory = menuItems.filter(item => item.category === categoryToDelete);
+      
+      if (itemsWithCategory.length > 0) {
+        toast({
+          title: "Cannot Delete Category",
+          description: `This category is used by ${itemsWithCategory.length} menu item(s). Please remove or change the category of these items first.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Remove from menu item categories list
+      setMenuItemCategories(prev => prev.filter(cat => cat !== categoryToDelete));
+      
+      toast({
+        title: "Success",
+        description: "Category deleted successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete category",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleSaveMenuItem = async () => {
     if (!itemForm.name || !itemForm.price) {
@@ -377,41 +442,6 @@ export default function StallDashboard() {
     });
     setNewCategoryInput("");
     setTemporaryCategories([]);
-  };
-
-  const deleteCategory = async (categoryToDelete: string) => {
-    try {
-      // Find all menu items with this category
-      const itemsWithCategory = menuItems.filter(item => item.category === categoryToDelete);
-      
-      if (itemsWithCategory.length > 0) {
-        toast({
-          title: "Cannot Delete Category",
-          description: `This category is used by ${itemsWithCategory.length} menu item(s). Please remove or change the category of these items first.`,
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Remove from temporary categories if it exists there
-      setTemporaryCategories(prev => prev.filter(cat => cat !== categoryToDelete));
-      
-      // If the deleted category was selected, clear the selection
-      if (itemForm.category === categoryToDelete) {
-        setItemForm(prev => ({ ...prev, category: "" }));
-      }
-      
-      toast({
-        title: "Success",
-        description: "Category deleted successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete category",
-        variant: "destructive",
-      });
-    }
   };
 
   const toggleItemAvailability = async (itemId: string, isAvailable: boolean) => {
@@ -1541,17 +1571,29 @@ export default function StallDashboard() {
           >
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <h2 className="text-xl font-bold text-[#6d031e]">Menu Management</h2>
-              <Button
-                onClick={() => {
-                  resetForm();
-                  setEditingItem(null);
-                  setIsMenuDialogOpen(true);
-                }}
-                className="bg-[#6d031e] text-white hover:bg-red-700"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Item
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => setIsCategoryManagementOpen(true)}
+                  variant="outline"
+                  className="border-[#6d031e] text-[#6d031e] hover:bg-red-50"
+                  data-testid="button-manage-categories"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Manage Categories
+                </Button>
+                <Button
+                  onClick={() => {
+                    resetForm();
+                    setEditingItem(null);
+                    setIsMenuDialogOpen(true);
+                  }}
+                  className="bg-[#6d031e] text-white hover:bg-red-700"
+                  data-testid="button-add-item"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Item
+                </Button>
+              </div>
             </div>
 
             {/* Smart Filtering for Menu */}
@@ -2340,7 +2382,7 @@ export default function StallDashboard() {
               />
             </div>
 
-            {/* Category Management */}
+            {/* Category Selection */}
             <div className="space-y-3">
               <Label htmlFor="category">Category</Label>
               <Select
@@ -2348,114 +2390,41 @@ export default function StallDashboard() {
                 onValueChange={(value) => setItemForm(prev => ({ ...prev, category: value }))}
               >
                 <SelectTrigger id="category" data-testid="select-category">
-                  <SelectValue placeholder="Select or create a category" />
+                  <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(() => {
-                    const existingCategories = Array.from(new Set(menuItems.map(item => item.category).filter(Boolean)));
-                    const allCategories = Array.from(new Set([...existingCategories, ...temporaryCategories]));
-                    return allCategories.length > 0 ? (
-                      allCategories.map((cat: string) => (
-                        <SelectItem key={cat} value={cat} data-testid={`select-category-${cat}`}>
-                          {cat}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="no-categories" disabled>
-                        No categories yet
+                  {menuItemCategories.length > 0 ? (
+                    menuItemCategories.map((cat: string) => (
+                      <SelectItem key={cat} value={cat} data-testid={`select-category-${cat}`}>
+                        {cat}
                       </SelectItem>
-                    );
-                  })()}
+                    ))
+                  ) : (
+                    <SelectItem value="no-categories" disabled>
+                      No categories yet - use Manage Categories to create one
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
-              
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Create new category (e.g., Desserts, Meals, Drinks)"
-                  value={newCategoryInput}
-                  onChange={(e) => setNewCategoryInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      if (newCategoryInput.trim()) {
-                        const newCat = newCategoryInput.trim();
-                        if (!temporaryCategories.includes(newCat)) {
-                          setTemporaryCategories(prev => [...prev, newCat]);
-                        }
-                        setItemForm(prev => ({ ...prev, category: newCat }));
-                        setNewCategoryInput("");
-                      }
-                    }
-                  }}
-                  className="flex-1"
-                  data-testid="input-new-category"
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    if (newCategoryInput.trim()) {
-                      const newCat = newCategoryInput.trim();
-                      if (!temporaryCategories.includes(newCat)) {
-                        setTemporaryCategories(prev => [...prev, newCat]);
-                      }
-                      setItemForm(prev => ({ ...prev, category: newCat }));
-                      setNewCategoryInput("");
-                    }
-                  }}
-                  className="text-red-700 border-red-300"
-                  data-testid="button-add-category"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Add
-                </Button>
-              </div>
               {itemForm.category && (
-                <p className="text-sm text-green-600">
-                  Selected: <span className="font-medium">{itemForm.category}</span>
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-green-600">
+                    Selected: <span className="font-medium">{itemForm.category}</span>
+                  </p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setItemForm(prev => ({ ...prev, category: "" }))}
+                    className="text-red-600 hover:bg-red-50"
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Clear
+                  </Button>
+                </div>
               )}
-              
-              {/* Display existing categories with delete option */}
-              {(() => {
-                const existingCategories = Array.from(new Set(menuItems.map(item => item.category).filter(Boolean)));
-                const allCategories = Array.from(new Set([...existingCategories, ...temporaryCategories]));
-                
-                return allCategories.length > 0 && (
-                  <div className="space-y-2">
-                    <Label className="text-xs text-gray-600">Manage Categories</Label>
-                    <div className="flex flex-wrap gap-2">
-                      {allCategories.map((cat: string) => {
-                        const itemCount = menuItems.filter(item => item.category === cat).length;
-                        return (
-                          <Badge 
-                            key={cat} 
-                            variant="outline" 
-                            className="flex items-center gap-1 px-2 py-1"
-                          >
-                            <span>{cat}</span>
-                            <span className="text-xs text-gray-500">({itemCount})</span>
-                            <Button
-                              type="button"
-                              size="icon"
-                              variant="ghost"
-                              className="h-4 w-4 p-0 hover:bg-red-100"
-                              onClick={() => deleteCategory(cat)}
-                              data-testid={`button-delete-category-${cat}`}
-                            >
-                              <X className="h-3 w-3 text-red-600" />
-                            </Button>
-                          </Badge>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })()}
-              
               <p className="text-xs text-gray-500">
-                Categories help organize your menu and make it easier for customers to find items
+                Use "Manage Categories" button to add or remove categories
               </p>
             </div>
 
@@ -2558,6 +2527,99 @@ export default function StallDashboard() {
                 className="border-red-300 text-red-700"
               >
                 Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Category Management Dialog */}
+      <Dialog open={isCategoryManagementOpen} onOpenChange={setIsCategoryManagementOpen}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-[#6d031e]">Manage Menu Categories</DialogTitle>
+            <DialogDescription>
+              Create and manage categories for your menu items. Categories help organize your menu and make it easier for customers to find items.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Add New Category */}
+            <div className="space-y-2">
+              <Label htmlFor="new-category">Add New Category</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="new-category"
+                  placeholder="Enter category name (e.g., Desserts, Meals, Drinks)"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddCategory();
+                    }
+                  }}
+                  className="flex-1"
+                  data-testid="input-category-name"
+                />
+                <Button
+                  type="button"
+                  onClick={handleAddCategory}
+                  className="bg-[#6d031e] hover:bg-red-700"
+                  data-testid="button-add-category-management"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add
+                </Button>
+              </div>
+            </div>
+
+            {/* Existing Categories */}
+            <div className="space-y-2">
+              <Label>Existing Categories ({menuItemCategories.length})</Label>
+              {menuItemCategories.length > 0 ? (
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {menuItemCategories.map((category) => {
+                    const itemCount = menuItems.filter(item => item.category === category).length;
+                    return (
+                      <Card key={category} className="p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-gray-900">{category}</span>
+                            <Badge variant="secondary" className="text-xs">
+                              {itemCount} item{itemCount !== 1 ? 's' : ''}
+                            </Badge>
+                          </div>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDeleteCategoryFromManagement(category)}
+                            className="text-red-600 hover:bg-red-50"
+                            data-testid={`button-delete-category-management-${category}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No categories yet</p>
+                  <p className="text-sm">Add your first category above</p>
+                </div>
+              )}
+            </div>
+
+            {/* Close Button */}
+            <div className="flex justify-end pt-4">
+              <Button
+                onClick={() => setIsCategoryManagementOpen(false)}
+                className="bg-[#6d031e] hover:bg-red-700"
+              >
+                Done
               </Button>
             </div>
           </div>

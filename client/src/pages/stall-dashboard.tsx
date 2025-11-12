@@ -121,6 +121,7 @@ export default function StallDashboard() {
     customizations: [{ name: "", price: 0 }] // For customizations like "Extra Rice +25", "Choice of Rice", etc.
   });
   const [newCategoryInput, setNewCategoryInput] = useState("");
+  const [temporaryCategories, setTemporaryCategories] = useState<string[]>([]);
 
   // Drag-to-scroll functionality
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -375,6 +376,42 @@ export default function StallDashboard() {
       customizations: [{ name: "", price: 0 }]
     });
     setNewCategoryInput("");
+    setTemporaryCategories([]);
+  };
+
+  const deleteCategory = async (categoryToDelete: string) => {
+    try {
+      // Find all menu items with this category
+      const itemsWithCategory = menuItems.filter(item => item.category === categoryToDelete);
+      
+      if (itemsWithCategory.length > 0) {
+        toast({
+          title: "Cannot Delete Category",
+          description: `This category is used by ${itemsWithCategory.length} menu item(s). Please remove or change the category of these items first.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Remove from temporary categories if it exists there
+      setTemporaryCategories(prev => prev.filter(cat => cat !== categoryToDelete));
+      
+      // If the deleted category was selected, clear the selection
+      if (itemForm.category === categoryToDelete) {
+        setItemForm(prev => ({ ...prev, category: "" }));
+      }
+      
+      toast({
+        title: "Success",
+        description: "Category deleted successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete category",
+        variant: "destructive",
+      });
+    }
   };
 
   const toggleItemAvailability = async (itemId: string, isAvailable: boolean) => {
@@ -2316,8 +2353,9 @@ export default function StallDashboard() {
                 <SelectContent>
                   {(() => {
                     const existingCategories = Array.from(new Set(menuItems.map(item => item.category).filter(Boolean)));
-                    return existingCategories.length > 0 ? (
-                      existingCategories.map((cat: string) => (
+                    const allCategories = Array.from(new Set([...existingCategories, ...temporaryCategories]));
+                    return allCategories.length > 0 ? (
+                      allCategories.map((cat: string) => (
                         <SelectItem key={cat} value={cat} data-testid={`select-category-${cat}`}>
                           {cat}
                         </SelectItem>
@@ -2340,7 +2378,11 @@ export default function StallDashboard() {
                     if (e.key === 'Enter') {
                       e.preventDefault();
                       if (newCategoryInput.trim()) {
-                        setItemForm(prev => ({ ...prev, category: newCategoryInput.trim() }));
+                        const newCat = newCategoryInput.trim();
+                        if (!temporaryCategories.includes(newCat)) {
+                          setTemporaryCategories(prev => [...prev, newCat]);
+                        }
+                        setItemForm(prev => ({ ...prev, category: newCat }));
                         setNewCategoryInput("");
                       }
                     }
@@ -2354,7 +2396,11 @@ export default function StallDashboard() {
                   variant="outline"
                   onClick={() => {
                     if (newCategoryInput.trim()) {
-                      setItemForm(prev => ({ ...prev, category: newCategoryInput.trim() }));
+                      const newCat = newCategoryInput.trim();
+                      if (!temporaryCategories.includes(newCat)) {
+                        setTemporaryCategories(prev => [...prev, newCat]);
+                      }
+                      setItemForm(prev => ({ ...prev, category: newCat }));
                       setNewCategoryInput("");
                     }
                   }}
@@ -2370,6 +2416,44 @@ export default function StallDashboard() {
                   Selected: <span className="font-medium">{itemForm.category}</span>
                 </p>
               )}
+              
+              {/* Display existing categories with delete option */}
+              {(() => {
+                const existingCategories = Array.from(new Set(menuItems.map(item => item.category).filter(Boolean)));
+                const allCategories = Array.from(new Set([...existingCategories, ...temporaryCategories]));
+                
+                return allCategories.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="text-xs text-gray-600">Manage Categories</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {allCategories.map((cat: string) => {
+                        const itemCount = menuItems.filter(item => item.category === cat).length;
+                        return (
+                          <Badge 
+                            key={cat} 
+                            variant="outline" 
+                            className="flex items-center gap-1 px-2 py-1"
+                          >
+                            <span>{cat}</span>
+                            <span className="text-xs text-gray-500">({itemCount})</span>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="h-4 w-4 p-0 hover:bg-red-100"
+                              onClick={() => deleteCategory(cat)}
+                              data-testid={`button-delete-category-${cat}`}
+                            >
+                              <X className="h-3 w-3 text-red-600" />
+                            </Button>
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+              
               <p className="text-xs text-gray-500">
                 Categories help organize your menu and make it easier for customers to find items
               </p>

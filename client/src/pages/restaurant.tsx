@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { getDocument, subscribeToQuery, addDocument, getDocuments, toggleFavorite, checkIfFavorite } from "@/lib/firebase";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { useQuery } from "@tanstack/react-query";
+import { CachedImage } from "@/components/cached-image";
 
 interface MenuItemType {
   id: string;
@@ -484,29 +485,21 @@ export default function Restaurant() {
           <div className="flex flex-col md:flex-row md:items-start md:gap-8 lg:gap-12">
             {stall.image && (
               <div className="hidden md:block">
-                <img 
-                  src={stall.image} 
+                <CachedImage
+                  src={stall.image}
                   alt={stall.name}
+                  fallbackUrl="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=400&fit=crop"
                   className="w-32 h-32 lg:w-40 lg:h-40 rounded-xl object-cover shadow-md"
-                  loading="lazy"
-                  onError={(e) => {
-                    e.currentTarget.src = "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=400&fit=crop";
-                    e.currentTarget.onerror = null;
-                  }}
                 />
               </div>
             )}
             <div className="flex md:hidden items-center mb-4">
               {stall.image && (
-                <img 
-                  src={stall.image} 
+                <CachedImage
+                  src={stall.image}
                   alt={stall.name}
+                  fallbackUrl="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=400&fit=crop"
                   className="w-16 h-16 rounded-lg mr-4 object-cover"
-                  loading="lazy"
-                  onError={(e) => {
-                    e.currentTarget.src = "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=400&fit=crop";
-                    e.currentTarget.onerror = null;
-                  }}
                 />
               )}
               <div className="flex-1">
@@ -614,15 +607,11 @@ export default function Restaurant() {
               >
                 {item.image && (
                   <div className="relative w-full h-24 md:h-56 bg-gray-100 overflow-hidden">
-                    <img 
-                      src={item.image} 
+                    <CachedImage
+                      src={item.image}
                       alt={item.name}
+                      fallbackUrl="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=400&fit=crop"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                      onError={(e) => {
-                        e.currentTarget.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=400&fit=crop";
-                        e.currentTarget.onerror = null;
-                      }}
                     />
                     <div className="absolute top-1 right-1 md:top-3 md:right-3 flex gap-1 md:gap-2 flex-col md:flex-row">
                       {item.isPopular && (
@@ -844,15 +833,11 @@ export default function Restaurant() {
             >
               {selectedItem.image && (
                 <div className="relative w-full h-64 sm:h-72 md:h-64 lg:h-72 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden border-b">
-                  <img 
-                    src={selectedItem.image} 
+                  <CachedImage
+                    src={selectedItem.image}
                     alt={selectedItem.name}
+                    fallbackUrl="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=600&fit=crop"
                     className="w-full h-full object-contain p-4 md:p-6"
-                    loading="lazy"
-                    onError={(e) => {
-                      e.currentTarget.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=600&fit=crop";
-                      e.currentTarget.onerror = null;
-                    }}
                   />
                   {selectedItem.isPopular && (
                     <Badge className="absolute top-4 right-4 bg-blue-500 text-white shadow-lg">

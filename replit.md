@@ -80,6 +80,15 @@ Preferred communication style: Simple, everyday language.
   - All category management (add/delete/view) now done through dedicated category management dialog
   - Category badges now display item count for better management
   - Improved category management UI with visual badges and delete buttons
+- **Image Loading Improvements** (November 12, 2025):
+  - Fixed white line issue in restaurant page header by removing unnecessary background color
+  - Added comprehensive image error handling with lazy loading for all images across the application
+  - Implemented automatic fallback to Unsplash images when external images (imghippo API) fail to load
+  - Enhanced validation to check for empty/null image URLs before attempting to load them
+  - Restaurant cards now validate image URLs and use fallback images immediately for invalid/missing URLs
+  - Menu item images, stall images, and profile pictures all have proper error handling
+  - Prevents showing alt text instead of images by detecting broken/empty URLs upfront
+  - Added infinite loop prevention in error handlers to avoid repeated fallback attempts
 
 ## System Architecture
 

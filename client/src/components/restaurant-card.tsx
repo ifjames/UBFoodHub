@@ -5,6 +5,7 @@ import { useStore } from "@/lib/store";
 import { toggleFavorite, checkIfFavorite } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { useCachedImage } from "@/hooks/useCachedImage";
 
 interface RestaurantCardProps {
   restaurant: {
@@ -28,6 +29,10 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { state } = useStore();
   const { toast } = useToast();
+  
+  const { displayUrl } = useCachedImage(restaurant.image, {
+    fallbackUrl: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=450&fit=crop"
+  });
 
   useEffect(() => {
     const checkFavoriteStatus = async () => {
@@ -89,14 +94,10 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
     >
       <div className="relative aspect-[16/9] overflow-hidden bg-gray-100">
         <img
-          src={restaurant.image || "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=300"}
+          src={displayUrl}
           alt={restaurant.name}
           className="w-full h-full object-cover"
           loading="lazy"
-          onError={(e) => {
-            e.currentTarget.src = "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=450&fit=crop";
-            e.currentTarget.onerror = null;
-          }}
         />
         <button
           onClick={handleLike}

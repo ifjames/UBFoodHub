@@ -545,7 +545,7 @@ export default function Restaurant() {
                   className={`flex-shrink-0 ${
                     selectedCategory === category
                       ? "bg-[#820d2a] hover:bg-[#6a0a22] text-white"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
                   }`}
                   data-testid={`button-category-${category}`}
                 >

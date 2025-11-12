@@ -53,6 +53,15 @@ Preferred communication style: Simple, everyday language.
   - One-click "Populate Initial Updates" button for easy system update history initialization
   - Mobile-responsive 4-column card layout displaying version, release date, and announcement status
   - Complete version history from initial launch through all security fixes, UX improvements, and feature additions
+- **Stall Category Management** (November 12, 2025):
+  - Stall owners can now select multiple categories for their stalls through the Settings tab in stall dashboard
+  - Category selection UI uses a checkbox grid layout for easy multi-select functionality
+  - Validation requires at least one category to be selected when saving stall information
+  - RestaurantCard component displays first 2 categories as badges with "+N more" indicator for additional categories
+  - Added category filter chips on home page for quick browsing by food type
+  - Filter chips show "All" plus individual category options with visual active state
+  - Heading dynamically updates to show selected category (e.g., "Filipino Stalls" or "All Stalls")
+  - React Query caching with staleTime: Infinity for efficient category data management
 
 ## System Architecture
 

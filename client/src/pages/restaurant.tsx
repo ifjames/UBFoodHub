@@ -31,6 +31,7 @@ interface MenuItemType {
   isPopular: boolean;
   stock?: number;
   customizations?: Array<{ name: string; price: number }>;
+  customizationGroups?: Array<{ groupName: string; isRequired: boolean; options: Array<{ name: string; price: number }> }>;
 }
 
 export default function Restaurant() {
@@ -46,6 +47,7 @@ export default function Restaurant() {
   const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
   const [selectedItem, setSelectedItem] = useState<MenuItemType | null>(null);
   const [customizations, setCustomizations] = useState<any>({});
+  const [choiceGroupSelections, setChoiceGroupSelections] = useState<{[groupName: string]: string}>({});
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -330,6 +332,20 @@ export default function Restaurant() {
       return;
     }
 
+    if (selectedItem.customizationGroups) {
+      const requiredGroups = selectedItem.customizationGroups.filter(g => g.isRequired);
+      const missingGroups = requiredGroups.filter(g => !choiceGroupSelections[g.groupName]);
+      
+      if (missingGroups.length > 0) {
+        toast({
+          title: "Required Selection Missing",
+          description: `Please select an option for: ${missingGroups.map(g => g.groupName).join(', ')}`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     try {
       const selectedCustomizations = Object.entries(customizations)
         .filter(([_, selected]) => selected)
@@ -337,6 +353,18 @@ export default function Restaurant() {
           const custom = selectedItem.customizations?.find(c => c.name === key);
           return custom ? { name: key, price: custom.price || 0 } : { name: key, price: 0 };
         });
+
+      const selectedChoices = Object.entries(choiceGroupSelections).map(([groupName, optionName]) => {
+        const group = selectedItem.customizationGroups?.find(g => g.groupName === groupName);
+        const option = group?.options.find(o => o.name === optionName);
+        return {
+          groupName,
+          name: optionName,
+          price: option?.price || 0
+        };
+      });
+
+      const allCustomizations = [...selectedCustomizations, ...selectedChoices];
 
       await addDocument("cartItems", {
         userId: state.user.id,
@@ -346,7 +374,7 @@ export default function Restaurant() {
         image: selectedItem.image,
         price: selectedItem.price,
         quantity,
-        customizations: selectedCustomizations.length > 0 ? selectedCustomizations : [],
+        customizations: allCustomizations.length > 0 ? allCustomizations : [],
         specialInstructions: specialInstructions || null,
       });
 
@@ -358,6 +386,7 @@ export default function Restaurant() {
       setIsDialogOpen(false);
       setQuantity(1);
       setCustomizations({});
+      setChoiceGroupSelections({});
       setSpecialInstructions("");
     } catch (error) {
       toast({
@@ -372,6 +401,7 @@ export default function Restaurant() {
     setSelectedItem(item);
     setQuantity(1);
     setCustomizations({});
+    setChoiceGroupSelections({});
     setSpecialInstructions("");
     setIsDialogOpen(true);
   };
@@ -824,11 +854,61 @@ export default function Restaurant() {
                   </p>
                 </div>
 
+                {selectedItem.customizationGroups && selectedItem.customizationGroups.length > 0 && (
+                  <div className="space-y-4 pt-3 border-t">
+                    {selectedItem.customizationGroups.map((group, groupIndex) => (
+                      <div key={groupIndex} className="space-y-2">
+                        <div>
+                          <Label className="text-base md:text-lg font-semibold">
+                            {group.groupName}
+                            {group.isRequired && <span className="text-red-600 ml-1">*</span>}
+                          </Label>
+                          <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                            {group.isRequired ? 'Required - Select one option' : 'Optional - Select one if desired'}
+                          </p>
+                        </div>
+                        <RadioGroup
+                          value={choiceGroupSelections[group.groupName] || ''}
+                          onValueChange={(value) => setChoiceGroupSelections({...choiceGroupSelections, [group.groupName]: value})}
+                        >
+                          <div className="grid gap-2">
+                            {group.options.map((option, optionIndex) => (
+                              <div 
+                                key={optionIndex} 
+                                className="flex items-center gap-3 p-3 border-2 rounded-lg hover-elevate transition-all cursor-pointer"
+                                onClick={() => setChoiceGroupSelections({...choiceGroupSelections, [group.groupName]: option.name})}
+                              >
+                                <RadioGroupItem 
+                                  value={option.name} 
+                                  id={`choice-${groupIndex}-${optionIndex}`}
+                                  className="h-5 w-5"
+                                  data-testid={`radio-choice-${groupIndex}-${optionIndex}`}
+                                />
+                                <div className="flex-1">
+                                  <Label 
+                                    htmlFor={`choice-${groupIndex}-${optionIndex}`}
+                                    className="text-sm md:text-base font-medium cursor-pointer"
+                                  >
+                                    {option.name}
+                                  </Label>
+                                </div>
+                                <span className="text-sm font-semibold text-[#820d2a]">
+                                  {option.price > 0 ? `+₱${option.price.toFixed(2)}` : 'Free'}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </RadioGroup>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {selectedItem.customizations && selectedItem.customizations.length > 0 && (
                   <div className="space-y-2 pt-3 border-t">
                     <div>
-                      <Label className="text-base md:text-lg font-semibold">Customize Your Order</Label>
-                      <p className="text-xs md:text-sm text-muted-foreground mt-1">Select your preferred add-ons</p>
+                      <Label className="text-base md:text-lg font-semibold">Add-ons</Label>
+                      <p className="text-xs md:text-sm text-muted-foreground mt-1">Select your preferred add-ons (optional)</p>
                     </div>
                     <div className="grid gap-2">
                       {selectedItem.customizations.map((custom, index) => (
@@ -889,11 +969,18 @@ export default function Restaurant() {
                     className="w-full sm:w-auto bg-[#820d2a] hover:bg-[#6a0a22] text-white px-6 py-5 text-sm md:text-base font-semibold shadow-lg"
                     data-testid="button-add-to-cart"
                   >
-                    Add to Cart - ₱{(selectedItem.price * quantity + Object.entries(customizations).reduce((sum, [name, checked]) => {
-                      if (!checked) return sum;
-                      const custom = selectedItem.customizations?.find(c => c.name === name);
-                      return sum + (custom?.price || 0);
-                    }, 0)).toFixed(2)}
+                    Add to Cart - ₱{(selectedItem.price * quantity + 
+                      Object.entries(customizations).reduce((sum, [name, checked]) => {
+                        if (!checked) return sum;
+                        const custom = selectedItem.customizations?.find(c => c.name === name);
+                        return sum + (custom?.price || 0);
+                      }, 0) +
+                      Object.entries(choiceGroupSelections).reduce((sum, [groupName, optionName]) => {
+                        const group = selectedItem.customizationGroups?.find(g => g.groupName === groupName);
+                        const option = group?.options.find(o => o.name === optionName);
+                        return sum + (option?.price || 0);
+                      }, 0)
+                    ).toFixed(2)}
                   </Button>
                 </div>
               </div>

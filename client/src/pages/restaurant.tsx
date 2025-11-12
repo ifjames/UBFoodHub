@@ -39,6 +39,7 @@ export default function Restaurant() {
   const { state } = useStore();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [stall, setStall] = useState<any>(null);
   
   usePageTitle(stall?.name || "Restaurant");
@@ -299,8 +300,14 @@ export default function Restaurant() {
 
   const filteredItems = menuItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+    const matchesCategory = selectedCategory === "All" || item.category === selectedCategory;
+    return matchesSearch && matchesCategory;
   });
+
+  // Get unique categories from menu items and stall
+  const availableCategories = ["All", ...(stall?.categories || [])].filter((cat, index, self) => 
+    self.indexOf(cat) === index
+  );
 
   const handleAddToCart = async () => {
     if (!selectedItem || !state.user) return;
@@ -515,10 +522,42 @@ export default function Restaurant() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-12 md:h-12 md:text-base bg-white border-gray-300 shadow-sm"
+              data-testid="input-search"
             />
           </div>
         </div>
       </motion.div>
+
+      {/* Category Filter Buttons */}
+      {availableCategories.length > 1 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-white border-b"
+        >
+          <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar">
+              {availableCategories.map((category) => (
+                <Button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  variant={selectedCategory === category ? "default" : "outline"}
+                  size="sm"
+                  className={`flex-shrink-0 ${
+                    selectedCategory === category
+                      ? "bg-[#820d2a] hover:bg-[#6a0a22] text-white"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                  }`}
+                  data-testid={`button-category-${category}`}
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Menu Items - Desktop optimized */}
       <div className="max-w-7xl mx-auto px-2 md:px-6 lg:px-8 py-4 md:py-12 pb-24 md:pb-12">

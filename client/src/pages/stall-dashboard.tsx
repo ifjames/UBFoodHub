@@ -113,12 +113,14 @@ export default function StallDashboard() {
     name: "",
     description: "",
     price: "",
+    category: "",
     isAvailable: true,
     isPopular: false,
     image: "",
     stock: 0,
     customizations: [{ name: "", price: 0 }] // For customizations like "Extra Rice +25", "Choice of Rice", etc.
   });
+  const [newCategoryInput, setNewCategoryInput] = useState("");
 
   // Drag-to-scroll functionality
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -299,6 +301,25 @@ export default function StallDashboard() {
     enrichReviewsWithUserData();
   }, [reviews]);
 
+  // Add new category to stall's categories list
+  const addCategoryToStall = async (category: string) => {
+    if (!stallId || !stallInfo) return;
+    
+    const trimmedCategory = category.trim();
+    if (!trimmedCategory) return;
+    
+    const currentCategories = stallInfo.categories || [];
+    if (currentCategories.includes(trimmedCategory)) return;
+    
+    try {
+      const updatedCategories = [...currentCategories, trimmedCategory];
+      await updateDocument("stalls", stallId, { categories: updatedCategories });
+      setStallInfo((prev: any) => ({ ...prev, categories: updatedCategories }));
+    } catch (error) {
+      console.error("Error adding category to stall:", error);
+    }
+  };
+
   const handleSaveMenuItem = async () => {
     if (!itemForm.name || !itemForm.price) {
       toast({
@@ -319,6 +340,11 @@ export default function StallDashboard() {
     }
 
     try {
+      // If category is selected and not in stall's categories, add it
+      if (itemForm.category) {
+        await addCategoryToStall(itemForm.category);
+      }
+
       const menuItemData = {
         ...itemForm,
         price: parseFloat(itemForm.price),
@@ -362,12 +388,14 @@ export default function StallDashboard() {
       name: "",
       description: "",
       price: "",
+      category: "",
       isAvailable: true,
       isPopular: false,
       image: "",
       stock: 0,
       customizations: [{ name: "", price: 0 }]
     });
+    setNewCategoryInput("");
   };
 
   const toggleItemAvailability = async (itemId: string, isAvailable: boolean) => {
@@ -907,6 +935,7 @@ export default function StallDashboard() {
       name: item.name || "",
       description: item.description || "",
       price: item.price?.toString() || "",
+      category: item.category || "",
       isAvailable: item.isAvailable ?? true,
       isPopular: item.isPopular ?? false,
       image: item.image || "",
@@ -2291,7 +2320,77 @@ export default function StallDashboard() {
                 value={itemForm.price}
                 onChange={(e) => setItemForm(prev => ({ ...prev, price: e.target.value }))}
                 placeholder="0.00"
+                data-testid="input-price"
               />
+            </div>
+
+            {/* Category Management */}
+            <div className="space-y-3">
+              <Label htmlFor="category">Category</Label>
+              <Select
+                value={itemForm.category}
+                onValueChange={(value) => setItemForm(prev => ({ ...prev, category: value }))}
+              >
+                <SelectTrigger id="category" data-testid="select-category">
+                  <SelectValue placeholder="Select or create a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(stallInfo?.categories || []).length > 0 ? (
+                    (stallInfo.categories || []).map((cat: string) => (
+                      <SelectItem key={cat} value={cat} data-testid={`select-category-${cat}`}>
+                        {cat}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-categories" disabled>
+                      No categories yet
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Create new category (e.g., Desserts, Meals, Drinks)"
+                  value={newCategoryInput}
+                  onChange={(e) => setNewCategoryInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (newCategoryInput.trim()) {
+                        setItemForm(prev => ({ ...prev, category: newCategoryInput.trim() }));
+                        setNewCategoryInput("");
+                      }
+                    }
+                  }}
+                  className="flex-1"
+                  data-testid="input-new-category"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    if (newCategoryInput.trim()) {
+                      setItemForm(prev => ({ ...prev, category: newCategoryInput.trim() }));
+                      setNewCategoryInput("");
+                    }
+                  }}
+                  className="text-red-700 border-red-300"
+                  data-testid="button-add-category"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add
+                </Button>
+              </div>
+              {itemForm.category && (
+                <p className="text-sm text-green-600">
+                  Selected: <span className="font-medium">{itemForm.category}</span>
+                </p>
+              )}
+              <p className="text-xs text-gray-500">
+                Categories help organize your menu and make it easier for customers to find items
+              </p>
             </div>
 
             <div>

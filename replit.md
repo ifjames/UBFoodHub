@@ -89,6 +89,7 @@ Preferred communication style: Simple, everyday language.
   - Menu item images, stall images, and profile pictures all have proper error handling
   - Prevents showing alt text instead of images by detecting broken/empty URLs upfront
   - Added infinite loop prevention in error handlers to avoid repeated fallback attempts
+  - **Image Caching System**: Implemented browser Cache API-based caching with 7-day expiry for instant image loading on repeat visits. Images are automatically cached when first loaded and served from cache on subsequent visits, dramatically improving load times. Includes proper memory management with object URL cleanup to prevent memory leaks.
 
 ## System Architecture
 

@@ -302,23 +302,7 @@ export default function StallDashboard() {
   }, [reviews]);
 
   // Add new category to stall's categories list
-  const addCategoryToStall = async (category: string) => {
-    if (!stallId || !stallInfo) return;
-    
-    const trimmedCategory = category.trim();
-    if (!trimmedCategory) return;
-    
-    const currentCategories = stallInfo.categories || [];
-    if (currentCategories.includes(trimmedCategory)) return;
-    
-    try {
-      const updatedCategories = [...currentCategories, trimmedCategory];
-      await updateDocument("stalls", stallId, { categories: updatedCategories });
-      setStallInfo((prev: any) => ({ ...prev, categories: updatedCategories }));
-    } catch (error) {
-      console.error("Error adding category to stall:", error);
-    }
-  };
+  // No longer needed - categories are now managed directly on menu items
 
   const handleSaveMenuItem = async () => {
     if (!itemForm.name || !itemForm.price) {
@@ -340,11 +324,6 @@ export default function StallDashboard() {
     }
 
     try {
-      // If category is selected and not in stall's categories, add it
-      if (itemForm.category) {
-        await addCategoryToStall(itemForm.category);
-      }
-
       const menuItemData = {
         ...itemForm,
         price: parseFloat(itemForm.price),
@@ -2335,17 +2314,20 @@ export default function StallDashboard() {
                   <SelectValue placeholder="Select or create a category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(stallInfo?.categories || []).length > 0 ? (
-                    (stallInfo.categories || []).map((cat: string) => (
-                      <SelectItem key={cat} value={cat} data-testid={`select-category-${cat}`}>
-                        {cat}
+                  {(() => {
+                    const existingCategories = Array.from(new Set(menuItems.map(item => item.category).filter(Boolean)));
+                    return existingCategories.length > 0 ? (
+                      existingCategories.map((cat: string) => (
+                        <SelectItem key={cat} value={cat} data-testid={`select-category-${cat}`}>
+                          {cat}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-categories" disabled>
+                        No categories yet
                       </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="no-categories" disabled>
-                      No categories yet
-                    </SelectItem>
-                  )}
+                    );
+                  })()}
                 </SelectContent>
               </Select>
               

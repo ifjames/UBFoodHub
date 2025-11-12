@@ -84,7 +84,6 @@ export default function StallDashboard() {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("menu");
   const [orderFilter, setOrderFilter] = useState("all");
-  const [menuFilter, setMenuFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
@@ -113,7 +112,6 @@ export default function StallDashboard() {
     name: "",
     description: "",
     price: "",
-    category: "Main Course",
     isAvailable: true,
     isPopular: false,
     image: "",
@@ -344,7 +342,6 @@ export default function StallDashboard() {
       name: "",
       description: "",
       price: "",
-      category: "Main Course",
       isAvailable: true,
       isPopular: false,
       image: "",
@@ -916,7 +913,6 @@ export default function StallDashboard() {
       name: item.name || "",
       description: item.description || "",
       price: item.price?.toString() || "",
-      category: item.category || "Main Course",
       isAvailable: item.isAvailable ?? true,
       isPopular: item.isPopular ?? false,
       image: item.image || "",
@@ -928,16 +924,9 @@ export default function StallDashboard() {
     setIsMenuDialogOpen(true);
   };
 
-  // Smart filtering functions
-  const getUniqueCategories = () => {
-    const categories = menuItems.map(item => item.category).filter(Boolean);
-    return Array.from(new Set(categories));
-  };
-
   const filteredMenuItems = menuItems.filter(item => {
-    const matchesCategory = menuFilter === "all" || item.category === menuFilter;
     const matchesSearch = !searchQuery || item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+    return matchesSearch;
   });
 
   const filteredOrders = orders
@@ -1540,36 +1529,19 @@ export default function StallDashboard() {
                       className="mt-1"
                     />
                   </div>
-                  <div className="sm:w-48">
-                    <Label htmlFor="menu-category">Category</Label>
-                    <Select value={menuFilter} onValueChange={setMenuFilter}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="All Categories" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
-                        {Array.from(new Set(menuItems.map(item => item.category).filter(Boolean))).map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </div>
                 <div className="flex items-center gap-4 mt-3 text-sm text-gray-600">
                   <span>Showing {filteredMenuItems.length} of {menuItems.length} items</span>
-                  {(searchQuery || menuFilter !== "all") && (
+                  {searchQuery && (
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => {
                         setSearchQuery("");
-                        setMenuFilter("all");
                       }}
                       className="text-[#6d031e] hover:bg-red-50"
                     >
-                      Clear Filters
+                      Clear Search
                     </Button>
                   )}
                 </div>
@@ -1918,10 +1890,6 @@ export default function StallDashboard() {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Popular Items</span>
                       <span className="font-semibold text-yellow-600">{menuItems.filter(item => item.isPopular).length}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Categories</span>
-                      <span className="font-semibold">{Array.from(new Set(menuItems.map(item => item.category))).length}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -2281,36 +2249,15 @@ export default function StallDashboard() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="price">Price (₱)</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  value={itemForm.price}
-                  onChange={(e) => setItemForm(prev => ({ ...prev, price: e.target.value }))}
-                  placeholder="0.00"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="category">Category</Label>
-                <Select
-                  value={itemForm.category}
-                  onValueChange={(value) => setItemForm(prev => ({ ...prev, category: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Main Course">Main Course</SelectItem>
-                    <SelectItem value="Appetizer">Appetizer</SelectItem>
-                    <SelectItem value="Dessert">Dessert</SelectItem>
-                    <SelectItem value="Beverage">Beverage</SelectItem>
-                    <SelectItem value="Snack">Snack</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <Label htmlFor="price">Price (₱)</Label>
+              <Input
+                id="price"
+                type="number"
+                value={itemForm.price}
+                onChange={(e) => setItemForm(prev => ({ ...prev, price: e.target.value }))}
+                placeholder="0.00"
+              />
             </div>
 
             <div>

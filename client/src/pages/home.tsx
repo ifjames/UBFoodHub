@@ -245,8 +245,9 @@ export default function Home() {
     // Match by stall name
     const matchesStallName = stall.name.toLowerCase().includes(query);
     
-    // Match by category (for search)
+    // Match by categories (for search) - check both array and single category
     const matchesCategory = 
+      (stall.categories && stall.categories.some((cat: string) => cat.toLowerCase().includes(query))) ||
       (stall.category && stall.category.toLowerCase().includes(query));
     
     // Match by menu items
@@ -370,6 +371,7 @@ export default function Home() {
                     reviewCount: stallRatings[stall.id]?.reviewCount || 0,
                     deliveryTime: stallStats[stall.id]?.deliveryTime || stall.deliveryTime || "15-30 min",
                     priceRange: stallStats[stall.id]?.priceRange || stall.priceRange || "₱--",
+                    categories: stall.categories || [],
                     category: stall.category,
                     deliveryFee: stall.deliveryFee || "Free"
                   }}

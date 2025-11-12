@@ -120,15 +120,22 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
         </div>
         
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1 text-xs text-gray-500 line-clamp-1 flex-1 min-w-0">
-            <span data-testid={`text-price-${restaurant.id}`}>
+          <div className="flex items-center gap-1 text-xs text-gray-500 flex-1 min-w-0 flex-wrap">
+            <span className="flex-shrink-0" data-testid={`text-price-${restaurant.id}`}>
               {restaurant.priceRange || '\u20b1--'}
             </span>
-            {(restaurant.category || restaurant.categories?.[0]) && (
+            {(restaurant.categories && restaurant.categories.length > 0) ? (
               <>
-                <span className="mx-1">•</span>
+                <span className="mx-1 flex-shrink-0">•</span>
                 <span className="truncate" data-testid={`text-category-${restaurant.id}`}>
-                  {restaurant.category || restaurant.categories?.[0] || 'Uncategorized'}
+                  {restaurant.categories.join(', ')}
+                </span>
+              </>
+            ) : restaurant.category && (
+              <>
+                <span className="mx-1 flex-shrink-0">•</span>
+                <span className="truncate" data-testid={`text-category-${restaurant.id}`}>
+                  {restaurant.category}
                 </span>
               </>
             )}

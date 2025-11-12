@@ -98,8 +98,9 @@ export default function StallDashboard() {
     description: "",
     image: "",
     isActive: true,
-    category: "",
+    categories: [] as string[],
   });
+  const [categoryInput, setCategoryInput] = useState("");
   const [isEditingStall, setIsEditingStall] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -157,6 +158,25 @@ export default function StallDashboard() {
     setIsDragging(false);
   };
 
+  // Category management helpers
+  const addStallCategory = () => {
+    const trimmedCategory = categoryInput.trim();
+    if (trimmedCategory && !stallForm.categories.includes(trimmedCategory)) {
+      setStallForm(prev => ({
+        ...prev,
+        categories: [...prev.categories, trimmedCategory]
+      }));
+      setCategoryInput("");
+    }
+  };
+
+  const removeStallCategory = (category: string) => {
+    setStallForm(prev => ({
+      ...prev,
+      categories: prev.categories.filter(c => c !== category)
+    }));
+  };
+
   useEffect(() => {
     if (state.user?.id) {
       // First, check if this user has a stall with their Auth UID as document ID
@@ -181,7 +201,7 @@ export default function StallDashboard() {
                 description: stall.description || "",
                 image: stall.image || "",
                 isActive: stall.isActive !== undefined ? stall.isActive : true,
-                category: stall.category || (stall.categories && stall.categories.length > 0 ? stall.categories[0] : ""),
+                categories: stall.categories || [],
               });
               console.log("Found stall by ownerId:", stall);
             } else {
@@ -559,26 +579,6 @@ export default function StallDashboard() {
       return;
     }
 
-    // Validate category
-    const trimmedCategory = stallForm.category.trim();
-    if (!trimmedCategory) {
-      toast({
-        title: "Error",
-        description: "Please enter a category for your stall",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (trimmedCategory.length < 2 || trimmedCategory.length > 30) {
-      toast({
-        title: "Error",
-        description: "Category must be between 2 and 30 characters",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!stallId) {
       toast({
         title: "Error", 
@@ -589,18 +589,12 @@ export default function StallDashboard() {
     }
 
     try {
-      // Capitalize first letter of each word
-      const formattedCategory = trimmedCategory
-        .split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(' ');
-
       const stallData = {
         name: stallForm.name,
         description: stallForm.description,
         image: stallForm.image,
         isActive: stallForm.isActive,
-        category: formattedCategory,
+        categories: stallForm.categories,
       };
 
       await updateDocument("stalls", stallId, stallData);
@@ -1961,9 +1955,10 @@ export default function StallDashboard() {
                             description: stallInfo.description || "",
                             image: stallInfo.image || "",
                             isActive: stallInfo.isActive !== undefined ? stallInfo.isActive : true,
-                            category: stallInfo.category || (stallInfo.categories && stallInfo.categories.length > 0 ? stallInfo.categories[0] : ""),
+                            categories: stallInfo.categories || [],
                           });
                         }
+                        setCategoryInput("");
                       }}
                       variant="outline"
                       className="text-gray-700 hover:text-gray-700"
@@ -2072,30 +2067,69 @@ export default function StallDashboard() {
                   )}
                 </div>
 
-                {/* Stall Category */}
+                {/* Stall Categories */}
                 <div>
-                  <Label className="text-sm font-medium">Stall Category</Label>
+                  <Label className="text-sm font-medium">Stall Categories</Label>
                   {isEditingStall ? (
                     <div className="mt-2 space-y-2">
-                      <Input
-                        placeholder="e.g., Filipino Food, Desserts, Snacks"
-                        value={stallForm.category}
-                        onChange={(e) => setStallForm(prev => ({ ...prev, category: e.target.value }))}
-                        maxLength={30}
-                        data-testid="input-category"
-                      />
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="e.g., Filipino Food, Desserts, Snacks"
+                          value={categoryInput}
+                          onChange={(e) => setCategoryInput(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              addStallCategory();
+                            }
+                          }}
+                          data-testid="input-category"
+                        />
+                        <Button
+                          type="button"
+                          onClick={addStallCategory}
+                          variant="outline"
+                          className="border-[#6d031e] text-[#6d031e]"
+                          data-testid="button-add-category"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      {stallForm.categories.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {stallForm.categories.map((category, index) => (
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className="flex items-center gap-1 px-3 py-1"
+                              data-testid={`badge-category-${index}`}
+                            >
+                              {category}
+                              <X
+                                className="w-3 h-3 cursor-pointer hover:text-red-600"
+                                onClick={() => removeStallCategory(category)}
+                                data-testid={`button-remove-category-${index}`}
+                              />
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                       <p className="text-xs text-gray-600">
-                        Enter a category that best describes your stall (2-30 characters)
+                        Add categories that best describe your stall (e.g., Fast Food, Asian, Filipino)
                       </p>
                     </div>
                   ) : (
                     <div className="mt-2">
-                      {stallInfo?.category ? (
-                        <Badge variant="secondary" data-testid="badge-category">
-                          {stallInfo.category}
-                        </Badge>
+                      {stallInfo?.categories && stallInfo.categories.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {stallInfo.categories.map((category: string, idx: number) => (
+                            <Badge key={idx} variant="secondary" data-testid={`badge-category-${idx}`}>
+                              {category}
+                            </Badge>
+                          ))}
+                        </div>
                       ) : (
-                        <p className="text-sm text-gray-500">No category set</p>
+                        <p className="text-sm text-gray-500">No categories set</p>
                       )}
                     </div>
                   )}

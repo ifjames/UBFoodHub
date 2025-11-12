@@ -73,6 +73,11 @@ Preferred communication style: Simple, everyday language.
   - New categories now appear immediately in dropdown without requiring item save
   - Added temporary categories state to support instant category creation
   - Fixed category button hover visibility on Student Dashboard restaurant page
+  - Separated category management from menu item creation - added dedicated "Manage Categories" button and dialog in stall dashboard
+  - Categories are automatically extracted from existing menu items and displayed in centralized management interface
+  - Menu item dialog simplified to only show dropdown selection of existing categories
+  - Removed inline category creation from menu item dialog for better UX and organization
+  - All category management (add/delete/view) now done through dedicated category management dialog
   - Category badges now display item count for better management
   - Improved category management UI with visual badges and delete buttons
 

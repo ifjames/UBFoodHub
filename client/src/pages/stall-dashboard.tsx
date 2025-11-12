@@ -39,8 +39,10 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 import { 
   subscribeToQuery, 
   addDocument, 
@@ -97,6 +99,7 @@ export default function StallDashboard() {
     description: "",
     image: "",
     isActive: true,
+    categories: [] as string[],
   });
   const [isEditingStall, setIsEditingStall] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
@@ -132,6 +135,12 @@ export default function StallDashboard() {
   const [touchStartY, setTouchStartY] = useState<number>(0);
   const [touchCurrentY, setTouchCurrentY] = useState<number>(0);
   const [isTouchDragging, setIsTouchDragging] = useState(false);
+
+  // Fetch available categories
+  const { data: availableCategories = [], isLoading: categoriesLoading } = useQuery<string[]>({
+    queryKey: ['/api/categories'],
+    staleTime: Infinity, // Categories don't change frequently
+  });
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollContainerRef.current) return;
@@ -180,6 +189,7 @@ export default function StallDashboard() {
                 description: stall.description || "",
                 image: stall.image || "",
                 isActive: stall.isActive !== undefined ? stall.isActive : true,
+                categories: stall.categories || [],
               });
               console.log("Found stall by ownerId:", stall);
             } else {
@@ -558,6 +568,15 @@ export default function StallDashboard() {
       return;
     }
 
+    if (stallForm.categories.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select at least one category for your stall",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!stallId) {
       toast({
         title: "Error", 
@@ -573,6 +592,7 @@ export default function StallDashboard() {
         description: stallForm.description,
         image: stallForm.image,
         isActive: stallForm.isActive,
+        categories: stallForm.categories,
       };
 
       await updateDocument("stalls", stallId, stallData);
@@ -1962,6 +1982,7 @@ export default function StallDashboard() {
                             description: stallInfo.description || "",
                             image: stallInfo.image || "",
                             isActive: stallInfo.isActive !== undefined ? stallInfo.isActive : true,
+                            categories: stallInfo.categories || [],
                           });
                         }
                       }}
@@ -2067,6 +2088,68 @@ export default function StallDashboard() {
                             <p className="text-xs text-gray-500">No image</p>
                           </div>
                         </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Stall Categories */}
+                <div>
+                  <Label className="text-sm font-medium">Stall Categories</Label>
+                  {isEditingStall ? (
+                    <div className="mt-2 space-y-2">
+                      {categoriesLoading ? (
+                        <p className="text-sm text-gray-500">Loading categories...</p>
+                      ) : (
+                        <>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {availableCategories.map((category) => (
+                              <div key={category} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`category-${category}`}
+                                  checked={stallForm.categories.includes(category)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setStallForm(prev => ({
+                                        ...prev,
+                                        categories: [...prev.categories, category]
+                                      }));
+                                    } else {
+                                      setStallForm(prev => ({
+                                        ...prev,
+                                        categories: prev.categories.filter(c => c !== category)
+                                      }));
+                                    }
+                                  }}
+                                  data-testid={`checkbox-category-${category}`}
+                                />
+                                <Label 
+                                  htmlFor={`category-${category}`} 
+                                  className="text-sm cursor-pointer"
+                                >
+                                  {category}
+                                </Label>
+                              </div>
+                            ))}
+                          </div>
+                          <p className="text-xs text-gray-600">
+                            Select all categories that apply to your stall
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="mt-2">
+                      {stallInfo?.categories && stallInfo.categories.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {stallInfo.categories.map((category: string) => (
+                            <Badge key={category} variant="secondary" data-testid={`badge-category-${category}`}>
+                              {category}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">No categories selected</p>
                       )}
                     </div>
                   )}

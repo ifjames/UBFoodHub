@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
 import { toggleFavorite, checkIfFavorite } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 interface RestaurantCardProps {
   restaurant: {
@@ -15,7 +16,8 @@ interface RestaurantCardProps {
     reviewCount: number;
     deliveryTime: string;
     priceRange: string;
-    category: string;
+    category?: string;
+    categories?: string[];
     deliveryFee: string;
   };
 }
@@ -116,6 +118,31 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
             </span>
           </div>
         </div>
+        
+        {/* Categories */}
+        {(restaurant.categories && restaurant.categories.length > 0) && (
+          <div className="flex flex-wrap gap-1 mb-2">
+            {restaurant.categories.slice(0, 2).map((cat) => (
+              <Badge 
+                key={cat} 
+                variant="secondary" 
+                className="text-xs px-1.5 py-0"
+                data-testid={`badge-category-${cat}`}
+              >
+                {cat}
+              </Badge>
+            ))}
+            {restaurant.categories.length > 2 && (
+              <Badge 
+                variant="secondary" 
+                className="text-xs px-1.5 py-0"
+                data-testid="badge-category-more"
+              >
+                +{restaurant.categories.length - 2} more
+              </Badge>
+            )}
+          </div>
+        )}
         
         <div className="flex items-center justify-between gap-2">
           <p className="text-xs text-gray-500 line-clamp-1" data-testid={`text-price-${restaurant.id}`}>

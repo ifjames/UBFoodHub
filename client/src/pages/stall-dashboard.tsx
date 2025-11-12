@@ -1575,7 +1575,7 @@ export default function StallDashboard() {
                 <Button
                   onClick={() => setIsCategoryManagementOpen(true)}
                   variant="outline"
-                  className="border-[#6d031e] text-[#6d031e] hover:bg-red-50"
+                  className="border-[#6d031e] text-[#6d031e]"
                   data-testid="button-manage-categories"
                 >
                   <Settings className="w-4 h-4 mr-2" />
@@ -2407,16 +2407,13 @@ export default function StallDashboard() {
                 </SelectContent>
               </Select>
               {itemForm.category && (
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-green-600">
-                    Selected: <span className="font-medium">{itemForm.category}</span>
-                  </p>
+                <div className="flex items-center justify-end">
                   <Button
                     type="button"
                     size="sm"
                     variant="ghost"
                     onClick={() => setItemForm(prev => ({ ...prev, category: "" }))}
-                    className="text-red-600 hover:bg-red-50"
+                    className="text-red-600"
                   >
                     <X className="h-4 w-4 mr-1" />
                     Clear
@@ -2595,7 +2592,7 @@ export default function StallDashboard() {
                             size="sm"
                             variant="ghost"
                             onClick={() => handleDeleteCategoryFromManagement(category)}
-                            className="text-red-600 hover:bg-red-50"
+                            className="text-red-600"
                             data-testid={`button-delete-category-management-${category}`}
                           >
                             <Trash2 className="w-4 h-4" />

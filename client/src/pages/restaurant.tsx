@@ -304,10 +304,8 @@ export default function Restaurant() {
     return matchesSearch && matchesCategory;
   });
 
-  // Get unique categories from menu items and stall
-  const availableCategories = ["All", ...(stall?.categories || [])].filter((cat, index, self) => 
-    self.indexOf(cat) === index
-  );
+  // Get unique categories from menu items only (not stall categories)
+  const availableCategories = ["All", ...Array.from(new Set(menuItems.map(item => item.category).filter(Boolean)))];
 
   const handleAddToCart = async () => {
     if (!selectedItem || !state.user) return;

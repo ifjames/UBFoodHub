@@ -1638,14 +1638,11 @@ export default function StallDashboard() {
                   onDragOver={(e) => handleDragOver(e, item.id)}
                   onDrop={(e) => handleDrop(e, item.id)}
                   onDragEnd={handleDragEnd}
-                  onTouchStart={(e) => handleTouchStart(e, item.id)}
-                  onTouchMove={handleTouchMove}
-                  onTouchEnd={handleTouchEnd}
                   className={`${
                     draggedItemId === item.id ? "opacity-50" : ""
                   } ${
                     dragOverItemId === item.id ? "border-2 border-[#6d031e]" : ""
-                  } transition-all touch-none`}
+                  } transition-all`}
                   data-testid={`menu-card-${item.id}`}
                   data-menu-item-id={item.id}
                 >

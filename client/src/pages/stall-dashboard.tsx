@@ -118,7 +118,8 @@ export default function StallDashboard() {
     isPopular: false,
     image: "",
     stock: 0,
-    customizations: [{ name: "", price: 0 }] // For customizations like "Extra Rice +25", "Choice of Rice", etc.
+    customizations: [{ name: "", price: 0 }], // For add-ons like "Extra Rice +25", "Extra Sauce", etc.
+    customizationGroups: [] as Array<{ groupName: string; isRequired: boolean; options: Array<{ name: string; price: number }> }>
   });
   const [newCategoryInput, setNewCategoryInput] = useState("");
   const [temporaryCategories, setTemporaryCategories] = useState<string[]>([]);
@@ -438,7 +439,8 @@ export default function StallDashboard() {
       isPopular: false,
       image: "",
       stock: 0,
-      customizations: [{ name: "", price: 0 }]
+      customizations: [{ name: "", price: 0 }],
+      customizationGroups: []
     });
     setNewCategoryInput("");
     setTemporaryCategories([]);
@@ -975,6 +977,67 @@ export default function StallDashboard() {
     }));
   };
 
+  const addCustomizationGroup = () => {
+    setItemForm(prev => ({
+      ...prev,
+      customizationGroups: [...prev.customizationGroups, { groupName: "", isRequired: false, options: [{ name: "", price: 0 }] }]
+    }));
+  };
+
+  const updateCustomizationGroup = (groupIndex: number, field: "groupName" | "isRequired", value: string | boolean) => {
+    setItemForm(prev => ({
+      ...prev,
+      customizationGroups: prev.customizationGroups.map((group, i) => 
+        i === groupIndex ? { ...group, [field]: value } : group
+      )
+    }));
+  };
+
+  const addGroupOption = (groupIndex: number) => {
+    setItemForm(prev => ({
+      ...prev,
+      customizationGroups: prev.customizationGroups.map((group, i) => 
+        i === groupIndex 
+          ? { ...group, options: [...group.options, { name: "", price: 0 }] }
+          : group
+      )
+    }));
+  };
+
+  const updateGroupOption = (groupIndex: number, optionIndex: number, field: "name" | "price", value: string | number) => {
+    setItemForm(prev => ({
+      ...prev,
+      customizationGroups: prev.customizationGroups.map((group, i) => 
+        i === groupIndex
+          ? {
+              ...group,
+              options: group.options.map((option, j) =>
+                j === optionIndex ? { ...option, [field]: value } : option
+              )
+            }
+          : group
+      )
+    }));
+  };
+
+  const removeGroupOption = (groupIndex: number, optionIndex: number) => {
+    setItemForm(prev => ({
+      ...prev,
+      customizationGroups: prev.customizationGroups.map((group, i) => 
+        i === groupIndex
+          ? { ...group, options: group.options.filter((_, j) => j !== optionIndex) }
+          : group
+      )
+    }));
+  };
+
+  const removeCustomizationGroup = (groupIndex: number) => {
+    setItemForm(prev => ({
+      ...prev,
+      customizationGroups: prev.customizationGroups.filter((_, i) => i !== groupIndex)
+    }));
+  };
+
   const editMenuItem = (item: any) => {
     setEditingItem(item);
     setItemForm({
@@ -988,7 +1051,10 @@ export default function StallDashboard() {
       stock: item.stock ?? 0,
       customizations: item.customizations && item.customizations.length > 0 
         ? item.customizations 
-        : [{ name: "", price: 0 }]
+        : [{ name: "", price: 0 }],
+      customizationGroups: item.customizationGroups && item.customizationGroups.length > 0
+        ? item.customizationGroups
+        : []
     });
     setIsMenuDialogOpen(true);
   };
@@ -1689,6 +1755,15 @@ export default function StallDashboard() {
                               {item.customizations.map((custom: any, index: number) => (
                                 <Badge key={index} variant="outline" className="text-xs">
                                   {custom.name} {custom.price > 0 ? `+₱${custom.price}` : ''}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                          {item.customizationGroups && item.customizationGroups.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {item.customizationGroups.map((group: any, groupIndex: number) => (
+                                <Badge key={groupIndex} variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                  {group.groupName}{group.isRequired ? '*' : ''} ({group.options?.length || 0} options)
                                 </Badge>
                               ))}
                             </div>
@@ -2446,7 +2521,7 @@ export default function StallDashboard() {
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label>Customization Options</Label>
+                <Label>Add-On Options (Multiple Choice)</Label>
                 <Button
                   type="button"
                   size="sm"
@@ -2455,14 +2530,15 @@ export default function StallDashboard() {
                   className="text-red-700 border-red-300"
                 >
                   <Plus className="w-4 h-4 mr-1" />
-                  Add Option
+                  Add Add-On
                 </Button>
               </div>
+              <p className="text-xs text-gray-500">Add-ons that customers can optionally add to their order (e.g., Extra Sauce, Extra Rice)</p>
               
               {itemForm.customizations.map((custom, index) => (
                 <div key={index} className="flex gap-2 items-center">
                   <Input
-                    placeholder="Option name (e.g. Choice of Rice, Extra Sauce, etc.)"
+                    placeholder="Add-on name (e.g., Extra Sauce, Extra Rice)"
                     value={custom.name}
                     onChange={(e) => updateCustomization(index, "name", e.target.value)}
                     className="flex-1"
@@ -2484,6 +2560,103 @@ export default function StallDashboard() {
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
+              ))}
+            </div>
+
+            <div className="space-y-4 border-t pt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Choice Groups (Pick One Only)</Label>
+                  <p className="text-xs text-gray-500 mt-1">Create groups where customers must choose exactly one option (e.g., Size: Small/Medium/Large)</p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={addCustomizationGroup}
+                  className="text-red-700 border-red-300"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Choice Group
+                </Button>
+              </div>
+
+              {itemForm.customizationGroups.map((group, groupIndex) => (
+                <Card key={groupIndex} className="p-4 bg-gray-50">
+                  <div className="space-y-3">
+                    <div className="flex gap-2 items-start">
+                      <div className="flex-1 space-y-2">
+                        <Input
+                          placeholder="Group name (e.g., Size, Rice Type, Spice Level)"
+                          value={group.groupName}
+                          onChange={(e) => updateCustomizationGroup(groupIndex, "groupName", e.target.value)}
+                        />
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id={`required-${groupIndex}`}
+                            checked={group.isRequired}
+                            onCheckedChange={(checked) => updateCustomizationGroup(groupIndex, "isRequired", checked as boolean)}
+                          />
+                          <Label htmlFor={`required-${groupIndex}`} className="text-sm cursor-pointer">
+                            Required (customer must select an option)
+                          </Label>
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => removeCustomizationGroup(groupIndex)}
+                        className="text-red-700 border-red-300"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+
+                    <div className="ml-4 space-y-2 border-l-2 border-gray-300 pl-4">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm">Options</Label>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => addGroupOption(groupIndex)}
+                          className="text-red-700 h-7"
+                        >
+                          <Plus className="w-3 h-3 mr-1" />
+                          Add Option
+                        </Button>
+                      </div>
+                      
+                      {group.options.map((option, optionIndex) => (
+                        <div key={optionIndex} className="flex gap-2 items-center">
+                          <Input
+                            placeholder="Option name (e.g., Large, Medium, Small)"
+                            value={option.name}
+                            onChange={(e) => updateGroupOption(groupIndex, optionIndex, "name", e.target.value)}
+                            className="flex-1"
+                          />
+                          <Input
+                            type="number"
+                            placeholder="Price"
+                            value={option.price}
+                            onChange={(e) => updateGroupOption(groupIndex, optionIndex, "price", parseFloat(e.target.value) || 0)}
+                            className="w-20"
+                          />
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => removeGroupOption(groupIndex, optionIndex)}
+                            className="text-red-600"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </Card>
               ))}
             </div>
 

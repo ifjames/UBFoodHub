@@ -246,36 +246,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Categories route
-  app.get("/api/categories", async (req, res) => {
-    try {
-      const categories = [
-        "Filipino",
-        "Chinese", 
-        "Japanese",
-        "Korean",
-        "American",
-        "Italian",
-        "Fast Food",
-        "BBQ & Grilled",
-        "Rice Meals",
-        "Noodles",
-        "Desserts & Snacks",
-        "Beverages",
-        "Fresh Juices",
-        "Coffee",
-        "Fried Chicken",
-        "Pizza",
-        "Burgers",
-        "Sandwiches",
-        "Salads",
-        "Healthy"
-      ];
-      res.json(categories);
-    } catch (error) {
-      res.status(500).json({ message: "Server error" });
-    }
-  });
 
   app.get("/api/menu/:id", async (req, res) => {
     try {

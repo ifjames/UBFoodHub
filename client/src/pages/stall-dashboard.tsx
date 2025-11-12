@@ -2414,14 +2414,14 @@ export default function StallDashboard() {
 
       {/* Menu Item Dialog */}
       <Dialog open={isMenuDialogOpen} onOpenChange={setIsMenuDialogOpen}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-[#6d031e]">
               {editingItem ? "Edit Menu Item" : "Add Menu Item"}
             </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div>
               <Label htmlFor="name">Item Name</Label>
               <Input
@@ -2519,54 +2519,58 @@ export default function StallDashboard() {
               <p className="text-xs text-gray-500 mt-1">Upload an image for this menu item</p>
             </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label>Add-On Options (Multiple Choice)</Label>
+            <div className="space-y-4 border-t pt-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <Label className="text-base font-semibold">Add-On Options (Multiple Choice)</Label>
+                  <p className="text-xs text-gray-500 mt-1">Add-ons that customers can optionally add to their order (e.g., Extra Sauce, Extra Rice)</p>
+                </div>
                 <Button
                   type="button"
                   size="sm"
                   variant="outline"
                   onClick={addCustomization}
-                  className="text-red-700 border-red-300"
+                  className="text-red-700 border-red-300 flex-shrink-0"
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   Add Add-On
                 </Button>
               </div>
-              <p className="text-xs text-gray-500">Add-ons that customers can optionally add to their order (e.g., Extra Sauce, Extra Rice)</p>
               
-              {itemForm.customizations.map((custom, index) => (
-                <div key={index} className="flex gap-2 items-center">
-                  <Input
-                    placeholder="Add-on name (e.g., Extra Sauce, Extra Rice)"
-                    value={custom.name}
-                    onChange={(e) => updateCustomization(index, "name", e.target.value)}
-                    className="flex-1"
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Price"
-                    value={custom.price}
-                    onChange={(e) => updateCustomization(index, "price", parseFloat(e.target.value) || 0)}
-                    className="w-20"
-                  />
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => removeCustomization(index)}
-                    className="text-red-700 border-red-300"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
+              <div className="space-y-3">
+                {itemForm.customizations.map((custom, index) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <Input
+                      placeholder="Add-on name (e.g., Extra Sauce, Extra Rice)"
+                      value={custom.name}
+                      onChange={(e) => updateCustomization(index, "name", e.target.value)}
+                      className="flex-1"
+                    />
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      value={custom.price}
+                      onChange={(e) => updateCustomization(index, "price", parseFloat(e.target.value) || 0)}
+                      className="w-24"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => removeCustomization(index)}
+                      className="text-red-700 border-red-300"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="space-y-4 border-t pt-4">
-              <div className="flex items-center justify-between">
+            <div className="space-y-4 border-t pt-6">
+              <div className="flex items-start justify-between gap-4">
                 <div>
-                  <Label>Choice Groups (Pick One Only)</Label>
+                  <Label className="text-base font-semibold">Choice Groups (Pick One Only)</Label>
                   <p className="text-xs text-gray-500 mt-1">Create groups where customers must choose exactly one option (e.g., Size: Small/Medium/Large)</p>
                 </div>
                 <Button
@@ -2574,90 +2578,94 @@ export default function StallDashboard() {
                   size="sm"
                   variant="outline"
                   onClick={addCustomizationGroup}
-                  className="text-red-700 border-red-300"
+                  className="text-red-700 border-red-300 flex-shrink-0"
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   Add Choice Group
                 </Button>
               </div>
 
-              {itemForm.customizationGroups.map((group, groupIndex) => (
-                <Card key={groupIndex} className="p-4 bg-gray-50">
-                  <div className="space-y-3">
-                    <div className="flex gap-2 items-start">
-                      <div className="flex-1 space-y-2">
-                        <Input
-                          placeholder="Group name (e.g., Size, Rice Type, Spice Level)"
-                          value={group.groupName}
-                          onChange={(e) => updateCustomizationGroup(groupIndex, "groupName", e.target.value)}
-                        />
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            id={`required-${groupIndex}`}
-                            checked={group.isRequired}
-                            onCheckedChange={(checked) => updateCustomizationGroup(groupIndex, "isRequired", checked as boolean)}
+              <div className="space-y-4">
+                {itemForm.customizationGroups.map((group, groupIndex) => (
+                  <Card key={groupIndex} className="p-5 bg-gray-50">
+                    <div className="space-y-4">
+                      <div className="flex gap-3 items-start">
+                        <div className="flex-1 space-y-3">
+                          <Input
+                            placeholder="Group name (e.g., Size, Rice Type, Spice Level)"
+                            value={group.groupName}
+                            onChange={(e) => updateCustomizationGroup(groupIndex, "groupName", e.target.value)}
                           />
-                          <Label htmlFor={`required-${groupIndex}`} className="text-sm cursor-pointer">
-                            Required (customer must select an option)
-                          </Label>
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              id={`required-${groupIndex}`}
+                              checked={group.isRequired}
+                              onCheckedChange={(checked) => updateCustomizationGroup(groupIndex, "isRequired", checked as boolean)}
+                            />
+                            <Label htmlFor={`required-${groupIndex}`} className="text-sm cursor-pointer">
+                              Required (customer must select an option)
+                            </Label>
+                          </div>
                         </div>
-                      </div>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => removeCustomizationGroup(groupIndex)}
-                        className="text-red-700 border-red-300"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-
-                    <div className="ml-4 space-y-2 border-l-2 border-gray-300 pl-4">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-sm">Options</Label>
                         <Button
                           type="button"
                           size="sm"
-                          variant="ghost"
-                          onClick={() => addGroupOption(groupIndex)}
-                          className="text-red-700 h-7"
+                          variant="outline"
+                          onClick={() => removeCustomizationGroup(groupIndex)}
+                          className="text-red-700 border-red-300"
                         >
-                          <Plus className="w-3 h-3 mr-1" />
-                          Add Option
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
-                      
-                      {group.options.map((option, optionIndex) => (
-                        <div key={optionIndex} className="flex gap-2 items-center">
-                          <Input
-                            placeholder="Option name (e.g., Large, Medium, Small)"
-                            value={option.name}
-                            onChange={(e) => updateGroupOption(groupIndex, optionIndex, "name", e.target.value)}
-                            className="flex-1"
-                          />
-                          <Input
-                            type="number"
-                            placeholder="Price"
-                            value={option.price}
-                            onChange={(e) => updateGroupOption(groupIndex, optionIndex, "price", parseFloat(e.target.value) || 0)}
-                            className="w-20"
-                          />
+
+                      <div className="ml-4 space-y-3 border-l-2 border-gray-300 pl-4">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm font-medium">Options</Label>
                           <Button
                             type="button"
                             size="sm"
                             variant="ghost"
-                            onClick={() => removeGroupOption(groupIndex, optionIndex)}
-                            className="text-red-600"
+                            onClick={() => addGroupOption(groupIndex)}
+                            className="text-red-700 h-8"
                           >
-                            <X className="w-4 h-4" />
+                            <Plus className="w-3 h-3 mr-1" />
+                            Add Option
                           </Button>
                         </div>
-                      ))}
+                        
+                        <div className="space-y-2">
+                          {group.options.map((option, optionIndex) => (
+                            <div key={optionIndex} className="flex gap-2 items-center">
+                              <Input
+                                placeholder="Option name (e.g., Large, Medium, Small)"
+                                value={option.name}
+                                onChange={(e) => updateGroupOption(groupIndex, optionIndex, "name", e.target.value)}
+                                className="flex-1"
+                              />
+                              <Input
+                                type="number"
+                                placeholder="0"
+                                value={option.price}
+                                onChange={(e) => updateGroupOption(groupIndex, optionIndex, "price", parseFloat(e.target.value) || 0)}
+                                className="w-24"
+                              />
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => removeGroupOption(groupIndex, optionIndex)}
+                                className="text-red-600"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                ))}
+              </div>
             </div>
 
             <div className="flex items-center gap-4">

@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/lib/store";
 import { subscribeToCollection, addDocument, updateDocument, deleteDocument, getCollection, signUp, createDocument, queryCollection } from "@/lib/firebase";
@@ -44,6 +45,7 @@ export default function AdminDashboard() {
     description: "",
     ownerId: "",
     image: "",
+    categories: [] as string[],
     isActive: true,
   });
 
@@ -56,6 +58,7 @@ export default function AdminDashboard() {
     description: "",
     ownerId: "",
     image: "",
+    categories: [] as string[],
     isActive: true,
   });
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -198,6 +201,7 @@ export default function AdminDashboard() {
         description: "",
         ownerId: "",
         image: "",
+        categories: [],
         isActive: true,
       });
     } catch (error: any) {
@@ -218,6 +222,7 @@ export default function AdminDashboard() {
       description: stall.description || "",
       ownerId: stall.ownerId || "",
       image: stall.image || "",
+      categories: stall.categories || [],
       isActive: stall.isActive ?? true,
     });
     setIsEditDialogOpen(true);
@@ -295,6 +300,46 @@ export default function AdminDashboard() {
         variant: "destructive",
       });
     }
+  };
+
+  // Category management helpers
+  const [newCategoryInput, setNewCategoryInput] = useState("");
+  const [editCategoryInput, setEditCategoryInput] = useState("");
+
+  const addNewStallCategory = () => {
+    const trimmedCategory = newCategoryInput.trim();
+    if (trimmedCategory && !newStall.categories.includes(trimmedCategory)) {
+      setNewStall(prev => ({
+        ...prev,
+        categories: [...prev.categories, trimmedCategory]
+      }));
+      setNewCategoryInput("");
+    }
+  };
+
+  const removeNewStallCategory = (category: string) => {
+    setNewStall(prev => ({
+      ...prev,
+      categories: prev.categories.filter(c => c !== category)
+    }));
+  };
+
+  const addEditStallCategory = () => {
+    const trimmedCategory = editCategoryInput.trim();
+    if (trimmedCategory && !editStall.categories.includes(trimmedCategory)) {
+      setEditStall(prev => ({
+        ...prev,
+        categories: [...prev.categories, trimmedCategory]
+      }));
+      setEditCategoryInput("");
+    }
+  };
+
+  const removeEditStallCategory = (category: string) => {
+    setEditStall(prev => ({
+      ...prev,
+      categories: prev.categories.filter(c => c !== category)
+    }));
   };
 
   const handleResetUserData = async (userId: string, userEmail: string) => {
@@ -1173,6 +1218,51 @@ export default function AdminDashboard() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div>
+                    <Label htmlFor="newCategories">Categories</Label>
+                    <div className="flex gap-2 mt-2">
+                      <Input
+                        id="newCategories"
+                        value={newCategoryInput}
+                        onChange={(e) => setNewCategoryInput(e.target.value)}
+                        placeholder="Enter category (e.g., Fast Food, Asian)"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addNewStallCategory();
+                          }
+                        }}
+                        data-testid="input-new-category"
+                      />
+                      <Button
+                        type="button"
+                        onClick={addNewStallCategory}
+                        variant="outline"
+                        data-testid="button-add-new-category"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    {newStall.categories.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {newStall.categories.map((category, index) => (
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="flex items-center gap-1 px-3 py-1"
+                            data-testid={`badge-new-category-${index}`}
+                          >
+                            {category}
+                            <X
+                              className="w-3 h-3 cursor-pointer hover:text-red-600"
+                              onClick={() => removeNewStallCategory(category)}
+                              data-testid={`button-remove-new-category-${index}`}
+                            />
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                         <div className="flex gap-2 pt-4">
                           <Button type="submit" disabled={isLoading} className="flex-1 bg-[#6d031e] hover:bg-red-700">
                             <Plus className="w-4 h-4 mr-2" />
@@ -1217,6 +1307,13 @@ export default function AdminDashboard() {
                           <Badge variant={stall.isActive ? "default" : "secondary"}>
                             {stall.isActive ? "Active" : "Inactive"}
                           </Badge>
+                          {stall.categories && stall.categories.length > 0 && (
+                            stall.categories.map((category: string, idx: number) => (
+                              <Badge key={idx} variant="outline">
+                                {category}
+                              </Badge>
+                            ))
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1595,6 +1692,51 @@ export default function AdminDashboard() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div>
+              <Label htmlFor="editCategories">Categories</Label>
+              <div className="flex gap-2 mt-2">
+                <Input
+                  id="editCategories"
+                  value={editCategoryInput}
+                  onChange={(e) => setEditCategoryInput(e.target.value)}
+                  placeholder="Enter category (e.g., Fast Food, Asian)"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addEditStallCategory();
+                    }
+                  }}
+                  data-testid="input-edit-category"
+                />
+                <Button
+                  type="button"
+                  onClick={addEditStallCategory}
+                  variant="outline"
+                  data-testid="button-add-edit-category"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+              {editStall.categories.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {editStall.categories.map((category, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="flex items-center gap-1 px-3 py-1"
+                      data-testid={`badge-edit-category-${index}`}
+                    >
+                      {category}
+                      <X
+                        className="w-3 h-3 cursor-pointer hover:text-red-600"
+                        onClick={() => removeEditStallCategory(category)}
+                        data-testid={`button-remove-edit-category-${index}`}
+                      />
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="flex gap-2 pt-4">
               <Button

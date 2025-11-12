@@ -54,14 +54,12 @@ Preferred communication style: Simple, everyday language.
   - Mobile-responsive 4-column card layout displaying version, release date, and announcement status
   - Complete version history from initial launch through all security fixes, UX improvements, and feature additions
 - **Stall Category Management** (November 12, 2025):
-  - Stall owners can now select multiple categories for their stalls through the Settings tab in stall dashboard
-  - Category selection UI uses a checkbox grid layout for easy multi-select functionality
-  - Validation requires at least one category to be selected when saving stall information
-  - RestaurantCard component displays first 2 categories as badges with "+N more" indicator for additional categories
-  - Added category filter chips on home page for quick browsing by food type
-  - Filter chips show "All" plus individual category options with visual active state
-  - Heading dynamically updates to show selected category (e.g., "Filipino Stalls" or "All Stalls")
-  - React Query caching with staleTime: Infinity for efficient category data management
+  - Stall owners can create their own custom category names through the Settings tab in stall dashboard
+  - Simple text input with validation (2-30 characters, auto-capitalization of first letters)
+  - Category displayed beside price range on stall cards in format: "₱50-100 • Filipino Food • 15-30 min"
+  - Search functionality includes category matching for easy discovery
+  - Backward compatibility maintained with previous multi-category system
+  - Category saves to Firebase Firestore with proper validation and formatting
 
 ## System Architecture
 

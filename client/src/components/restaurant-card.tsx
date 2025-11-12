@@ -119,35 +119,20 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
           </div>
         </div>
         
-        {/* Categories */}
-        {(restaurant.categories && restaurant.categories.length > 0) && (
-          <div className="flex flex-wrap gap-1 mb-2">
-            {restaurant.categories.slice(0, 2).map((cat) => (
-              <Badge 
-                key={cat} 
-                variant="secondary" 
-                className="text-xs px-1.5 py-0"
-                data-testid={`badge-category-${cat}`}
-              >
-                {cat}
-              </Badge>
-            ))}
-            {restaurant.categories.length > 2 && (
-              <Badge 
-                variant="secondary" 
-                className="text-xs px-1.5 py-0"
-                data-testid="badge-category-more"
-              >
-                +{restaurant.categories.length - 2} more
-              </Badge>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1 text-xs text-gray-500 line-clamp-1 flex-1 min-w-0">
+            <span data-testid={`text-price-${restaurant.id}`}>
+              {restaurant.priceRange || '\u20b1--'}
+            </span>
+            {(restaurant.category || restaurant.categories?.[0]) && (
+              <>
+                <span className="mx-1">\u2022</span>
+                <span className="truncate" data-testid={`text-category-${restaurant.id}`}>
+                  {restaurant.category || restaurant.categories?.[0] || 'Uncategorized'}
+                </span>
+              </>
             )}
           </div>
-        )}
-        
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-xs text-gray-500 line-clamp-1" data-testid={`text-price-${restaurant.id}`}>
-            {restaurant.priceRange || '--'}
-          </p>
           
           <span className="text-xs text-gray-500 flex-shrink-0 flex items-center gap-1" data-testid={`text-time-${restaurant.id}`}>
             <Clock className="h-3 w-3" />

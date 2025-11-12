@@ -1993,7 +1993,7 @@ export default function StallDashboard() {
                             description: stallInfo.description || "",
                             image: stallInfo.image || "",
                             isActive: stallInfo.isActive !== undefined ? stallInfo.isActive : true,
-                            categories: stallInfo.categories || [],
+                            category: stallInfo.category || (stallInfo.categories && stallInfo.categories.length > 0 ? stallInfo.categories[0] : ""),
                           });
                         }
                       }}

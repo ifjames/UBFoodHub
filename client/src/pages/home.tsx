@@ -21,7 +21,6 @@ import { usePageTitle } from "@/hooks/use-page-title";
 export default function Home() {
   usePageTitle("Home");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [stalls, setStalls] = useState<any[]>([]);
   const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
@@ -240,13 +239,6 @@ export default function Home() {
     }
   }, [state.user?.uid]);
 
-  // Get all unique categories from stalls
-  const allCategories = Array.from(
-    new Set(
-      stalls.flatMap(stall => stall.categories || [])
-    )
-  ).sort();
-
   const filteredStalls = stalls.filter((stall) => {
     const query = searchQuery.toLowerCase();
     
@@ -255,8 +247,7 @@ export default function Home() {
     
     // Match by category (for search)
     const matchesCategory = 
-      (stall.category && stall.category.toLowerCase().includes(query)) ||
-      (stall.categories && stall.categories.some((cat: string) => cat.toLowerCase().includes(query)));
+      (stall.category && stall.category.toLowerCase().includes(query));
     
     // Match by menu items
     const matchesMenuItem = allMenuItems.some((item) => 
@@ -264,13 +255,7 @@ export default function Home() {
       item.name.toLowerCase().includes(query)
     );
     
-    const matchesSearch = matchesStallName || matchesCategory || matchesMenuItem;
-    
-    // Filter by selected category
-    const matchesSelectedCategory = !selectedCategory || 
-      (stall.categories && stall.categories.includes(selectedCategory));
-    
-    return matchesSearch && matchesSelectedCategory;
+    return matchesStallName || matchesCategory || matchesMenuItem;
   }).sort((a, b) => {
     // Sort favorites first, then alphabetical
     // Check both string and numeric ID formats since Firebase uses string IDs
@@ -350,37 +335,10 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Category Filter Chips */}
-        {allCategories.length > 0 && (
-          <div className="mb-4">
-            <div className="flex flex-wrap gap-2">
-              <Badge
-                variant={selectedCategory === null ? "default" : "outline"}
-                className={`cursor-pointer ${selectedCategory === null ? "bg-[#820d2a] hover:bg-[#6d031e]" : "hover:bg-gray-100"}`}
-                onClick={() => setSelectedCategory(null)}
-                data-testid="badge-filter-all"
-              >
-                All
-              </Badge>
-              {allCategories.map((category) => (
-                <Badge
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  className={`cursor-pointer ${selectedCategory === category ? "bg-[#820d2a] hover:bg-[#6d031e]" : "hover:bg-gray-100"}`}
-                  onClick={() => setSelectedCategory(category)}
-                  data-testid={`badge-filter-${category}`}
-                >
-                  {category}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Stalls Grid */}
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-3 md:text-xl">
-            {selectedCategory ? `${selectedCategory} Stalls` : "All Stalls"}
+            All Stalls
           </h2>
 
           {isLoading || showSkeletons ? (
@@ -413,7 +371,6 @@ export default function Home() {
                     deliveryTime: stallStats[stall.id]?.deliveryTime || stall.deliveryTime || "15-30 min",
                     priceRange: stallStats[stall.id]?.priceRange || stall.priceRange || "₱--",
                     category: stall.category,
-                    categories: stall.categories,
                     deliveryFee: stall.deliveryFee || "Free"
                   }}
                 />

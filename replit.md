@@ -60,6 +60,13 @@ Preferred communication style: Simple, everyday language.
   - Search functionality includes category matching for easy discovery
   - Backward compatibility maintained with previous multi-category system
   - Category saves to Firebase Firestore with proper validation and formatting
+- **Menu Item Simplification** (November 12, 2025):
+  - Completely removed category field from menu items (categories now only exist at the stall level)
+  - Removed category dropdown from menu item add/edit dialog
+  - Removed category filter from menu items section in stall dashboard
+  - Removed category count from analytics section
+  - Simplified menu item search to only filter by item name
+  - Fixed bullet point rendering issue in restaurant cards (changed unicode escape to actual bullet character)
 
 ## System Architecture
 

@@ -1170,19 +1170,24 @@ export default function StallDashboard() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-4">
               <div className="relative">
-                {stallInfo?.image ? (
-                  <div className="p-1 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+                <div className="p-1 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 flex items-center justify-center">
+                  {stallInfo?.image ? (
                     <img 
                       src={stallInfo.image} 
                       alt={stallInfo.name}
                       className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const fallback = target.parentElement?.querySelector('[data-fallback]') as HTMLElement;
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
                     />
-                  </div>
-                ) : (
-                  <div className="p-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+                  ) : null}
+                  <div data-fallback className={stallInfo?.image ? 'hidden' : 'flex'} style={stallInfo?.image ? {} : { display: 'flex' }}>
                     <Store className="w-6 h-6 sm:w-7 sm:h-7 text-red-100" />
                   </div>
-                )}
+                </div>
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
               </div>
               <div>

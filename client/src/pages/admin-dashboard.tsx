@@ -972,11 +972,12 @@ export default function AdminDashboard() {
           </div>
           
           {/* Desktop Grid Navigation */}
-          <TabsList className="hidden md:grid w-full grid-cols-4 text-xs sm:text-sm">
+          <TabsList className="hidden md:grid w-full grid-cols-3 text-xs sm:text-sm">
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="stalls">Stalls</TabsTrigger>
             <TabsTrigger value="notifications">Notify</TabsTrigger>
-            <TabsTrigger value="updates">Updates</TabsTrigger>
+            {/* DISABLED FOR DEVELOPMENT - Uncomment line below to enable Updates tab */}
+            {/* <TabsTrigger value="updates">Updates</TabsTrigger> */}
           </TabsList>
 
           <TabsContent value="users" className="space-y-4">

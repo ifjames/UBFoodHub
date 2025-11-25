@@ -1,0 +1,145 @@
+# UB FoodHub - Mobile Web Application
+
+## Overview
+UB FoodHub is a mobile web application for the University of Batangas canteen ecosystem, designed to streamline food ordering. It enables students to pre-order, use QR code-based pickup, and improves canteen operations during limited break periods. The project aims to digitize the university's food service, enhancing convenience for students and efficiency for canteen staff.
+
+## User Preferences
+Preferred communication style: Simple, everyday language.
+
+## Recent Changes (November 2025)
+- **Role-Based Access Control** (November 8, 2025):
+  - Fixed critical security vulnerability where users could access dashboards for other roles by typing URLs directly
+  - Enhanced AuthGuard component with `allowedRoles` prop to enforce role-based route protection
+  - Admin routes (/admin, /admin/vouchers) now only accessible by admin users
+  - Stall dashboard (/stall-dashboard) now only accessible by stall_owner users
+  - Unauthorized access attempts automatically redirect users to their appropriate dashboard
+  - Security logging added for unauthorized access attempts
+- **404 Page Redesign** (November 8, 2025):
+  - Completely redesigned 404 page to match UB FoodHub maroon branding and design system
+  - Features animated liquid glass background effects with floating particles
+  - Displays large "404" text with gradient maroon colors and user-friendly messaging
+  - Includes UB FoodHub logo with smooth animations
+  - Smart navigation buttons that redirect users to their role-appropriate dashboard
+  - "Go Home" and "Go Back" buttons for easy navigation recovery
+  - Removed developer-focused messages in favor of user-friendly content
+- **Email Verification Enforcement**: Implemented complete blocking of unverified student accounts at authentication level. Students cannot access any part of the application until email is verified.
+- **UI Enhancement**: Fixed logout button hover styling in profile page to maintain red text color instead of turning white.
+- **Sign-up Flow Fix**: Fixed account creation getting stuck by using session storage flag to bypass email verification during account creation process.
+- **Automatic Account Creation**: Google sign-in with UB email (@ub.edu.ph) now automatically creates student accounts, eliminating manual registration requirement.
+- **Email Verification Sync**: Fixed email verification status syncing from Firebase Auth to Firestore when students verify their email.
+- **Enhanced User Deletion**: Admin user deletion now removes all related user data (orders, notifications, favorites) for complete cleanup. Backend API endpoint handles Firebase Authentication deletion with graceful fallback when Firebase Admin SDK is unavailable.
+- **Account Syncing**: Google sign-in now automatically syncs account data (name, profile picture) when students login with existing email accounts, merging manual and Google accounts seamlessly.
+- **Email Verification Sync Fix**: Fixed critical issue where admin-verified users couldn't log in. Authentication now checks both Firebase Auth verification AND admin verification status in Firestore database, allowing admin-verified accounts to access the application.
+- **Enhanced Signup Validation**: Implemented strict input validation and formatting for Student ID (exactly 7 numbers only) and Philippine phone number format (+63 9XX XXX XXXX). Added real-time input formatting, abuse prevention measures including password strength checks, and improved user guidance with clear placeholders and error messages.
+- **Admin Dashboard Optimizations** (November 2025):
+  - Added sorting functionality for users and stalls lists (alphabetical by name and by date created)
+  - Fixed auto-login bug when admin creates accounts by adding logout call after account creation
+  - Created backend API endpoint (`/api/admin/delete-user/:userId`) with Firebase Admin SDK integration for proper user deletion from both Firestore and Firebase Authentication
+  - Implemented graceful fallback handling with accurate status reporting when Firebase Admin SDK is unavailable
+  - Completely removed categories management feature (tab, UI, state, and all related functions)
+  - Streamlined stall owner account creation form by removing student number, phone number fields, and stall information section (stalls are now created separately)
+- **Menu Item Ordering System** (November 2025):
+  - Implemented HTML5 native drag-and-drop functionality for menu items in stall dashboard after React 18 compatibility issues with popular drag-and-drop libraries (@hello-pangea/dnd, react-beautiful-dnd)
+  - Added `displayOrder` field to menu items in Firestore for persistent ordering
+  - Stall owners can now easily rearrange menu items by dragging and dropping with visual feedback
+  - Student-facing restaurant view displays menu items in stall owner's preferred order
+  - Fixed Edit button hover styling in menu items to maintain proper text visibility
+- **System Updates Management** (November 9, 2025):
+  - Added comprehensive Updates tab in admin dashboard for tracking system versions and changes
+  - Real-time subscription to Firestore `system_updates` collection with reverse-chronological ordering
+  - Create Update dialog with version, title, description, and changes list management
+  - Announce functionality that sends notifications to all users about system updates
+  - Pre-defined 19 initial updates (v1.0-2.9) covering ALL documented features and changes
+  - One-click "Populate Initial Updates" button for easy system update history initialization
+  - Mobile-responsive 4-column card layout displaying version, release date, and announcement status
+  - Complete version history from initial launch through all security fixes, UX improvements, and feature additions
+- **Stall Category Management** (November 12, 2025):
+  - Stall owners can create their own custom category names through the Settings tab in stall dashboard
+  - Simple text input with validation (2-30 characters, auto-capitalization of first letters)
+  - Category displayed beside price range on stall cards in format: "₱50-100 • Filipino Food • 15-30 min"
+  - Search functionality includes category matching for easy discovery
+  - Backward compatibility maintained with previous multi-category system
+  - Category saves to Firebase Firestore with proper validation and formatting
+- **Menu Item Simplification** (November 12, 2025):
+  - Completely removed category field from menu items (categories now only exist at the stall level)
+  - Removed category dropdown from menu item add/edit dialog
+  - Removed category filter from menu items section in stall dashboard
+  - Removed category count from analytics section
+  - Simplified menu item search to only filter by item name
+  - Fixed bullet point rendering issue in restaurant cards (changed unicode escape to actual bullet character)
+- **Menu Item Category Enhancements** (November 12, 2025):
+  - Added category delete functionality in Food Stall Dashboard with item count validation
+  - Categories can only be deleted if no menu items are using them
+  - New categories now appear immediately in dropdown without requiring item save
+  - Added temporary categories state to support instant category creation
+  - Fixed category button hover visibility on Student Dashboard restaurant page
+  - Separated category management from menu item creation - added dedicated "Manage Categories" button and dialog in stall dashboard
+  - Categories are automatically extracted from existing menu items and displayed in centralized management interface
+  - Menu item dialog simplified to only show dropdown selection of existing categories
+  - Removed inline category creation from menu item dialog for better UX and organization
+  - All category management (add/delete/view) now done through dedicated category management dialog
+  - Category badges now display item count for better management
+  - Improved category management UI with visual badges and delete buttons
+- **Image Loading Improvements** (November 12, 2025):
+  - Fixed white line issue in restaurant page header by removing unnecessary background color
+  - Added comprehensive image error handling with lazy loading for all images across the application
+  - Implemented automatic fallback to Unsplash images when external images (imghippo API) fail to load
+  - Enhanced validation to check for empty/null image URLs before attempting to load them
+  - Restaurant cards now validate image URLs and use fallback images immediately for invalid/missing URLs
+  - Menu item images, stall images, and profile pictures all have proper error handling
+  - Prevents showing alt text instead of images by detecting broken/empty URLs upfront
+  - Added infinite loop prevention in error handlers to avoid repeated fallback attempts
+  - **Image Caching System**: Implemented browser Cache API-based caching with 7-day expiry for instant image loading on repeat visits. Images are automatically cached when first loaded and served from cache on subsequent visits, dramatically improving load times. Includes proper memory management with object URL cleanup to prevent memory leaks.
+
+## System Architecture
+
+### Frontend
+- **Framework**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS with custom university branding, Radix UI primitives, shadcn/ui components
+- **State Management**: Context API with `useReducer`
+- **Routing**: Wouter
+- **Data Fetching**: TanStack Query (React Query)
+- **Design Principles**: Mobile-first, responsive design with PWA capabilities. UI/UX features include a bottom navigation bar, visual restaurant cards, interactive menu item selection, real-time cart management, order tracking with QR code generation, and robust search/filter functionalities. Splash screens and loading indicators utilize liquid glass effects and animations.
+
+### Backend
+- **Runtime**: Node.js with Express.js
+- **Language**: TypeScript with ESM modules
+- **Database**: PostgreSQL with Drizzle ORM (using Neon serverless PostgreSQL)
+- **Authentication**: Credential-based session management with role-based access (Student, Stall Owner, Admin). Supports Google sign-in with domain restrictions (`@ub.edu.ph`) and email verification.
+- **API Design**: RESTful endpoints with error handling.
+- **Storage**: In-memory storage with an interface for future database integration.
+
+### Core Features
+- **Authentication System**: Login/Register, Student ID integration, Role-Based Access, Session Management. Includes password change and profile picture upload functionality.
+- **Order Management**: Pre-ordering with scheduled pickup times, QR code system for order verification, real-time status tracking, and group ordering.
+- **Stall Dashboard**: Comprehensive order management (view, cancel), customer info display, smart filtering, and analytics (revenue, popular items, order status breakdown).
+- **Notifications**: Push notification system for order status changes, penalties, email verification reminders, and announcements.
+- **Security**: Email domain restriction, email verification enforcement (blocks unverified student logins), mandatory fields (Student ID, phone number), Philippine phone validation, and Terms of Service agreement.
+- **Loyalty Points System**: Complete functional system with point earning (1 point per ₱10), redemption (100 points = ₱10 discount), tier system (Bronze/Silver/Gold), transaction history, and checkout integration. Includes bonus rewards for trying new stalls.
+
+### Deployment
+- **Development**: Vite dev server, Neon PostgreSQL, Node.js environment.
+- **Production**: Vite build for client, `esbuild` for server, Express.js serving static files and API, PostgreSQL with connection pooling. Deployed via Replit hosting.
+- **Database Management**: Drizzle Kit for schema migrations, TypeScript-first schema with Zod validation, in-memory seeding for development.
+
+## External Dependencies
+
+### Core Framework Dependencies
+- `@tanstack/react-query`
+- `wouter`
+- `drizzle-orm`
+- `@neondatabase/serverless`
+
+### UI/UX Dependencies
+- `@radix-ui/react-*`
+- `tailwindcss`
+- `class-variance-authority`
+- `lucide-react`
+- `qrcode`
+
+### Development Dependencies
+- `vite`
+- `typescript`
+- `@replit/vite-plugin-*`
+- `tsx`

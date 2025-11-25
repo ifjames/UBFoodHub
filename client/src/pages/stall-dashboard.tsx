@@ -1923,7 +1923,7 @@ export default function StallDashboard() {
                       <p className="text-sm font-medium text-gray-600">Today's Revenue</p>
                       <p className="text-2xl font-bold text-green-600">₱{todayRevenue.toFixed(2)}</p>
                     </div>
-                    <DollarSign className="w-8 h-8 text-green-600" />
+                    <Coins className="w-8 h-8 text-green-600" />
                   </div>
                   <p className="text-xs text-gray-500 mt-2">From {todayCompletedOrders.length} completed orders</p>
                 </CardContent>

@@ -548,7 +548,7 @@ export default function LoginPage() {
                       <Input
                         id="email"
                         type="email"
-                        placeholder="Enter your @ub.edu.ph email"
+                        placeholder="Enter your email"
                         className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                         value={loginEmail}
                         onChange={(e) => setLoginEmail(e.target.value)}
@@ -659,7 +659,7 @@ export default function LoginPage() {
                       <Input
                         id="signup-email"
                         type="email"
-                        placeholder="Enter your @ub.edu.ph email"
+                        placeholder="Enter your email"
                         className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
                         value={signUpEmail}
                         onChange={(e) => setSignUpEmail(e.target.value)}

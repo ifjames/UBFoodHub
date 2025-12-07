@@ -26,7 +26,7 @@ export default function LoginPage() {
 
   // Check for login error from sessionStorage (e.g., deactivated account)
   useEffect(() => {
-    const loginError = sessionStorage.getItem('loginError');
+    const loginError = sessionStorage.getItem("loginError");
     if (loginError) {
       toast({
         title: "Account Deactivated",
@@ -34,7 +34,7 @@ export default function LoginPage() {
         variant: "destructive",
         duration: 6000,
       });
-      sessionStorage.removeItem('loginError');
+      sessionStorage.removeItem("loginError");
     }
   }, [toast]);
 
@@ -82,8 +82,13 @@ export default function LoginPage() {
     if (!signUpEmail) return { isValid: true, message: "" };
     const isValidFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signUpEmail);
     const isUbEmail = signUpEmail.toLowerCase().endsWith("@ub.edu.ph");
-    if (!isValidFormat) return { isValid: false, message: "Please enter a valid email address" };
-    if (!isUbEmail) return { isValid: false, message: "Only @ub.edu.ph email addresses are allowed" };
+    if (!isValidFormat)
+      return { isValid: false, message: "Please enter a valid email address" };
+    if (!isUbEmail)
+      return {
+        isValid: false,
+        message: "Only @ub.edu.ph email addresses are allowed",
+      };
     return { isValid: true, message: "Valid email" };
   }, [signUpEmail]);
 
@@ -95,21 +100,36 @@ export default function LoginPage() {
     if (/[A-Z]/.test(signUpPassword)) strength++;
     if (/[0-9]/.test(signUpPassword)) strength++;
     if (/[^A-Za-z0-9]/.test(signUpPassword)) strength++;
-    
-    if (signUpPassword.length < 6) return { strength: 0, label: "Too short (min 6 characters)", color: "text-red-500" };
-    if (strength <= 2) return { strength: 1, label: "Weak", color: "text-red-500" };
-    if (strength <= 3) return { strength: 2, label: "Medium", color: "text-yellow-500" };
-    if (strength <= 4) return { strength: 3, label: "Strong", color: "text-green-500" };
+
+    if (signUpPassword.length < 6)
+      return {
+        strength: 0,
+        label: "Too short (min 6 characters)",
+        color: "text-red-500",
+      };
+    if (strength <= 2)
+      return { strength: 1, label: "Weak", color: "text-red-500" };
+    if (strength <= 3)
+      return { strength: 2, label: "Medium", color: "text-yellow-500" };
+    if (strength <= 4)
+      return { strength: 3, label: "Strong", color: "text-green-500" };
     return { strength: 4, label: "Very Strong", color: "text-green-600" };
   }, [signUpPassword]);
 
   const phoneValidation = useMemo(() => {
     if (!phoneNumber) return { isValid: true, message: "" };
     const digits = phoneNumber.replace(/\D/g, "");
-    if (!digits.startsWith("63")) return { isValid: false, message: "Phone must start with +63" };
-    if (digits.length < 12) return { isValid: false, message: "Phone number is incomplete" };
-    if (digits.length > 12) return { isValid: false, message: "Phone number is too long" };
-    if (!/^63[9]\d{9}$/.test(digits)) return { isValid: false, message: "Invalid Philippine mobile number format" };
+    if (!digits.startsWith("63"))
+      return { isValid: false, message: "Phone must start with +63" };
+    if (digits.length < 12)
+      return { isValid: false, message: "Phone number is incomplete" };
+    if (digits.length > 12)
+      return { isValid: false, message: "Phone number is too long" };
+    if (!/^63[9]\d{9}$/.test(digits))
+      return {
+        isValid: false,
+        message: "Invalid Philippine mobile number format",
+      };
     return { isValid: true, message: "Valid phone number" };
   }, [phoneNumber]);
 
@@ -695,7 +715,7 @@ export default function LoginPage() {
                       <Input
                         id="signup-email"
                         type="email"
-                        placeholder="yourname@ub.edu.ph"
+                        placeholder="studentid@ub.edu.ph"
                         className={`pl-10 bg-white h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 ${
                           signUpEmail && !emailValidation.isValid
                             ? "border-red-500 focus:border-red-500"
@@ -711,7 +731,10 @@ export default function LoginPage() {
                       />
                     </div>
                     {signUpEmail && (
-                      <p className={`text-xs ${emailValidation.isValid ? "text-green-600" : "text-red-500"}`} data-testid="text-email-validation">
+                      <p
+                        className={`text-xs ${emailValidation.isValid ? "text-green-600" : "text-red-500"}`}
+                        data-testid="text-email-validation"
+                      >
                         {emailValidation.message}
                       </p>
                     )}
@@ -816,7 +839,10 @@ export default function LoginPage() {
                       />
                     </div>
                     {phoneNumber && (
-                      <p className={`text-xs ${phoneValidation.isValid ? "text-green-600" : "text-red-500"}`} data-testid="text-phone-validation">
+                      <p
+                        className={`text-xs ${phoneValidation.isValid ? "text-green-600" : "text-red-500"}`}
+                        data-testid="text-phone-validation"
+                      >
                         {phoneValidation.message}
                       </p>
                     )}
@@ -879,7 +905,10 @@ export default function LoginPage() {
                             />
                           ))}
                         </div>
-                        <p className={`text-xs ${passwordStrength.color}`} data-testid="text-password-strength">
+                        <p
+                          className={`text-xs ${passwordStrength.color}`}
+                          data-testid="text-password-strength"
+                        >
                           {passwordStrength.label}
                         </p>
                       </div>

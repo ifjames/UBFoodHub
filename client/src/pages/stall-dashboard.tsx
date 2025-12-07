@@ -266,6 +266,55 @@ export default function StallDashboard() {
     }
   }, [stallId]);
 
+  // Auto-cancel pending orders after 15 minutes if not touched by stall owner
+  useEffect(() => {
+    if (!ordersInitialized || orders.length === 0) return;
+
+    const AUTO_CANCEL_MINUTES = 15;
+    
+    const autoCancelStaleOrders = async () => {
+      const now = new Date();
+      const pendingOrders = orders.filter(order => order.status === 'pending');
+      
+      for (const order of pendingOrders) {
+        const orderCreatedAt = order.createdAt?.toDate?.() || new Date(order.createdAt);
+        const orderAgeMinutes = (now.getTime() - orderCreatedAt.getTime()) / (1000 * 60);
+        
+        if (orderAgeMinutes >= AUTO_CANCEL_MINUTES) {
+          try {
+            await updateDocument("orders", order.id, { 
+              status: "cancelled",
+              cancelReason: "Auto-cancelled: Order was not processed within 15 minutes",
+              autoCancelled: true,
+              updatedAt: new Date()
+            });
+            
+            // Send notification to customer
+            const notificationService = NotificationService.getInstance();
+            await notificationService.sendOrderNotification(
+              order.id, 
+              "cancelled", 
+              order.customerName,
+              order.userId
+            );
+            
+            console.log(`Auto-cancelled order ${order.id} - was pending for ${Math.round(orderAgeMinutes)} minutes`);
+          } catch (error) {
+            console.error(`Failed to auto-cancel order ${order.id}:`, error);
+          }
+        }
+      }
+    };
+
+    // Run immediately on mount and when orders change
+    autoCancelStaleOrders();
+    
+    // Check every minute for stale orders
+    const intervalId = setInterval(autoCancelStaleOrders, 60 * 1000);
+    
+    return () => clearInterval(intervalId);
+  }, [orders, ordersInitialized]);
+
   // Enrich reviews with user data (profile pictures)
   useEffect(() => {
     const enrichReviewsWithUserData = async () => {
@@ -1137,6 +1186,16 @@ export default function StallDashboard() {
 
   const pendingOrders = orders.filter(order => order.status === 'pending');
   const preparingOrders = orders.filter(order => order.status === 'preparing');
+
+  // Helper to calculate time remaining before auto-cancel (15 minutes)
+  const getAutoCancelCountdown = (order: any) => {
+    if (order.status !== 'pending') return null;
+    const AUTO_CANCEL_MINUTES = 15;
+    const orderCreatedAt = order.createdAt?.toDate?.() || new Date(order.createdAt);
+    const elapsedMinutes = (Date.now() - orderCreatedAt.getTime()) / (1000 * 60);
+    const remainingMinutes = Math.max(0, AUTO_CANCEL_MINUTES - elapsedMinutes);
+    return Math.ceil(remainingMinutes);
+  };
   
   // Revenue from completed orders only
   const todayRevenue = todayCompletedOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
@@ -1438,7 +1497,7 @@ export default function StallDashboard() {
                         {/* Order Header */}
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
+                            <div className="flex items-center gap-3 mb-2 flex-wrap">
                               <h3 className="text-lg font-bold text-gray-900">#{order.qrCode}</h3>
                               <Badge
                                 className={
@@ -1451,6 +1510,21 @@ export default function StallDashboard() {
                               >
                                 {order.status?.toUpperCase()}
                               </Badge>
+                              {order.status === 'pending' && getAutoCancelCountdown(order) !== null && (
+                                <Badge 
+                                  className={`${
+                                    getAutoCancelCountdown(order)! <= 5 
+                                      ? 'bg-red-100 text-red-700 animate-pulse' 
+                                      : 'bg-orange-100 text-orange-700'
+                                  }`}
+                                  data-testid={`badge-countdown-${order.id}`}
+                                >
+                                  <Clock className="w-3 h-3 mr-1" />
+                                  {getAutoCancelCountdown(order)! <= 0 
+                                    ? 'Cancelling...' 
+                                    : `Auto-cancel in ${getAutoCancelCountdown(order)} min`}
+                                </Badge>
+                              )}
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                               <div>

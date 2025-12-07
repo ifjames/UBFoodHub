@@ -77,6 +77,42 @@ export default function LoginPage() {
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
 
+  // Validation helpers
+  const emailValidation = useMemo(() => {
+    if (!signUpEmail) return { isValid: true, message: "" };
+    const isValidFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signUpEmail);
+    const isUbEmail = signUpEmail.toLowerCase().endsWith("@ub.edu.ph");
+    if (!isValidFormat) return { isValid: false, message: "Please enter a valid email address" };
+    if (!isUbEmail) return { isValid: false, message: "Only @ub.edu.ph email addresses are allowed" };
+    return { isValid: true, message: "Valid email" };
+  }, [signUpEmail]);
+
+  const passwordStrength = useMemo(() => {
+    if (!signUpPassword) return { strength: 0, label: "", color: "" };
+    let strength = 0;
+    if (signUpPassword.length >= 6) strength++;
+    if (signUpPassword.length >= 8) strength++;
+    if (/[A-Z]/.test(signUpPassword)) strength++;
+    if (/[0-9]/.test(signUpPassword)) strength++;
+    if (/[^A-Za-z0-9]/.test(signUpPassword)) strength++;
+    
+    if (signUpPassword.length < 6) return { strength: 0, label: "Too short (min 6 characters)", color: "text-red-500" };
+    if (strength <= 2) return { strength: 1, label: "Weak", color: "text-red-500" };
+    if (strength <= 3) return { strength: 2, label: "Medium", color: "text-yellow-500" };
+    if (strength <= 4) return { strength: 3, label: "Strong", color: "text-green-500" };
+    return { strength: 4, label: "Very Strong", color: "text-green-600" };
+  }, [signUpPassword]);
+
+  const phoneValidation = useMemo(() => {
+    if (!phoneNumber) return { isValid: true, message: "" };
+    const digits = phoneNumber.replace(/\D/g, "");
+    if (!digits.startsWith("63")) return { isValid: false, message: "Phone must start with +63" };
+    if (digits.length < 12) return { isValid: false, message: "Phone number is incomplete" };
+    if (digits.length > 12) return { isValid: false, message: "Phone number is too long" };
+    if (!/^63[9]\d{9}$/.test(digits)) return { isValid: false, message: "Invalid Philippine mobile number format" };
+    return { isValid: true, message: "Valid phone number" };
+  }, [phoneNumber]);
+
   // Stable particle configurations to prevent re-rendering on typing
   const desktopParticles = useMemo(
     () =>
@@ -659,14 +695,26 @@ export default function LoginPage() {
                       <Input
                         id="signup-email"
                         type="email"
-                        placeholder="Enter your email"
-                        className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
+                        placeholder="yourname@ub.edu.ph"
+                        className={`pl-10 bg-white h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 ${
+                          signUpEmail && !emailValidation.isValid
+                            ? "border-red-500 focus:border-red-500"
+                            : signUpEmail && emailValidation.isValid
+                              ? "border-green-500 focus:border-green-500"
+                              : "border-[#6d031e]/20 focus:border-[#6d031e] lg:border-gray-300 lg:focus:border-[#6d031e]"
+                        }`}
                         value={signUpEmail}
                         onChange={(e) => setSignUpEmail(e.target.value)}
                         required
                         disabled={isLoading}
+                        data-testid="input-signup-email"
                       />
                     </div>
+                    {signUpEmail && (
+                      <p className={`text-xs ${emailValidation.isValid ? "text-green-600" : "text-red-500"}`} data-testid="text-email-validation">
+                        {emailValidation.message}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -709,12 +757,17 @@ export default function LoginPage() {
                       <Input
                         id="signup-phone"
                         type="tel"
-                        placeholder="+63 123 456 7890"
-                        className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
+                        placeholder="+63 9XX XXX XXXX"
+                        className={`pl-10 bg-white h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 ${
+                          phoneNumber && !phoneValidation.isValid
+                            ? "border-red-500 focus:border-red-500"
+                            : phoneNumber && phoneValidation.isValid
+                              ? "border-green-500 focus:border-green-500"
+                              : "border-[#6d031e]/20 focus:border-[#6d031e] lg:border-gray-300 lg:focus:border-[#6d031e]"
+                        }`}
                         value={phoneNumber}
                         onChange={(e) => {
                           let value = e.target.value;
-                          // Remove all non-digits first
                           const digits = value.replace(/\D/g, "");
 
                           if (digits.length === 0) {
@@ -722,10 +775,8 @@ export default function LoginPage() {
                             return;
                           }
 
-                          // Auto-format Philippine number
                           if (digits.startsWith("63")) {
-                            // Format: +63 9XX XXX XXXX
-                            const formatted = digits.slice(0, 13);
+                            const formatted = digits.slice(0, 12);
                             if (formatted.length <= 2) {
                               setPhoneNumber(`+${formatted}`);
                             } else if (formatted.length <= 5) {
@@ -743,8 +794,7 @@ export default function LoginPage() {
                             digits.startsWith("9") &&
                             digits.length >= 1
                           ) {
-                            // Auto-prepend +63 for numbers starting with 9
-                            const formatted = ("63" + digits).slice(0, 13);
+                            const formatted = ("63" + digits).slice(0, 12);
                             if (formatted.length <= 5) {
                               setPhoneNumber(`+63 ${formatted.slice(2)}`);
                             } else if (formatted.length <= 8) {
@@ -757,14 +807,19 @@ export default function LoginPage() {
                               );
                             }
                           } else {
-                            // For other inputs, just clean up
                             setPhoneNumber(value);
                           }
                         }}
                         required
                         disabled={isLoading}
+                        data-testid="input-signup-phone"
                       />
                     </div>
+                    {phoneNumber && (
+                      <p className={`text-xs ${phoneValidation.isValid ? "text-green-600" : "text-red-500"}`} data-testid="text-phone-validation">
+                        {phoneValidation.message}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -779,12 +834,19 @@ export default function LoginPage() {
                       <Input
                         id="signup-password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="Create a password"
-                        className="pl-10 pr-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
+                        placeholder="Create a password (min 6 chars)"
+                        className={`pl-10 pr-10 bg-white h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 ${
+                          signUpPassword && passwordStrength.strength === 0
+                            ? "border-red-500 focus:border-red-500"
+                            : signUpPassword && passwordStrength.strength >= 3
+                              ? "border-green-500 focus:border-green-500"
+                              : "border-[#6d031e]/20 focus:border-[#6d031e] lg:border-gray-300 lg:focus:border-[#6d031e]"
+                        }`}
                         value={signUpPassword}
                         onChange={(e) => setSignUpPassword(e.target.value)}
                         required
                         disabled={isLoading}
+                        data-testid="input-signup-password"
                       />
                       <button
                         type="button"
@@ -799,6 +861,29 @@ export default function LoginPage() {
                         )}
                       </button>
                     </div>
+                    {signUpPassword && (
+                      <div className="space-y-1">
+                        <div className="flex gap-1">
+                          {[1, 2, 3, 4].map((level) => (
+                            <div
+                              key={level}
+                              className={`h-1 flex-1 rounded-full ${
+                                level <= passwordStrength.strength
+                                  ? passwordStrength.strength <= 1
+                                    ? "bg-red-500"
+                                    : passwordStrength.strength <= 2
+                                      ? "bg-yellow-500"
+                                      : "bg-green-500"
+                                  : "bg-gray-200"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <p className={`text-xs ${passwordStrength.color}`} data-testid="text-password-strength">
+                          {passwordStrength.label}
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-2">

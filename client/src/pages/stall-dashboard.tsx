@@ -113,6 +113,7 @@ export default function StallDashboard() {
     name: "",
     description: "",
     price: "",
+    noPrice: false,
     category: "",
     isAvailable: true,
     isPopular: false,
@@ -421,7 +422,7 @@ export default function StallDashboard() {
   };
 
   const handleSaveMenuItem = async () => {
-    if (!itemForm.name || !itemForm.price) {
+    if (!itemForm.name || (!itemForm.price && !itemForm.noPrice)) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -442,7 +443,8 @@ export default function StallDashboard() {
     try {
       const menuItemData = {
         ...itemForm,
-        price: parseFloat(itemForm.price),
+        price: itemForm.noPrice ? null : parseFloat(itemForm.price),
+        noPrice: itemForm.noPrice,
         stock: parseInt(itemForm.stock.toString()) || 0,
         stallId: stallId,
         customizations: itemForm.customizations.filter(c => c.name.trim() !== ""),
@@ -483,6 +485,7 @@ export default function StallDashboard() {
       name: "",
       description: "",
       price: "",
+      noPrice: false,
       category: "",
       isAvailable: true,
       isPopular: false,
@@ -1093,6 +1096,7 @@ export default function StallDashboard() {
       name: item.name || "",
       description: item.description || "",
       price: item.price?.toString() || "",
+      noPrice: item.noPrice ?? false,
       category: item.category || "",
       isAvailable: item.isAvailable ?? true,
       isPopular: item.isPopular ?? false,
@@ -1815,7 +1819,13 @@ export default function StallDashboard() {
                           </div>
                           <p className="text-sm text-gray-600 line-clamp-2">{item.description}</p>
                           <div className="flex items-center gap-2 mt-1 flex-wrap">
-                            <p className="text-lg font-bold text-gray-900">₱{item.price?.toFixed(2)}</p>
+                            {item.noPrice ? (
+                              <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
+                                No Price
+                              </Badge>
+                            ) : (
+                              <p className="text-lg font-bold text-gray-900">₱{item.price?.toFixed(2)}</p>
+                            )}
                             <Badge 
                               variant="outline" 
                               className={`${
@@ -2521,16 +2531,33 @@ export default function StallDashboard() {
               />
             </div>
 
-            <div>
+            <div className="space-y-3">
               <Label htmlFor="price">Price (₱)</Label>
-              <Input
-                id="price"
-                type="number"
-                value={itemForm.price}
-                onChange={(e) => setItemForm(prev => ({ ...prev, price: e.target.value }))}
-                placeholder="0.00"
-                data-testid="input-price"
-              />
+              <div className="flex items-center gap-3 mb-2">
+                <Checkbox
+                  id="noPrice"
+                  checked={itemForm.noPrice}
+                  onCheckedChange={(checked) => setItemForm(prev => ({ 
+                    ...prev, 
+                    noPrice: checked === true,
+                    price: checked === true ? "" : prev.price
+                  }))}
+                  data-testid="checkbox-no-price"
+                />
+                <Label htmlFor="noPrice" className="text-sm text-muted-foreground cursor-pointer">
+                  No price (hide price from display)
+                </Label>
+              </div>
+              {!itemForm.noPrice && (
+                <Input
+                  id="price"
+                  type="number"
+                  value={itemForm.price}
+                  onChange={(e) => setItemForm(prev => ({ ...prev, price: e.target.value }))}
+                  placeholder="0.00"
+                  data-testid="input-price"
+                />
+              )}
             </div>
 
             {/* Category Selection */}

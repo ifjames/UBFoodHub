@@ -26,6 +26,7 @@ interface MenuItemType {
   name: string;
   description: string;
   price: number;
+  noPrice?: boolean;
   category: string;
   image?: string;
   isAvailable: boolean;
@@ -633,7 +634,9 @@ export default function Restaurant() {
                   </p>
                   <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between gap-1 md:gap-0">
                     <div className="flex flex-col gap-0.5 md:gap-1">
-                      <span className="font-bold text-[#820d2a] text-sm md:text-xl">₱{item.price}</span>
+                      {!item.noPrice && item.price != null && (
+                        <span className="font-bold text-[#820d2a] text-sm md:text-xl">₱{item.price}</span>
+                      )}
                       {(item.stock ?? 0) > 0 && (item.stock ?? 0) < 10 && (
                         <span className="text-[10px] md:text-xs text-orange-600 font-medium">{item.stock} left</span>
                       )}
@@ -855,9 +858,11 @@ export default function Restaurant() {
                   <p className="text-muted-foreground text-left text-sm leading-relaxed">
                     {selectedItem.description}
                   </p>
-                  <p className="text-xl md:text-2xl font-bold text-[#820d2a] text-left">
-                    ₱{selectedItem.price.toFixed(2)}
-                  </p>
+                  {!selectedItem.noPrice && selectedItem.price != null && (
+                    <p className="text-xl md:text-2xl font-bold text-[#820d2a] text-left">
+                      ₱{selectedItem.price.toFixed(2)}
+                    </p>
+                  )}
                 </div>
 
                 {selectedItem.customizationGroups && selectedItem.customizationGroups.length > 0 && (
@@ -975,7 +980,7 @@ export default function Restaurant() {
                     className="w-full sm:w-auto bg-[#820d2a] hover:bg-[#6a0a22] text-white px-6 py-5 text-sm md:text-base font-semibold shadow-lg"
                     data-testid="button-add-to-cart"
                   >
-                    Add to Cart - ₱{(selectedItem.price * quantity + 
+                    {selectedItem.noPrice ? 'Add to Cart' : `Add to Cart - ₱${((selectedItem.price || 0) * quantity + 
                       Object.entries(customizations).reduce((sum, [name, checked]) => {
                         if (!checked) return sum;
                         const custom = selectedItem.customizations?.find(c => c.name === name);
@@ -986,7 +991,7 @@ export default function Restaurant() {
                         const option = group?.options.find(o => o.name === optionName);
                         return sum + (option?.price || 0);
                       }, 0)
-                    ).toFixed(2)}
+                    ).toFixed(2)}`}
                   </Button>
                 </div>
               </div>

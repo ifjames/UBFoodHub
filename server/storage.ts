@@ -261,9 +261,20 @@ export class MemStorage implements IStorage {
     let priceRange: string | null = null;
     if (menuItems.length > 0) {
       const prices = menuItems.map(item => parseFloat(item.price as string));
-      const minPrice = Math.min(...prices);
+      // Filter out zero prices for min calculation to avoid showing ₱0
+      const nonZeroPrices = prices.filter(p => p > 0);
+      const minPrice = nonZeroPrices.length > 0 ? Math.min(...nonZeroPrices) : 0;
       const maxPrice = Math.max(...prices);
-      priceRange = `₱${minPrice.toFixed(0)}-${maxPrice.toFixed(0)}`;
+      
+      // If min and max are the same, just show single price
+      if (minPrice === maxPrice && minPrice > 0) {
+        priceRange = `₱${minPrice.toFixed(0)}`;
+      } else if (minPrice > 0 && maxPrice > minPrice) {
+        priceRange = `₱${minPrice.toFixed(0)}-${maxPrice.toFixed(0)}`;
+      } else if (maxPrice > 0) {
+        // Only max price available (all items are free or only max matters)
+        priceRange = `₱${maxPrice.toFixed(0)}`;
+      }
     }
 
     const completedOrders = Array.from(this.orders.values()).filter(

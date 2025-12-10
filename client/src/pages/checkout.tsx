@@ -488,18 +488,6 @@ export default function Checkout() {
                 <Lock className="w-4 h-4 text-gray-400" />
               </Label>
             </div>
-            
-            <div className="flex items-center space-x-2 p-3 border rounded-lg opacity-50">
-              <RadioGroupItem value="maya" id="maya" disabled />
-              <Label htmlFor="maya" className="flex items-center gap-2 flex-1">
-                <CreditCard className="w-5 h-5 text-orange-600" />
-                <div>
-                  <p className="font-medium">Maya</p>
-                  <p className="text-sm text-gray-600">Coming soon</p>
-                </div>
-                <Lock className="w-4 h-4 text-gray-400" />
-              </Label>
-            </div>
           </RadioGroup>
 
           {paymentMethod === "cash" && (

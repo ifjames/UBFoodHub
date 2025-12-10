@@ -123,13 +123,59 @@ export default function Home() {
           // Fetch menu items for this stall
           const menuItems = await getDocuments("menuItems", "stallId", "==", stall.id);
           
-          // Calculate price range
+          // Calculate price range including customization options
           let priceRange = "₱--";
           if (menuItems.length > 0) {
-            const prices = menuItems.map((item: any) => parseFloat(item.price || 0));
-            const minPrice = Math.min(...prices);
-            const maxPrice = Math.max(...prices);
-            priceRange = `₱${Math.round(minPrice)}-${Math.round(maxPrice)}`;
+            const allPrices: number[] = [];
+            
+            menuItems.forEach((item: any) => {
+              const basePrice = parseFloat(item.price || 0);
+              
+              // If item has customization groups, calculate min/max with options
+              if (item.customizationGroups && item.customizationGroups.length > 0) {
+                let minOptionPrice = 0;
+                let maxOptionPrice = 0;
+                
+                item.customizationGroups.forEach((group: any) => {
+                  if (group.options && group.options.length > 0) {
+                    const optionPrices = group.options.map((opt: any) => parseFloat(opt.price || 0));
+                    // For min, use the lowest option price (or 0 if group is not required)
+                    const minOpt = Math.min(...optionPrices);
+                    const maxOpt = Math.max(...optionPrices);
+                    
+                    if (group.isRequired) {
+                      minOptionPrice += minOpt;
+                    }
+                    maxOptionPrice += maxOpt;
+                  }
+                });
+                
+                // Add base price + min options and base price + max options
+                allPrices.push(basePrice + minOptionPrice);
+                allPrices.push(basePrice + maxOptionPrice);
+              } else {
+                // No customization groups, just use base price
+                allPrices.push(basePrice);
+              }
+            });
+            
+            // Filter out zero prices for min calculation
+            const nonZeroPrices = allPrices.filter(p => p > 0);
+            
+            if (nonZeroPrices.length > 0) {
+              const minPrice = Math.min(...nonZeroPrices);
+              const maxPrice = Math.max(...allPrices);
+              
+              if (minPrice === maxPrice) {
+                priceRange = `₱${Math.round(minPrice)}`;
+              } else {
+                priceRange = `₱${Math.round(minPrice)}-${Math.round(maxPrice)}`;
+              }
+            } else if (allPrices.length > 0) {
+              // All prices are 0, show max only if it exists
+              const maxPrice = Math.max(...allPrices);
+              priceRange = maxPrice > 0 ? `₱${Math.round(maxPrice)}` : "₱--";
+            }
           }
           
           // Fetch current orders to calculate queue-based delivery time

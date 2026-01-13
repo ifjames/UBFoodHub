@@ -1,4 +1,4 @@
-import { Star, Heart, Clock } from "lucide-react";
+import { Star, Heart, Clock, Store } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
@@ -27,12 +27,18 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
   const [, setLocation] = useLocation();
   const [liked, setLiked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const { state } = useStore();
   const { toast } = useToast();
   
-  const { displayUrl } = useCachedImage(restaurant.image, {
-    fallbackUrl: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=450&fit=crop"
-  });
+  const { displayUrl } = useCachedImage(restaurant.image);
+
+  useEffect(() => {
+    // Reset image states when URL changes
+    setImageError(false);
+    setImageLoaded(false);
+  }, [displayUrl]);
 
   useEffect(() => {
     const checkFavoriteStatus = async () => {
@@ -92,13 +98,24 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
       onClick={() => setLocation(`/restaurant/${restaurant.id}`)}
       data-testid={`card-restaurant-${restaurant.id}`}
     >
-      <div className="relative aspect-[16/9] overflow-hidden bg-gray-100">
-        <img
-          src={displayUrl}
-          alt={restaurant.name}
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
+      <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-[#6d031e] to-[#8b0a2a]">
+        {/* Always render image if URL exists, hide placeholder once loaded */}
+        {displayUrl && !imageError && (
+          <img
+            src={displayUrl}
+            alt={restaurant.name}
+            className={`w-full h-full object-cover transition-opacity duration-200 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+            loading="lazy"
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageError(true)}
+          />
+        )}
+        {/* Show placeholder only if no URL, error, or still loading */}
+        {(!displayUrl || imageError || !imageLoaded) && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Store className="w-12 h-12 text-white/40" />
+          </div>
+        )}
         <button
           onClick={handleLike}
           disabled={isLoading}

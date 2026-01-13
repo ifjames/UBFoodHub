@@ -100,11 +100,30 @@ export default function OrderCancellationRequest({ order, onRequestSubmitted }: 
 
   // Check if order can be cancelled
   const canCancel = order.status === "pending" || order.status === "preparing";
+  
+  // Calculate time since order creation
+  const orderCreatedAt = order.createdAt?.seconds 
+    ? new Date(order.createdAt.seconds * 1000) 
+    : new Date(order.createdAt);
+  const minutesSinceCreation = (new Date().getTime() - orderCreatedAt.getTime()) / (1000 * 60);
+  
+  // GCash orders get 30 minutes cancellation window, cash orders get 10 minutes
+  const cancellationLimitMinutes = order.paymentMethod === 'gcash' ? 30 : 10;
+  const canCancelByTime = minutesSinceCreation <= cancellationLimitMinutes;
+  const minutesRemaining = Math.max(0, Math.ceil(cancellationLimitMinutes - minutesSinceCreation));
 
   if (!canCancel) {
     return (
       <Button disabled variant="outline" className="w-full">
         Cannot Cancel
+      </Button>
+    );
+  }
+  
+  if (!canCancelByTime) {
+    return (
+      <Button disabled variant="outline" className="w-full text-gray-400">
+        Cancel window expired
       </Button>
     );
   }
@@ -135,6 +154,20 @@ export default function OrderCancellationRequest({ order, onRequestSubmitted }: 
               <p className="text-sm text-gray-600">Stall: {order.stallName}</p>
               <p className="text-sm text-gray-600">Total: ₱{order.totalAmount?.toFixed(2)}</p>
               <p className="text-sm text-gray-600">Status: {order.status}</p>
+              <p className="text-sm text-gray-600">Payment: {order.paymentMethod === 'gcash' ? 'GCash' : 'Cash'}</p>
+            </CardContent>
+          </Card>
+          
+          {/* Time Remaining */}
+          <Card className="border-blue-200 bg-blue-50">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-blue-800 font-medium">Cancellation window:</span>
+                <span className="text-blue-700">{minutesRemaining} minute{minutesRemaining !== 1 ? 's' : ''} remaining</span>
+              </div>
+              <p className="text-xs text-blue-600 mt-1">
+                {order.paymentMethod === 'gcash' ? 'GCash orders can be cancelled within 30 minutes' : 'Cash orders can be cancelled within 10 minutes'}
+              </p>
             </CardContent>
           </Card>
 

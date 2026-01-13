@@ -6,6 +6,19 @@ import multer from "multer";
 import FormData from "form-data";
 import fetch from "node-fetch";
 import { config } from "./config.js";
+import {
+  generatePaymentReference,
+  generatePaymentId,
+  validateGcashNumber,
+  generatePaymentInstructions,
+  calculatePaymentExpiration,
+  isPaymentExpired,
+  maskGcashNumber,
+  validateGcashReferenceNumber,
+  formatCurrency,
+  PaymentStatus,
+  type GCashPayment
+} from "./gcash-payment";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup multer for file uploads
@@ -473,6 +486,242 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false,
         authDeleted: false,
         message: error.message || "Failed to process user deletion" 
+      });
+    }
+  });
+
+  // ========== GCash Payment Routes ==========
+
+  // Validate GCash number format
+  app.post("/api/gcash/validate-number", async (req, res) => {
+    try {
+      const { gcashNumber } = req.body;
+      
+      if (!gcashNumber) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "GCash number is required" 
+        });
+      }
+
+      const validation = validateGcashNumber(gcashNumber);
+      
+      res.json({
+        success: validation.valid,
+        formatted: validation.formatted,
+        error: validation.error
+      });
+    } catch (error: any) {
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "Failed to validate GCash number" 
+      });
+    }
+  });
+
+  // Initiate a GCash payment
+  app.post("/api/gcash/initiate-payment", async (req, res) => {
+    try {
+      const { 
+        orderId, 
+        userId, 
+        stallId, 
+        stallGcashNumber, 
+        stallGcashName,
+        amount,
+        customerGcashNumber 
+      } = req.body;
+
+      // Validate required fields
+      if (!orderId || !userId || !stallId || !stallGcashNumber || !amount) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing required payment information"
+        });
+      }
+
+      // Validate stall GCash number
+      const stallValidation = validateGcashNumber(stallGcashNumber);
+      if (!stallValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid stall GCash number: ${stallValidation.error}`
+        });
+      }
+
+      // Validate amount
+      if (amount <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Payment amount must be greater than 0"
+        });
+      }
+
+      // Generate payment details
+      const paymentId = generatePaymentId();
+      const referenceCode = generatePaymentReference();
+      const expiresAt = calculatePaymentExpiration();
+
+      const payment: GCashPayment = {
+        id: paymentId,
+        orderId,
+        userId,
+        stallId,
+        stallGcashNumber: stallValidation.formatted,
+        stallGcashName: stallGcashName || "Food Stall",
+        amount,
+        referenceCode,
+        status: PaymentStatus.PENDING,
+        customerGcashNumber: customerGcashNumber || undefined,
+        createdAt: new Date(),
+        expiresAt
+      };
+
+      // Generate payment instructions
+      const instructions = generatePaymentInstructions(payment);
+
+      res.json({
+        success: true,
+        payment: {
+          id: payment.id,
+          referenceCode: payment.referenceCode,
+          amount: payment.amount,
+          formattedAmount: formatCurrency(payment.amount),
+          stallGcashNumber: payment.stallGcashNumber,
+          stallGcashName: payment.stallGcashName,
+          maskedGcashNumber: maskGcashNumber(payment.stallGcashNumber),
+          expiresAt: payment.expiresAt,
+          status: payment.status
+        },
+        instructions
+      });
+    } catch (error: any) {
+      console.error("GCash payment initiation error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to initiate GCash payment"
+      });
+    }
+  });
+
+  // Submit GCash reference number for verification
+  app.post("/api/gcash/submit-reference", async (req, res) => {
+    try {
+      const { 
+        paymentId, 
+        orderId,
+        gcashReferenceNumber,
+        customerGcashNumber 
+      } = req.body;
+
+      if (!orderId || !gcashReferenceNumber) {
+        return res.status(400).json({
+          success: false,
+          message: "Order ID and GCash reference number are required"
+        });
+      }
+
+      // Validate reference number format
+      if (!validateGcashReferenceNumber(gcashReferenceNumber)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid GCash reference number format. Please enter the reference number from your GCash app."
+        });
+      }
+
+      // Validate customer GCash number if provided
+      if (customerGcashNumber) {
+        const customerValidation = validateGcashNumber(customerGcashNumber);
+        if (!customerValidation.valid) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid customer GCash number: ${customerValidation.error}`
+          });
+        }
+      }
+
+      // Return success - the actual verification will be done by the stall owner
+      // The frontend will update Firebase with this information
+      res.json({
+        success: true,
+        message: "GCash reference submitted successfully. Awaiting stall verification.",
+        data: {
+          orderId,
+          gcashReferenceNumber: gcashReferenceNumber.replace(/\s/g, ''),
+          customerGcashNumber: customerGcashNumber || null,
+          status: PaymentStatus.AWAITING_VERIFICATION,
+          submittedAt: new Date()
+        }
+      });
+    } catch (error: any) {
+      console.error("GCash reference submission error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to submit GCash reference"
+      });
+    }
+  });
+
+  // Verify GCash payment (called by stall owner)
+  app.post("/api/gcash/verify-payment", async (req, res) => {
+    try {
+      const { 
+        orderId, 
+        verifiedBy,
+        verified,
+        notes 
+      } = req.body;
+
+      if (!orderId || verifiedBy === undefined || verified === undefined) {
+        return res.status(400).json({
+          success: false,
+          message: "Order ID, verifier, and verification status are required"
+        });
+      }
+
+      res.json({
+        success: true,
+        message: verified ? "Payment verified successfully" : "Payment verification rejected",
+        data: {
+          orderId,
+          status: verified ? PaymentStatus.VERIFIED : PaymentStatus.FAILED,
+          verifiedAt: new Date(),
+          verifiedBy,
+          notes: notes || null
+        }
+      });
+    } catch (error: any) {
+      console.error("GCash payment verification error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to verify GCash payment"
+      });
+    }
+  });
+
+  // Get GCash payment status
+  app.get("/api/gcash/payment-status/:orderId", async (req, res) => {
+    try {
+      const { orderId } = req.params;
+
+      if (!orderId) {
+        return res.status(400).json({
+          success: false,
+          message: "Order ID is required"
+        });
+      }
+
+      // This endpoint returns a structure that the frontend can use
+      // The actual payment data is stored in Firebase
+      res.json({
+        success: true,
+        orderId,
+        message: "Query Firebase for actual payment status"
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to get payment status"
       });
     }
   });

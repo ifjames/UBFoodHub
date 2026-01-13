@@ -489,7 +489,6 @@ export default function Restaurant() {
                 <CachedImage
                   src={stall.image}
                   alt={stall.name}
-                  fallbackUrl="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=400&fit=crop"
                   className="w-32 h-32 lg:w-40 lg:h-40 rounded-xl object-cover shadow-md"
                 />
               </div>
@@ -499,7 +498,6 @@ export default function Restaurant() {
                 <CachedImage
                   src={stall.image}
                   alt={stall.name}
-                  fallbackUrl="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=400&fit=crop"
                   className="w-16 h-16 rounded-lg mr-4 object-cover"
                 />
               )}
@@ -611,7 +609,6 @@ export default function Restaurant() {
                     <CachedImage
                       src={item.image}
                       alt={item.name}
-                      fallbackUrl="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=400&fit=crop"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute top-1 right-1 md:top-3 md:right-3 flex gap-1 md:gap-2 flex-col md:flex-row">
@@ -839,7 +836,6 @@ export default function Restaurant() {
                   <CachedImage
                     src={selectedItem.image}
                     alt={selectedItem.name}
-                    fallbackUrl="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=600&fit=crop"
                     className="w-full h-full object-contain p-4 md:p-6"
                   />
                   {selectedItem.isPopular && (

@@ -6,6 +6,15 @@ interface CacheMetadata {
   timestamp: number;
 }
 
+// Check if URL is cacheable (only http/https URLs can be cached)
+function isCacheableUrl(url: string): boolean {
+  if (!url || url.trim() === '') return false;
+  // Data URLs, blob URLs, and other non-http(s) schemes cannot be cached
+  if (url.startsWith('data:') || url.startsWith('blob:')) return false;
+  // Only cache http and https URLs
+  return url.startsWith('http://') || url.startsWith('https://');
+}
+
 async function getCacheStorage(): Promise<Cache | null> {
   if ('caches' in window) {
     try {
@@ -24,7 +33,8 @@ function isExpired(timestamp: number): boolean {
 }
 
 export async function getCachedImage(url: string): Promise<string | null> {
-  if (!url || url.trim() === '') return null;
+  // Skip non-cacheable URLs
+  if (!isCacheableUrl(url)) return null;
   
   try {
     const cache = await getCacheStorage();
@@ -52,32 +62,37 @@ export async function getCachedImage(url: string): Promise<string | null> {
 }
 
 export async function cacheImage(url: string): Promise<void> {
-  if (!url || url.trim() === '') return;
+  // Skip non-cacheable URLs (data:, blob:, etc.)
+  if (!isCacheableUrl(url)) return;
   
   try {
     const cache = await getCacheStorage();
     if (!cache) return;
 
+    // Try to fetch with no-cors first (most external images don't support CORS)
+    // This will at least allow the browser to cache it for display
     const response = await fetch(url, {
-      mode: 'cors',
+      mode: 'no-cors',
       cache: 'force-cache'
     });
 
-    if (!response.ok) return;
+    // With no-cors mode, we can't read the response, but we can still cache
+    // opaque responses for display purposes
+    if (response.type === 'opaque' || response.ok) {
+      await cache.put(url, response.clone());
 
-    await cache.put(url, response.clone());
-
-    const metadata: CacheMetadata = {
-      url,
-      timestamp: Date.now()
-    };
-    
-    await cache.put(
-      `${url}-metadata`,
-      new Response(JSON.stringify(metadata))
-    );
+      const metadata: CacheMetadata = {
+        url,
+        timestamp: Date.now()
+      };
+      
+      await cache.put(
+        `${url}-metadata`,
+        new Response(JSON.stringify(metadata))
+      );
+    }
   } catch (error) {
-    console.warn('Failed to cache image:', error);
+    // Silently ignore cache errors - the image will still display via the browser
   }
 }
 

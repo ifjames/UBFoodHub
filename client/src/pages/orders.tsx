@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Clock, CheckCircle, XCircle, AlertCircle, QrCode, MapPin, Phone, Star } from "lucide-react";
+import { ArrowLeft, Clock, CheckCircle, XCircle, AlertCircle, QrCode, MapPin, Phone, Star, Smartphone, CreditCard, Copy, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
@@ -16,7 +17,13 @@ import QRCode from "@/components/qr-code";
 import OrderCancellationRequest from "@/components/orders/order-cancellation-request";
 import { usePageTitle } from "@/hooks/use-page-title";
 
-const orderStatusConfig = {
+const orderStatusConfig: Record<string, any> = {
+  awaiting_payment: {
+    color: "bg-orange-100 text-orange-800 border-orange-200",
+    icon: <Smartphone className="w-4 h-4" />,
+    label: "Awaiting Payment",
+    description: "Complete your GCash payment"
+  },
   pending: {
     color: "bg-yellow-100 text-yellow-800 border-yellow-200",
     icon: <Clock className="w-4 h-4" />,
@@ -64,6 +71,13 @@ export default function Orders() {
   const [reviewComment, setReviewComment] = useState("");
   const [qrOrderUnsubscribe, setQrOrderUnsubscribe] = useState<(() => void) | null>(null);
   const [isOrderCompleted, setIsOrderCompleted] = useState(false);
+  
+  // GCash payment state
+  const [showGcashPaymentDialog, setShowGcashPaymentDialog] = useState(false);
+  const [gcashReferenceNumber, setGcashReferenceNumber] = useState("");
+  const [customerGcashNumber, setCustomerGcashNumber] = useState("");
+  const [isSubmittingGcash, setIsSubmittingGcash] = useState(false);
+  const [gcashError, setGcashError] = useState("");
 
   useEffect(() => {
     if (state.user?.id) {
@@ -78,6 +92,52 @@ export default function Orders() {
       return () => unsubscribe();
     }
   }, [state.user?.id]);
+
+  // Auto-cancel GCash orders that haven't been paid within 15 minutes
+  useEffect(() => {
+    const checkExpiredPayments = async () => {
+      const now = new Date();
+      
+      for (const order of orders) {
+        if (order.status === 'awaiting_payment' && order.paymentMethod === 'gcash') {
+          const createdAt = order.createdAt?.seconds 
+            ? new Date(order.createdAt.seconds * 1000) 
+            : new Date(order.createdAt);
+          
+          const minutesSinceCreation = (now.getTime() - createdAt.getTime()) / (1000 * 60);
+          
+          // Auto-cancel after 15 minutes of no payment
+          if (minutesSinceCreation >= 15) {
+            try {
+              await updateDocument("orders", order.id, {
+                status: 'cancelled',
+                cancelledAt: new Date(),
+                cancelReason: 'GCash payment not completed within 15 minutes'
+              });
+              
+              toast({
+                title: "Order Auto-Cancelled",
+                description: `Order ${order.qrCode} was cancelled due to payment timeout.`,
+                variant: "destructive",
+              });
+            } catch (error) {
+              console.error('Failed to auto-cancel order:', error);
+            }
+          }
+        }
+      }
+    };
+
+    // Check every 30 seconds
+    const interval = setInterval(checkExpiredPayments, 30000);
+    
+    // Also check immediately when orders change
+    if (orders.length > 0) {
+      checkExpiredPayments();
+    }
+    
+    return () => clearInterval(interval);
+  }, [orders, toast]);
 
   const cancelOrder = async (orderId: string) => {
     if (!orderId) return;
@@ -304,17 +364,83 @@ export default function Orders() {
                 {/* Quick Summary */}
                 <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                   <p className="text-sm text-gray-700">
-                    {order.items?.length} item{order.items?.length !== 1 ? 's' : ''} • {order.paymentMethod === 'cash' ? 'Cash Payment' : order.paymentMethod || 'Payment method not specified'}
+                    {order.items?.length} item{order.items?.length !== 1 ? 's' : ''} • {order.paymentMethod === 'cash' ? 'Cash Payment' : order.paymentMethod === 'gcash' ? 'GCash' : order.paymentMethod || 'Payment method not specified'}
                   </p>
                   <p className="text-xs text-gray-600 mt-1">{statusConfig.description}</p>
+                  
+                  {/* GCash Payment Status */}
+                  {order.paymentMethod === 'gcash' && order.gcashPayment && (
+                    <div className={`mt-2 p-2 rounded text-xs ${
+                      order.gcashPayment.status === 'verified' 
+                        ? 'bg-green-50 text-green-700' 
+                        : order.gcashPayment.status === 'awaiting_verification'
+                        ? 'bg-yellow-50 text-yellow-700'
+                        : order.gcashPayment.status === 'failed'
+                        ? 'bg-red-50 text-red-700'
+                        : 'bg-blue-50 text-blue-700'
+                    }`}>
+                      {order.gcashPayment.status === 'verified' && (
+                        <span className="flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3" /> GCash Payment Verified
+                        </span>
+                      )}
+                      {order.gcashPayment.status === 'awaiting_verification' && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> Awaiting stall verification
+                        </span>
+                      )}
+                      {order.gcashPayment.status === 'pending' && (
+                        <span className="flex items-center gap-1">
+                          <Smartphone className="w-3 h-3" /> Complete GCash payment
+                        </span>
+                      )}
+                      {order.gcashPayment.status === 'failed' && (
+                        <span className="flex items-center gap-1">
+                          <XCircle className="w-3 h-3" /> Payment not verified
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Auto-cancellation timer for awaiting_payment */}
+                  {order.status === 'awaiting_payment' && order.paymentMethod === 'gcash' && (() => {
+                    const createdAt = order.createdAt?.seconds 
+                      ? new Date(order.createdAt.seconds * 1000) 
+                      : new Date(order.createdAt);
+                    const minutesPassed = (new Date().getTime() - createdAt.getTime()) / (1000 * 60);
+                    const minutesRemaining = Math.max(0, Math.ceil(15 - minutesPassed));
+                    
+                    return minutesRemaining > 0 ? (
+                      <div className="mt-2 p-2 rounded bg-orange-50 border border-orange-200">
+                        <p className="text-xs text-orange-700 flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          Auto-cancel in {minutesRemaining} minute{minutesRemaining !== 1 ? 's' : ''} if not paid
+                        </p>
+                      </div>
+                    ) : null;
+                  })()}
                 </div>
 
                 {/* Action Buttons */}
                 <div className="flex flex-col gap-2 md:gap-3">
+                  {/* GCash Payment Button - Shows for awaiting_payment orders */}
+                  {order.status === 'awaiting_payment' && order.paymentMethod === 'gcash' && (
+                    <Button
+                      onClick={() => {
+                        setSelectedOrder(order);
+                        setShowGcashPaymentDialog(true);
+                      }}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 text-base font-medium md:h-14 md:text-lg"
+                    >
+                      <Smartphone className="w-5 h-5 mr-2" />
+                      Complete GCash Payment
+                    </Button>
+                  )}
+                  
                   {/* Primary action - View Details takes full width */}
                   <Button
                     onClick={() => viewOrderDetails(order)}
-                    className="w-full bg-[#6d031e] hover:bg-red-700 text-white h-12 text-base font-medium md:h-14 md:text-lg"
+                    className={`w-full ${order.status === 'awaiting_payment' ? 'bg-gray-600' : 'bg-[#6d031e]'} hover:bg-red-700 text-white h-12 text-base font-medium md:h-14 md:text-lg`}
                   >
                     View Details
                   </Button>
@@ -691,6 +817,160 @@ export default function Orders() {
                   {isLoading ? "Submitting..." : "Submit Review"}
                 </Button>
               </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* GCash Payment Dialog */}
+      <Dialog open={showGcashPaymentDialog} onOpenChange={setShowGcashPaymentDialog}>
+        <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-[#6d031e]">
+              <Smartphone className="w-5 h-5" />
+              Complete GCash Payment
+            </DialogTitle>
+            <DialogDescription>
+              Send payment to the stall's GCash account
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedOrder && (
+            <div className="space-y-4">
+              {/* Payment Amount */}
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-700 mb-1">Amount to send:</p>
+                <p className="text-3xl font-bold text-blue-900">PHP {selectedOrder.totalAmount?.toFixed(2)}</p>
+              </div>
+
+              {/* GCash QR Code */}
+              {selectedOrder.gcashPayment?.stallGcashQrCode ? (
+                <div className="flex flex-col items-center p-4 border-2 border-blue-200 rounded-lg bg-white">
+                  <p className="text-sm font-medium text-gray-700 mb-3">Scan QR Code to Pay:</p>
+                  <img
+                    src={selectedOrder.gcashPayment.stallGcashQrCode}
+                    alt="GCash QR Code"
+                    className="w-52 h-52 object-contain"
+                  />
+                  <div className="mt-3 text-center">
+                    <p className="text-sm font-medium text-gray-900">
+                      {selectedOrder.gcashPayment?.stallGcashName || 'GCash Account'}
+                    </p>
+                    <p className="text-xs text-gray-500">{selectedOrder.stallName}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 border-2 border-yellow-200 rounded-lg bg-yellow-50 text-center">
+                  <p className="text-sm text-yellow-800">
+                    No QR code available - please send manually using the number below
+                  </p>
+                </div>
+              )}
+
+              {/* Manual Payment Option */}
+              <div className="p-4 border rounded-lg bg-gray-50">
+                <p className="text-sm text-gray-600 mb-2">Send to GCash Number:</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-lg font-bold text-gray-900">
+                      {selectedOrder.gcashPayment?.stallGcashNumber || 'Not available'}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {selectedOrder.gcashPayment?.stallGcashName || 'N/A'}
+                    </p>
+                  </div>
+                  {selectedOrder.gcashPayment?.stallGcashNumber && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        navigator.clipboard.writeText(selectedOrder.gcashPayment?.stallGcashNumber || '');
+                        toast({ title: "Copied", description: "GCash number copied to clipboard" });
+                      }}
+                    >
+                      <Copy className="w-4 h-4 mr-1" />
+                      Copy
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Reference Code */}
+              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800 mb-2">Include this in your GCash message:</p>
+                <div className="flex items-center gap-2">
+                  <code className="bg-yellow-100 px-3 py-1.5 rounded font-mono text-yellow-900 font-medium">
+                    {selectedOrder.qrCode}
+                  </code>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(selectedOrder.qrCode || '');
+                      toast({ title: "Copied", description: "Reference code copied to clipboard" });
+                    }}
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Simple Instructions */}
+              <div className="text-sm text-gray-600 space-y-1">
+                <p className="font-medium text-gray-700">How to pay:</p>
+                <p>1. Open GCash app and scan the QR code above</p>
+                <p>2. Or tap Send Money and enter the number</p>
+                <p>3. Send exactly PHP {selectedOrder.totalAmount?.toFixed(2)}</p>
+                <p>4. Add the reference code in message</p>
+              </div>
+
+              {gcashError && (
+                <div className="p-2 bg-red-50 rounded text-sm text-red-700">
+                  {gcashError}
+                </div>
+              )}
+
+              {/* Submit Button */}
+              <Button
+                onClick={async () => {
+                  setIsSubmittingGcash(true);
+                  setGcashError("");
+
+                  try {
+                    // Update order status to awaiting verification
+                    await updateDocument("orders", selectedOrder.id, {
+                      'gcashPayment.status': 'awaiting_verification',
+                      'gcashPayment.submittedAt': new Date(),
+                      status: 'pending' // Move from awaiting_payment to pending
+                    });
+
+                    toast({
+                      title: "Payment Submitted",
+                      description: "The stall owner will verify your payment shortly.",
+                    });
+
+                    setShowGcashPaymentDialog(false);
+                  } catch (error) {
+                    setGcashError("Failed to submit payment. Please try again.");
+                  } finally {
+                    setIsSubmittingGcash(false);
+                  }
+                }}
+                className="w-full bg-[#6d031e] hover:bg-red-700"
+                disabled={isSubmittingGcash}
+              >
+                {isSubmittingGcash ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    I Have Completed the Payment
+                  </>
+                )}
+              </Button>
             </div>
           )}
         </DialogContent>

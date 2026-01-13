@@ -10,6 +10,7 @@ import {
   CheckCircle, 
   Package,
   TrendingUp,
+  TrendingDown,
   DollarSign,
   Users,
   Star,
@@ -27,7 +28,14 @@ import {
   Coins,
   Check,
   GripVertical,
-  Lock
+  Lock,
+  CreditCard,
+  Smartphone,
+  AlertCircle,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,6 +75,8 @@ import NotificationService from "@/lib/notification-service";
 import BottomNav from "@/components/layout/bottom-nav";
 import QRScanner from "@/components/qr-scanner";
 import { ImageUpload } from "@/components/image-upload";
+import { cropGcashQrCode } from "@/lib/qr-crop";
+import { uploadImageToImgBB } from "@/lib/imgbb-upload";
 
 
 export default function StallDashboard() {
@@ -93,13 +103,23 @@ export default function StallDashboard() {
   const [orderSearchQuery, setOrderSearchQuery] = useState("");
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [ordersInitialized, setOrdersInitialized] = useState(false);
+  
+  // Sales History state
+  const [salesHistoryDate, setSalesHistoryDate] = useState<Date>(new Date());
+  
   const [stallForm, setStallForm] = useState({
     name: "",
     description: "",
     image: "",
     isActive: true,
     categories: [] as string[],
+    gcashNumber: "",
+    gcashName: "",
+    gcashEnabled: false,
+    gcashQrCode: "",
   });
+  const [gcashValidationError, setGcashValidationError] = useState<string>("");
+  const [isUploadingQrCode, setIsUploadingQrCode] = useState(false);
   const [categoryInput, setCategoryInput] = useState("");
   const [isEditingStall, setIsEditingStall] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
@@ -193,6 +213,18 @@ export default function StallDashboard() {
           const stall = { id: doc.id, ...doc.data() };
           setStallInfo(stall);
           setStallId(doc.id);
+          // Populate stall form for editing
+          setStallForm({
+            name: stall.name || "",
+            description: stall.description || "",
+            image: stall.image || "",
+            isActive: stall.isActive !== undefined ? stall.isActive : true,
+            categories: stall.categories || [],
+            gcashNumber: stall.gcashNumber || "",
+            gcashName: stall.gcashName || "",
+            gcashEnabled: stall.gcashEnabled || false,
+            gcashQrCode: stall.gcashQrCode || "",
+          });
           console.log("Found stall with user ID as doc ID:", stall);
         } else {
           console.log("No stall found with user ID as doc ID, searching by ownerId...");
@@ -210,6 +242,10 @@ export default function StallDashboard() {
                 image: stall.image || "",
                 isActive: stall.isActive !== undefined ? stall.isActive : true,
                 categories: stall.categories || [],
+                gcashNumber: stall.gcashNumber || "",
+                gcashName: stall.gcashName || "",
+                gcashEnabled: stall.gcashEnabled || false,
+                gcashQrCode: stall.gcashQrCode || "",
               });
               console.log("Found stall by ownerId:", stall);
             } else {
@@ -716,6 +752,44 @@ export default function StallDashboard() {
       return;
     }
 
+    // Validate GCash number if GCash is being enabled
+    if (stallForm.gcashEnabled && stallForm.gcashNumber) {
+      // Simple client-side validation for Philippine mobile numbers
+      let cleanedNumber = stallForm.gcashNumber.replace(/[^\d]/g, '');
+      
+      // Handle different formats
+      if (cleanedNumber.startsWith('63')) {
+        cleanedNumber = '0' + cleanedNumber.substring(2);
+      } else if (!cleanedNumber.startsWith('0') && cleanedNumber.length === 10) {
+        cleanedNumber = '0' + cleanedNumber;
+      }
+      
+      // Validate length and starting digit
+      if (cleanedNumber.length !== 11 || !cleanedNumber.startsWith('09')) {
+        setGcashValidationError("Please enter a valid Philippine mobile number (e.g., 09171234567)");
+        toast({
+          title: "Invalid GCash Number",
+          description: "Please enter a valid Philippine mobile number starting with 09",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Update with formatted number
+      stallForm.gcashNumber = cleanedNumber;
+      setGcashValidationError("");
+    }
+
+    // Require GCash name if number is provided
+    if (stallForm.gcashEnabled && stallForm.gcashNumber && !stallForm.gcashName) {
+      toast({
+        title: "Error",
+        description: "Please enter the GCash account name for verification",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const stallData = {
         name: stallForm.name,
@@ -723,6 +797,10 @@ export default function StallDashboard() {
         image: stallForm.image,
         isActive: stallForm.isActive,
         categories: stallForm.categories,
+        gcashNumber: stallForm.gcashNumber || null,
+        gcashName: stallForm.gcashName || null,
+        gcashEnabled: stallForm.gcashEnabled && !!stallForm.gcashNumber,
+        gcashQrCode: stallForm.gcashQrCode || null,
       };
 
       await updateDocument("stalls", stallId, stallData);
@@ -1323,7 +1401,8 @@ export default function StallDashboard() {
                 { id: "settings", label: "Settings", icon: Settings },
                 { id: "cancellations", label: "Cancellations", icon: X },
                 { id: "reviews", label: "Reviews", icon: MessageSquare },
-                { id: "statistics", label: "Statistics", icon: TrendingUp }
+                { id: "statistics", label: "Statistics", icon: TrendingUp },
+                { id: "sales-history", label: "Sales History", icon: CalendarDays }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -1347,6 +1426,7 @@ export default function StallDashboard() {
                     {tab.id === "settings" ? "Settings" : 
                      tab.id === "cancellations" ? "Cancel" :
                      tab.id === "statistics" ? "Stats" :
+                     tab.id === "sales-history" ? "Sales" :
                      tab.label}
                   </span>
                 </button>
@@ -1362,7 +1442,8 @@ export default function StallDashboard() {
               { id: "settings", label: "Stall Settings", icon: Settings },
               { id: "cancellations", label: "Cancellations", icon: X },
               { id: "reviews", label: "Reviews", icon: MessageSquare },
-              { id: "statistics", label: "Statistics", icon: TrendingUp }
+              { id: "statistics", label: "Statistics", icon: TrendingUp },
+              { id: "sales-history", label: "Sales History", icon: CalendarDays }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -1456,6 +1537,17 @@ export default function StallDashboard() {
                       className={orderFilter === "completed" ? "bg-gray-600 hover:bg-gray-700" : "text-gray-700 border-gray-300 hover:bg-gray-50 hover:text-gray-800"}
                     >
                       Completed ({orders.filter(o => o.status === 'completed').length})
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={orderFilter === "cancelled" ? "default" : "outline"}
+                      onClick={() => {
+                        setOrderFilter("cancelled");
+                        setCurrentPage(1);
+                      }}
+                      className={orderFilter === "cancelled" ? "bg-red-600 hover:bg-red-700" : "text-red-700 border-red-300 hover:bg-red-50 hover:text-red-800"}
+                    >
+                      Cancelled ({orders.filter(o => o.status === 'cancelled').length})
                     </Button>
                   </div>
                   
@@ -1551,6 +1643,37 @@ export default function StallDashboard() {
                                     <Coins className="w-3 h-3" />
                                     Change: ₱{(order.cashAmount - order.totalAmount).toFixed(2)}
                                   </p>
+                                </div>
+                              )}
+                              {order.paymentMethod === 'gcash' && (
+                                <div className={`border rounded px-2 py-1 ${
+                                  order.gcashPayment?.status === 'verified' 
+                                    ? 'bg-green-50 border-green-200' 
+                                    : order.gcashPayment?.status === 'awaiting_verification'
+                                    ? 'bg-yellow-50 border-yellow-200'
+                                    : 'bg-blue-50 border-blue-200'
+                                }`}>
+                                  <p className={`text-xs font-medium flex items-center gap-1 ${
+                                    order.gcashPayment?.status === 'verified'
+                                      ? 'text-green-700'
+                                      : order.gcashPayment?.status === 'awaiting_verification'
+                                      ? 'text-yellow-700'
+                                      : 'text-blue-700'
+                                  }`}>
+                                    <CreditCard className="w-3 h-3" />
+                                    GCash
+                                    {order.gcashPayment?.status === 'verified' && (
+                                      <Check className="w-3 h-3 text-green-600" />
+                                    )}
+                                    {order.gcashPayment?.status === 'awaiting_verification' && (
+                                      <span className="text-yellow-600 text-xs ml-1">• Verify</span>
+                                    )}
+                                  </p>
+                                  {order.gcashPayment?.customerReference && (
+                                    <p className="text-xs text-gray-600 mt-0.5">
+                                      Ref: {order.gcashPayment.customerReference}
+                                    </p>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -2174,6 +2297,466 @@ export default function StallDashboard() {
           </motion.div>
         )}
 
+        {/* Sales History Tab */}
+        {activeTab === "sales-history" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
+          >
+            {/* Date Navigation - Enhanced */}
+            <Card className="border-[#6d031e]/20">
+              <CardHeader className="pb-3 bg-gradient-to-r from-[#6d031e] to-[#8b0a2e] text-white rounded-t-lg">
+                <CardTitle className="flex items-center gap-2">
+                  <CalendarDays className="w-5 h-5" />
+                  Daily Sales Dashboard
+                </CardTitle>
+                <p className="text-sm text-white/80">Your daily snapshot of stall performance</p>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between mb-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newDate = new Date(salesHistoryDate);
+                      newDate.setDate(newDate.getDate() - 1);
+                      setSalesHistoryDate(newDate);
+                    }}
+                    className="flex items-center gap-1"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span className="hidden sm:inline">Older</span>
+                  </Button>
+                  
+                  <div className="text-center flex-1">
+                    <p className="font-semibold text-lg text-[#6d031e]">
+                      {salesHistoryDate.toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                    {salesHistoryDate.toDateString() === new Date().toDateString() && (
+                      <span className="inline-block px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+                        Today
+                      </span>
+                    )}
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newDate = new Date(salesHistoryDate);
+                      newDate.setDate(newDate.getDate() + 1);
+                      if (newDate <= new Date()) {
+                        setSalesHistoryDate(newDate);
+                      }
+                    }}
+                    disabled={salesHistoryDate.toDateString() === new Date().toDateString()}
+                    className="flex items-center gap-1"
+                  >
+                    <span className="hidden sm:inline">Newer</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                {/* Date Picker Input */}
+                <div className="flex items-center justify-center gap-2 mb-4">
+                  <label className="text-sm text-gray-600">Jump to date:</label>
+                  <input
+                    type="date"
+                    value={salesHistoryDate.toISOString().split('T')[0]}
+                    max={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => {
+                      const selectedDate = new Date(e.target.value + 'T00:00:00');
+                      if (!isNaN(selectedDate.getTime()) && selectedDate <= new Date()) {
+                        setSalesHistoryDate(selectedDate);
+                      }
+                    }}
+                    className="border rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-[#6d031e] focus:border-[#6d031e]"
+                  />
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="bg-[#6d031e] hover:bg-red-800"
+                    onClick={() => setSalesHistoryDate(new Date())}
+                  >
+                    Today
+                  </Button>
+                </div>
+                
+                {/* Quick date selection - Recent 7 days */}
+                <div className="flex gap-2 flex-wrap justify-center">
+                  {[0, 1, 2, 3, 4, 5, 6].map((daysAgo) => {
+                    const date = new Date();
+                    date.setDate(date.getDate() - daysAgo);
+                    const isSelected = salesHistoryDate.toDateString() === date.toDateString();
+                    return (
+                      <Button
+                        key={daysAgo}
+                        variant={isSelected ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSalesHistoryDate(date)}
+                        className={isSelected ? "bg-[#6d031e] hover:bg-red-800" : "hover:bg-[#6d031e]/10"}
+                      >
+                        {daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Daily Summary */}
+            {(() => {
+              const selectedDateStart = new Date(salesHistoryDate);
+              selectedDateStart.setHours(0, 0, 0, 0);
+              const selectedDateEnd = new Date(salesHistoryDate);
+              selectedDateEnd.setHours(23, 59, 59, 999);
+              
+              const dailyOrders = orders.filter(order => {
+                const orderDate = order.createdAt?.seconds 
+                  ? new Date(order.createdAt.seconds * 1000) 
+                  : new Date(order.createdAt);
+                return orderDate >= selectedDateStart && orderDate <= selectedDateEnd;
+              });
+              
+              const completedDailyOrders = dailyOrders.filter(o => o.status === 'completed');
+              const cancelledDailyOrders = dailyOrders.filter(o => o.status === 'cancelled');
+              const pendingDailyOrders = dailyOrders.filter(o => ['pending', 'preparing', 'ready', 'awaiting_payment'].includes(o.status));
+              
+              const dailyRevenue = completedDailyOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+              const dailyCashRevenue = completedDailyOrders.filter(o => o.paymentMethod === 'cash').reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+              const dailyGcashRevenue = completedDailyOrders.filter(o => o.paymentMethod === 'gcash').reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+              const cancelledRevenue = cancelledDailyOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+              
+              // Calculate items sold
+              const itemsSold: Record<string, { count: number; revenue: number; price: number }> = {};
+              completedDailyOrders.forEach(order => {
+                order.items?.forEach((item: any) => {
+                  const name = item.name || 'Unknown Item';
+                  if (!itemsSold[name]) {
+                    itemsSold[name] = { count: 0, revenue: 0, price: item.price || 0 };
+                  }
+                  itemsSold[name].count += item.quantity || 1;
+                  itemsSold[name].revenue += (item.price || 0) * (item.quantity || 1);
+                });
+              });
+              
+              const sortedItems = Object.entries(itemsSold).sort((a, b) => b[1].count - a[1].count);
+              const topSellers = sortedItems.slice(0, 3);
+              const lowSellers = sortedItems.length > 3 ? sortedItems.slice(-3).reverse() : [];
+              
+              // Get menu items that weren't sold today
+              const soldItemNames = new Set(Object.keys(itemsSold));
+              const unsoldItems = stallInfo?.menu?.filter((item: any) => item.available && !soldItemNames.has(item.name)) || [];
+              
+              // Calculate average order value
+              const avgOrderValue = completedDailyOrders.length > 0 ? dailyRevenue / completedDailyOrders.length : 0;
+              
+              // Peak hours calculation
+              const hourlyOrders: Record<number, number> = {};
+              completedDailyOrders.forEach(order => {
+                const orderDate = order.createdAt?.seconds 
+                  ? new Date(order.createdAt.seconds * 1000) 
+                  : new Date(order.createdAt);
+                const hour = orderDate.getHours();
+                hourlyOrders[hour] = (hourlyOrders[hour] || 0) + 1;
+              });
+              const peakHour = Object.entries(hourlyOrders).sort((a, b) => b[1] - a[1])[0];
+              
+              return (
+                <>
+                  {/* TODAY'S REVENUE - Hero Card */}
+                  <Card className="border-2 border-[#6d031e]/30 bg-gradient-to-br from-white to-green-50">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg font-semibold text-[#6d031e] flex items-center gap-2">
+                        <DollarSign className="w-5 h-5" />
+                        Today's Revenue
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                          <p className="text-sm text-gray-500 mb-1">Gross Revenue</p>
+                          <p className="text-3xl font-bold text-green-600">₱{dailyRevenue.toFixed(2)}</p>
+                          <p className="text-xs text-gray-400 mt-1">From {completedDailyOrders.length} completed orders</p>
+                        </div>
+                        <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                          <p className="text-sm text-gray-500 mb-1">Average Order Value</p>
+                          <p className="text-2xl font-bold text-blue-600">₱{avgOrderValue.toFixed(2)}</p>
+                          <p className="text-xs text-gray-400 mt-1">Per completed order</p>
+                        </div>
+                        <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                          <p className="text-sm text-gray-500 mb-1">Lost Revenue</p>
+                          <p className="text-2xl font-bold text-red-500">₱{cancelledRevenue.toFixed(2)}</p>
+                          <p className="text-xs text-gray-400 mt-1">From {cancelledDailyOrders.length} cancelled orders</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Quick Stats Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <Card className="bg-green-50 border-green-200">
+                      <CardContent className="p-3 text-center">
+                        <CheckCircle className="w-6 h-6 mx-auto mb-1 text-green-600" />
+                        <p className="text-xs text-green-700">Completed</p>
+                        <p className="text-xl font-bold text-green-800">{completedDailyOrders.length}</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="bg-yellow-50 border-yellow-200">
+                      <CardContent className="p-3 text-center">
+                        <Clock className="w-6 h-6 mx-auto mb-1 text-yellow-600" />
+                        <p className="text-xs text-yellow-700">Pending</p>
+                        <p className="text-xl font-bold text-yellow-800">{pendingDailyOrders.length}</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="bg-red-50 border-red-200">
+                      <CardContent className="p-3 text-center">
+                        <X className="w-6 h-6 mx-auto mb-1 text-red-600" />
+                        <p className="text-xs text-red-700">Cancelled</p>
+                        <p className="text-xl font-bold text-red-800">{cancelledDailyOrders.length}</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="bg-purple-50 border-purple-200">
+                      <CardContent className="p-3 text-center">
+                        <Clock className="w-6 h-6 mx-auto mb-1 text-purple-600" />
+                        <p className="text-xs text-purple-700">Peak Hour</p>
+                        <p className="text-xl font-bold text-purple-800">
+                          {peakHour ? `${peakHour[0]}:00` : 'N/A'}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* SALES PERFORMANCE */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Top Sellers */}
+                    <Card className="border-green-200">
+                      <CardHeader className="pb-2 bg-green-50 rounded-t-lg">
+                        <CardTitle className="text-sm font-medium text-green-700 flex items-center gap-2">
+                          <TrendingUp className="w-4 h-4" />
+                          🏆 Top Sellers
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="pt-3">
+                        {topSellers.length > 0 ? (
+                          <div className="space-y-2">
+                            {topSellers.map(([name, data], index) => (
+                              <div key={name} className="flex items-center justify-between p-2 bg-green-50/50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-lg">{index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}</span>
+                                  <span className="font-medium text-sm">{name}</span>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-bold text-green-700">x{data.count}</p>
+                                  <p className="text-xs text-gray-500">₱{data.revenue.toFixed(2)}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-center text-gray-500 py-4 text-sm">No sales yet</p>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Low/No Sales Items */}
+                    <Card className="border-orange-200">
+                      <CardHeader className="pb-2 bg-orange-50 rounded-t-lg">
+                        <CardTitle className="text-sm font-medium text-orange-700 flex items-center gap-2">
+                          <TrendingDown className="w-4 h-4" />
+                          ⚠️ Needs Attention
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="pt-3">
+                        {(lowSellers.length > 0 || unsoldItems.length > 0) ? (
+                          <div className="space-y-2">
+                            {unsoldItems.slice(0, 2).map((item: any) => (
+                              <div key={item.name} className="flex items-center justify-between p-2 bg-red-50/50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-lg">❌</span>
+                                  <span className="font-medium text-sm">{item.name}</span>
+                                </div>
+                                <span className="text-xs text-red-600 font-medium">No sales today</span>
+                              </div>
+                            ))}
+                            {lowSellers.map(([name, data]) => (
+                              <div key={name} className="flex items-center justify-between p-2 bg-orange-50/50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-lg">📉</span>
+                                  <span className="font-medium text-sm">{name}</span>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-bold text-orange-700">x{data.count}</p>
+                                  <p className="text-xs text-gray-500">Low sales</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-center text-green-600 py-4 text-sm">All items selling well! 🎉</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                  
+                  {/* PAYMENT BREAKDOWN */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <Banknote className="w-4 h-4" />
+                        Payment Breakdown
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
+                          <div className="p-2 bg-green-100 rounded-full">
+                            <Banknote className="w-6 h-6 text-green-600" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-600">Cash Payments</p>
+                            <p className="text-xl font-bold text-green-700">₱{dailyCashRevenue.toFixed(2)}</p>
+                            <div className="flex items-center justify-between">
+                              <p className="text-xs text-gray-500">{completedDailyOrders.filter(o => o.paymentMethod === 'cash').length} orders</p>
+                              <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                                {dailyRevenue > 0 ? ((dailyCashRevenue / dailyRevenue) * 100).toFixed(0) : 0}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                          <div className="p-2 bg-blue-100 rounded-full">
+                            <Smartphone className="w-6 h-6 text-blue-600" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-600">GCash Payments</p>
+                            <p className="text-xl font-bold text-blue-700">₱{dailyGcashRevenue.toFixed(2)}</p>
+                            <div className="flex items-center justify-between">
+                              <p className="text-xs text-gray-500">{completedDailyOrders.filter(o => o.paymentMethod === 'gcash').length} orders</p>
+                              <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
+                                {dailyRevenue > 0 ? ((dailyGcashRevenue / dailyRevenue) * 100).toFixed(0) : 0}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* ALL ITEMS SOLD */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        All Items Sold ({sortedItems.reduce((sum, [, data]) => sum + data.count, 0)} total units)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {sortedItems.length > 0 ? (
+                        <div className="space-y-2 max-h-64 overflow-y-auto">
+                          {sortedItems.map(([name, data], index) => (
+                            <div key={name} className="flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-gray-500 w-6">#{index + 1}</span>
+                                <span className="font-medium">{name}</span>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-bold">x{data.count}</p>
+                                <p className="text-xs text-gray-500">₱{data.revenue.toFixed(2)}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-center text-gray-500 py-4">No items sold on this day</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Completed Orders List */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-gray-600">
+                        Completed Orders ({completedDailyOrders.length})
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {completedDailyOrders.length > 0 ? (
+                        <div className="space-y-2 max-h-96 overflow-y-auto">
+                          {completedDailyOrders.map((order) => (
+                            <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                              <div>
+                                <p className="font-medium">{order.qrCode}</p>
+                                <p className="text-sm text-gray-500">
+                                  {order.createdAt?.seconds 
+                                    ? new Date(order.createdAt.seconds * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                                    : 'N/A'}
+                                  {' - '}{order.items?.length || 0} item{order.items?.length !== 1 ? 's' : ''}
+                                </p>
+                                <p className="text-xs text-gray-400">{order.customerName || 'Customer'}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-bold text-green-600">₱{order.totalAmount?.toFixed(2)}</p>
+                                <span className={`text-xs px-2 py-0.5 rounded ${order.paymentMethod === 'gcash' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
+                                  {order.paymentMethod === 'gcash' ? 'GCash' : 'Cash'}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-center text-gray-500 py-8">No completed orders on this day</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Cancelled Orders (if any) */}
+                  {cancelledDailyOrders.length > 0 && (
+                    <Card className="border-red-200">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-red-600">
+                          Cancelled Orders ({cancelledDailyOrders.length})
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2 max-h-48 overflow-y-auto">
+                          {cancelledDailyOrders.map((order) => (
+                            <div key={order.id} className="flex items-center justify-between p-3 border border-red-100 rounded-lg bg-red-50">
+                              <div>
+                                <p className="font-medium text-red-800">{order.qrCode}</p>
+                                <p className="text-sm text-red-600">
+                                  {order.createdAt?.seconds 
+                                    ? new Date(order.createdAt.seconds * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                                    : 'N/A'}
+                                </p>
+                                {order.cancelReason && (
+                                  <p className="text-xs text-red-500">{order.cancelReason}</p>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <p className="font-bold text-red-700">₱{order.totalAmount?.toFixed(2)}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </>
+              );
+            })()}
+          </motion.div>
+        )}
+
         {/* Stall Settings Tab */}
         {activeTab === "settings" && (
           <motion.div
@@ -2204,9 +2787,13 @@ export default function StallDashboard() {
                             image: stallInfo.image || "",
                             isActive: stallInfo.isActive !== undefined ? stallInfo.isActive : true,
                             categories: stallInfo.categories || [],
+                            gcashNumber: stallInfo.gcashNumber || "",
+                            gcashName: stallInfo.gcashName || "",
+                            gcashEnabled: stallInfo.gcashEnabled || false,
                           });
                         }
                         setCategoryInput("");
+                        setGcashValidationError("");
                       }}
                       variant="outline"
                       className="text-gray-700 hover:text-gray-700"
@@ -2495,6 +3082,235 @@ export default function StallDashboard() {
                     </>
                   )}
                 </Button>
+              </CardContent>
+            </Card>
+
+            {/* GCash Payment Settings Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-[#6d031e] flex items-center gap-2">
+                  <Banknote className="w-5 h-5" />
+                  GCash Payment Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-3 bg-blue-50 rounded-lg mb-4">
+                  <p className="text-sm text-blue-800">
+                    💡 Enable GCash payments to allow students to pay directly to your GCash account. 
+                    This provides a convenient cashless payment option.
+                  </p>
+                </div>
+
+                {/* GCash Enable Toggle */}
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <Label htmlFor="gcash-enabled" className="text-sm font-medium">
+                      Enable GCash Payments
+                    </Label>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Allow customers to pay via GCash
+                    </p>
+                  </div>
+                  <Switch
+                    id="gcash-enabled"
+                    checked={stallForm.gcashEnabled}
+                    onCheckedChange={(checked) => setStallForm(prev => ({ ...prev, gcashEnabled: checked }))}
+                    disabled={!isEditingStall}
+                  />
+                </div>
+
+                {/* GCash Number Input */}
+                <div>
+                  <Label htmlFor="gcash-number" className="text-sm font-medium">
+                    GCash Number
+                  </Label>
+                  {isEditingStall ? (
+                    <div className="mt-1">
+                      <Input
+                        id="gcash-number"
+                        type="tel"
+                        value={stallForm.gcashNumber}
+                        onChange={(e) => {
+                          setStallForm(prev => ({ ...prev, gcashNumber: e.target.value }));
+                          setGcashValidationError("");
+                        }}
+                        placeholder="e.g., 09171234567"
+                        className={gcashValidationError ? "border-red-500" : ""}
+                        data-testid="input-gcash-number"
+                      />
+                      {gcashValidationError && (
+                        <p className="text-sm text-red-600 mt-1">{gcashValidationError}</p>
+                      )}
+                      <p className="text-xs text-gray-600 mt-1">
+                        Enter your GCash-registered mobile number
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-900 mt-1 p-2 bg-gray-50 rounded-md">
+                      {stallInfo?.gcashNumber ? (
+                        <span className="flex items-center gap-2">
+                          <span className="text-green-600">✓</span>
+                          {stallInfo.gcashNumber.substring(0, 4)}****{stallInfo.gcashNumber.substring(stallInfo.gcashNumber.length - 3)}
+                        </span>
+                      ) : (
+                        <span className="text-gray-500">No GCash number set</span>
+                      )}
+                    </p>
+                  )}
+                </div>
+
+                {/* GCash Account Name */}
+                <div>
+                  <Label htmlFor="gcash-name" className="text-sm font-medium">
+                    GCash Account Name
+                  </Label>
+                  {isEditingStall ? (
+                    <div className="mt-1">
+                      <Input
+                        id="gcash-name"
+                        value={stallForm.gcashName}
+                        onChange={(e) => setStallForm(prev => ({ ...prev, gcashName: e.target.value }))}
+                        placeholder="Name as shown in GCash app"
+                        data-testid="input-gcash-name"
+                      />
+                      <p className="text-xs text-gray-600 mt-1">
+                        This helps customers verify they're sending to the correct account
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-900 mt-1 p-2 bg-gray-50 rounded-md">
+                      {stallInfo?.gcashName || <span className="text-gray-500">No account name set</span>}
+                    </p>
+                  )}
+                </div>
+
+                {/* GCash QR Code Upload */}
+                <div className="pt-3 border-t">
+                  <Label className="text-sm font-medium">
+                    GCash QR Code Image
+                  </Label>
+                  <p className="text-xs text-gray-600 mt-1 mb-2">
+                    Upload a screenshot of your GCash QR code - it will be automatically cropped
+                  </p>
+                  {isEditingStall ? (
+                    <div className="space-y-2">
+                      {stallForm.gcashQrCode ? (
+                        <div className="relative inline-block">
+                          <img
+                            src={stallForm.gcashQrCode}
+                            alt="GCash QR Code"
+                            className="w-48 h-48 object-contain border-2 border-blue-200 rounded-lg bg-white"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute -top-2 -right-2"
+                            onClick={() => setStallForm(prev => ({ ...prev, gcashQrCode: "" }))}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              disabled={isUploadingQrCode}
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                
+                                setIsUploadingQrCode(true);
+                                try {
+                                  // Auto-crop the GCash screenshot to extract QR code
+                                  const croppedBlob = await cropGcashQrCode(file);
+                                  const croppedFile = new File([croppedBlob], 'gcash-qr.png', { type: 'image/png' });
+                                  
+                                  // Upload the cropped image
+                                  const url = await uploadImageToImgBB(croppedFile);
+                                  setStallForm(prev => ({ ...prev, gcashQrCode: url }));
+                                  
+                                  toast({
+                                    title: "QR Code Uploaded",
+                                    description: "Your GCash QR code has been automatically cropped and uploaded.",
+                                  });
+                                } catch (error) {
+                                  console.error('QR upload error:', error);
+                                  toast({
+                                    title: "Upload Failed",
+                                    description: "Failed to process QR code. Please try again.",
+                                    variant: "destructive",
+                                  });
+                                } finally {
+                                  setIsUploadingQrCode(false);
+                                  e.target.value = '';
+                                }
+                              }}
+                            />
+                            {isUploadingQrCode ? (
+                              <div className="flex flex-col items-center">
+                                <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-2" />
+                                <span className="text-sm text-gray-600">Processing QR code...</span>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center">
+                                <Camera className="w-8 h-8 text-gray-400 mb-2" />
+                                <span className="text-sm text-gray-600">Click to upload GCash screenshot</span>
+                                <span className="text-xs text-gray-400 mt-1">QR code will be auto-cropped</span>
+                              </div>
+                            )}
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="mt-2">
+                      {stallInfo?.gcashQrCode ? (
+                        <img
+                          src={stallInfo.gcashQrCode}
+                          alt="GCash QR Code"
+                          className="w-48 h-48 object-contain border-2 border-green-200 rounded-lg bg-white"
+                        />
+                      ) : (
+                        <p className="text-sm text-gray-500 p-2 bg-gray-50 rounded-md">
+                          No QR code uploaded - students will need to manually enter your GCash number
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* GCash Status Display */}
+                {!isEditingStall && (
+                  <div className="pt-3 border-t">
+                    <div className="flex items-center gap-3">
+                      <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        stallInfo?.gcashEnabled && stallInfo?.gcashNumber
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {stallInfo?.gcashEnabled && stallInfo?.gcashNumber ? 'GCash Active' : 'GCash Inactive'}
+                      </div>
+                      <p className="text-xs text-gray-600">
+                        {stallInfo?.gcashEnabled && stallInfo?.gcashNumber
+                          ? 'Customers can pay via GCash'
+                          : 'Enable GCash and add your number to accept GCash payments'
+                        }
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Security Notice */}
+                <div className="p-3 bg-yellow-50 rounded-lg mt-4">
+                  <p className="text-sm text-yellow-800">
+                    ⚠️ <strong>Important:</strong> Always verify payment receipt in your GCash app before confirming orders. 
+                    Match the reference number provided by the customer.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
@@ -3079,12 +3895,116 @@ export default function StallDashboard() {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="font-semibold text-gray-900 mb-2">Payment Information</h3>
                 <div className="space-y-1 text-sm">
-                  <p><span className="font-medium">Method:</span> {selectedOrder.paymentMethod || 'Not specified'}</p>
+                  <p><span className="font-medium">Method:</span> {selectedOrder.paymentMethod === 'gcash' ? 'GCash' : selectedOrder.paymentMethod || 'Not specified'}</p>
                   {selectedOrder.paymentMethod === 'cash' && selectedOrder.cashAmount && (
                     <>
                       <p><span className="font-medium">Cash Amount:</span> ₱{selectedOrder.cashAmount.toFixed(2)}</p>
                       <p><span className="font-medium">Change Required:</span> ₱{(selectedOrder.cashAmount - selectedOrder.totalAmount).toFixed(2)}</p>
                     </>
+                  )}
+
+                  {/* GCash Payment Details */}
+                  {selectedOrder.paymentMethod === 'gcash' && (
+                    <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Smartphone className="w-4 h-4 text-blue-600" />
+                        <span className="font-medium text-blue-800">GCash Payment</span>
+                        {selectedOrder.gcashPayment?.status === 'verified' && (
+                          <span className="ml-auto px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full flex items-center gap-1">
+                            <Check className="w-3 h-3" /> Verified
+                          </span>
+                        )}
+                        {selectedOrder.gcashPayment?.status === 'awaiting_verification' && (
+                          <span className="ml-auto px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" /> Awaiting Verification
+                          </span>
+                        )}
+                        {(!selectedOrder.gcashPayment?.status || selectedOrder.gcashPayment?.status === 'pending') && (
+                          <span className="ml-auto px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
+                            Pending Payment
+                          </span>
+                        )}
+                      </div>
+                      
+                      {selectedOrder.gcashPayment?.customerReference && (
+                        <p className="text-sm">
+                          <span className="font-medium">Customer Ref #:</span> {selectedOrder.gcashPayment.customerReference}
+                        </p>
+                      )}
+                      {selectedOrder.gcashPayment?.customerGcashNumber && (
+                        <p className="text-sm">
+                          <span className="font-medium">From GCash:</span> {selectedOrder.gcashPayment.customerGcashNumber}
+                        </p>
+                      )}
+                      
+                      {selectedOrder.gcashPayment?.status === 'awaiting_verification' && (
+                        <div className="mt-3 pt-3 border-t border-blue-200">
+                          <p className="text-sm text-blue-800 mb-2">
+                            Please verify this payment in your GCash app. Check if you received ₱{selectedOrder.totalAmount?.toFixed(2)} from the customer.
+                          </p>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  await updateDocument("orders", selectedOrder.id, {
+                                    'gcashPayment.status': 'verified',
+                                    'gcashPayment.verifiedAt': new Date(),
+                                    'gcashPayment.verifiedBy': state.user?.id,
+                                    status: 'pending'
+                                  });
+                                  toast({
+                                    title: "Payment Verified",
+                                    description: "GCash payment has been verified successfully",
+                                  });
+                                  setShowOrderDetails(false);
+                                } catch (error) {
+                                  toast({
+                                    title: "Error",
+                                    description: "Failed to verify payment",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              <Check className="w-4 h-4 mr-1" />
+                              Verify Payment
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={async () => {
+                                try {
+                                  await updateDocument("orders", selectedOrder.id, {
+                                    'gcashPayment.status': 'failed',
+                                    'gcashPayment.rejectedAt': new Date(),
+                                    'gcashPayment.rejectedBy': state.user?.id,
+                                    status: 'cancelled',
+                                    cancelReason: 'GCash payment not received or invalid'
+                                  });
+                                  toast({
+                                    title: "Payment Rejected",
+                                    description: "Order has been cancelled due to payment issue",
+                                  });
+                                  setShowOrderDetails(false);
+                                } catch (error) {
+                                  toast({
+                                    title: "Error",
+                                    description: "Failed to reject payment",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                              className="text-red-600 border-red-300 hover:bg-red-100 hover:text-red-700 hover:border-red-400"
+                            >
+                              <X className="w-4 h-4 mr-1" />
+                              Reject
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )}
                   
                   {/* Voucher breakdown in payment section */}

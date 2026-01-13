@@ -75,7 +75,7 @@ export default function TermsPolicies() {
             <div>
               <h3 className="font-semibold text-gray-800 mb-2">5. Payment Terms</h3>
               <p className="text-gray-600 text-sm leading-relaxed">
-                Currently, cash payments are accepted upon pickup. Digital payment options may be introduced in the future with additional terms.
+                We accept cash payments upon pickup and GCash digital payments. For GCash payments, customers must send the exact amount to the stall's GCash account and provide the transaction reference number for verification. Payment verification is done by the stall owner. Orders paid via GCash will only be processed once payment is verified.
               </p>
             </div>
           </CardContent>

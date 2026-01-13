@@ -4,17 +4,18 @@ import QRCodeLib from 'qrcode';
 interface QRCodeProps {
   value: string;
   size?: number;
+  rawValue?: boolean; // If true, use the value directly without wrapping
 }
 
-export default function QRCode({ value, size = 128 }: QRCodeProps) {
+export default function QRCode({ value, size = 128, rawValue = false }: QRCodeProps) {
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('');
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
     const generateQRCode = async () => {
       try {
-        // Generate actual QR code with the order information
-        const qrData = JSON.stringify({
+        // Use raw value directly or wrap in JSON for order QR codes
+        const qrData = rawValue ? value : JSON.stringify({
           orderId: value,
           app: 'UB_FoodHub',
           timestamp: Date.now()
@@ -41,7 +42,7 @@ export default function QRCode({ value, size = 128 }: QRCodeProps) {
     if (value) {
       generateQRCode();
     }
-  }, [value, size]);
+  }, [value, size, rawValue]);
 
   if (error) {
     return (

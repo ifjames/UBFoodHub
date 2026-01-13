@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Minus, Flame } from "lucide-react";
+import { Plus, Minus, Flame, UtensilsCrossed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,8 @@ export default function MenuItem({ item, restaurantId }: MenuItemProps) {
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [showAddToCart, setShowAddToCart] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const { state, dispatch } = useStore();
   const { toast } = useToast();
 
@@ -91,11 +93,22 @@ export default function MenuItem({ item, restaurantId }: MenuItemProps) {
               className="relative float-animation"
               whileHover={{ scale: 1.1 }}
             >
-              <img
-                src={item.image || "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200"}
-                alt={item.name}
-                className="w-16 h-16 rounded-lg object-cover shadow-lg"
-              />
+              <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-[#6d031e] to-[#8b0a2a] shadow-lg relative overflow-hidden">
+                {item.image && !imageError && (
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className={`w-full h-full object-cover transition-opacity duration-200 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    onLoad={() => setImageLoaded(true)}
+                    onError={() => setImageError(true)}
+                  />
+                )}
+                {(!item.image || imageError || !imageLoaded) && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <UtensilsCrossed className="w-6 h-6 text-white/40" />
+                  </div>
+                )}
+              </div>
               {item.isPopular && (
                 <motion.div
                   initial={{ scale: 0 }}
@@ -179,9 +192,8 @@ export default function MenuItem({ item, restaurantId }: MenuItemProps) {
                       )}
                     </Button>
                   </motion.div>
-              )}
-            </div>
-          </div>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>

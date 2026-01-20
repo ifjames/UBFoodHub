@@ -69,6 +69,8 @@ export default function LoginPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [studentId, setStudentId] = useState("");
+  const [department, setDepartment] = useState("");
+  const [yearLevel, setYearLevel] = useState("");
 
   // UI state
   const [showPassword, setShowPassword] = useState(false);
@@ -312,6 +314,8 @@ export default function LoginPage() {
         name: signUpName,
         phoneNumber,
         studentId,
+        department,
+        yearLevel,
       });
 
       toast({
@@ -846,6 +850,56 @@ export default function LoginPage() {
                         {phoneValidation.message}
                       </p>
                     )}
+                  </div>
+
+                  {/* Department and Year Level in a row */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="signup-department"
+                        className="text-[#6d031e] font-medium lg:text-gray-700"
+                      >
+                        Department/Program
+                      </Label>
+                      <div className="relative">
+                        <GraduationCap className="absolute left-3 top-3 h-4 w-4 text-[#6d031e]/60 lg:text-gray-400" />
+                        <Input
+                          id="signup-department"
+                          type="text"
+                          placeholder="e.g., BSIT"
+                          className="pl-10 bg-white h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 border-[#6d031e]/20 focus:border-[#6d031e] lg:border-gray-300 lg:focus:border-[#6d031e]"
+                          value={department}
+                          onChange={(e) => setDepartment(e.target.value.toUpperCase())}
+                          required
+                          disabled={isLoading}
+                          data-testid="input-signup-department"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="signup-year"
+                        className="text-[#6d031e] font-medium lg:text-gray-700"
+                      >
+                        Year Level
+                      </Label>
+                      <select
+                        id="signup-year"
+                        className="w-full h-12 px-3 rounded-md bg-white text-[#6d031e] lg:text-gray-900 border border-[#6d031e]/20 focus:border-[#6d031e] lg:border-gray-300 lg:focus:border-[#6d031e] focus:outline-none focus:ring-2 focus:ring-[#6d031e]/20"
+                        value={yearLevel}
+                        onChange={(e) => setYearLevel(e.target.value)}
+                        required
+                        disabled={isLoading}
+                        data-testid="input-signup-year"
+                      >
+                        <option value="">Select Year</option>
+                        <option value="1st Year">1st Year</option>
+                        <option value="2nd Year">2nd Year</option>
+                        <option value="3rd Year">3rd Year</option>
+                        <option value="4th Year">4th Year</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div className="space-y-2">

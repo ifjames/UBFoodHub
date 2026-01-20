@@ -53,6 +53,7 @@ export default function Restaurant() {
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
   const [actualRating, setActualRating] = useState<number>(0);
   const [actualReviewCount, setActualReviewCount] = useState<number>(0);
   const [reviews, setReviews] = useState<any[]>([]);
@@ -485,7 +486,10 @@ export default function Restaurant() {
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-12">
           <div className="flex flex-col md:flex-row md:items-start md:gap-8 lg:gap-12">
             {stall.image && (
-              <div className="hidden md:block">
+              <div 
+                className="hidden md:block cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => setIsImagePreviewOpen(true)}
+              >
                 <CachedImage
                   src={stall.image}
                   alt={stall.name}
@@ -495,11 +499,16 @@ export default function Restaurant() {
             )}
             <div className="flex md:hidden items-center mb-4">
               {stall.image && (
-                <CachedImage
-                  src={stall.image}
-                  alt={stall.name}
-                  className="w-16 h-16 rounded-lg mr-4 object-cover"
-                />
+                <div
+                  className="cursor-pointer hover:opacity-90 transition-opacity mr-4"
+                  onClick={() => setIsImagePreviewOpen(true)}
+                >
+                  <CachedImage
+                    src={stall.image}
+                    alt={stall.name}
+                    className="w-16 h-16 rounded-lg object-cover"
+                  />
+                </div>
               )}
               <div className="flex-1">
                 <h1 className="text-xl font-bold text-gray-900">{stall.name}</h1>
@@ -992,6 +1001,24 @@ export default function Restaurant() {
                 </div>
               </div>
             </motion.div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Image Preview Dialog */}
+      <Dialog open={isImagePreviewOpen} onOpenChange={setIsImagePreviewOpen}>
+        <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-3xl p-0 bg-transparent border-none shadow-none [&>button]:bg-white/90 [&>button]:rounded-full [&>button]:p-1 [&>button]:hover:bg-white">
+          <DialogHeader className="sr-only">
+            <DialogTitle>{stall?.name} - Image Preview</DialogTitle>
+          </DialogHeader>
+          {stall?.image && (
+            <div className="flex items-center justify-center p-2">
+              <img
+                src={stall.image}
+                alt={stall.name}
+                className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl"
+              />
+            </div>
           )}
         </DialogContent>
       </Dialog>

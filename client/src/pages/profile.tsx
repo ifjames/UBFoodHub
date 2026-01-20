@@ -186,6 +186,9 @@ export default function Profile() {
             <p className="text-sm text-gray-600">
               {state.user?.studentId || "UB-2024-001234"}
             </p>
+            <p className="text-sm text-gray-500">
+              {(state.user as any)?.department || ""}{(state.user as any)?.department && (state.user as any)?.yearLevel ? " • " : ""}{(state.user as any)?.yearLevel || ""}
+            </p>
           </div>
         </div>
 

@@ -47,18 +47,27 @@ export default function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
       }
     }
 
-    // Check if user needs to complete their profile (missing student ID or phone number)
+    // Check if user needs to complete their profile (missing student ID, phone number, department, or year level)
     // Only show profile completion modal for students, not admins or stall owners
+    // Also check if profileCompleted flag is set to avoid showing repeatedly
+    const userAny = state.user as any;
     const needsProfileCompletion = state.user && 
-      state.user.role === "student" && (
+      state.user.role === "student" && 
+      !userAny.profileCompleted && (
         !state.user.studentId || 
         !state.user.phoneNumber ||
-        state.user.studentId.trim() === "" ||
-        state.user.phoneNumber.trim() === ""
+        !userAny.department ||
+        !userAny.yearLevel ||
+        (state.user.studentId || "").trim() === "" ||
+        (state.user.phoneNumber || "").trim() === "" ||
+        (userAny.department || "").trim() === "" ||
+        (userAny.yearLevel || "").trim() === ""
       );
 
     if (needsProfileCompletion) {
       setShowProfileCompletion(true);
+    } else {
+      setShowProfileCompletion(false);
     }
 
     // Send notification for email verification (for non-students or as reminder)

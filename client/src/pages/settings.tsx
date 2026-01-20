@@ -804,6 +804,20 @@ export default function Settings() {
                   </div>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div>
+                      <Label className="text-sm font-medium text-gray-700">Department/Program</Label>
+                      <p className="text-sm text-gray-600 mt-1 p-2 bg-gray-50 rounded border">
+                        {(state.user as any)?.department || "Not available"}
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Year Level</Label>
+                      <p className="text-sm text-gray-600 mt-1 p-2 bg-gray-50 rounded border">
+                        {(state.user as any)?.yearLevel || "Not available"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
                       <Label className="text-sm font-medium text-gray-700">Phone Number</Label>
                       <p className="text-sm text-gray-600 mt-1 p-2 bg-gray-50 rounded border">
                         {state.user?.phoneNumber || "Not available"}
@@ -1088,6 +1102,14 @@ export default function Settings() {
             <div>
               <Label>Student ID</Label>
               <p className="text-sm text-gray-600 mt-1">{state.user?.studentId || "Not available"}</p>
+            </div>
+            <div>
+              <Label>Department/Program</Label>
+              <p className="text-sm text-gray-600 mt-1">{(state.user as any)?.department || "Not available"}</p>
+            </div>
+            <div>
+              <Label>Year Level</Label>
+              <p className="text-sm text-gray-600 mt-1">{(state.user as any)?.yearLevel || "Not available"}</p>
             </div>
             <div>
               <Label>Role</Label>

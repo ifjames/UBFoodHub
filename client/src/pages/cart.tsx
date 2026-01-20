@@ -664,10 +664,10 @@ export default function Cart() {
           className="bg-white rounded-lg p-4"
         >
           <Label className="text-base font-medium">
-            Instructions (Optional)
+            Special Instructions (Optional)
           </Label>
           <Input
-            placeholder="Special requests for the stall owner"
+            placeholder="Any special requests for the stall owner (e.g., no onions, extra spicy)"
             value={deliveryInstructions}
             onChange={(e) => setDeliveryInstructions(e.target.value)}
             className="mt-2"

@@ -12,7 +12,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { updateDocument } from "@/lib/firebase";
 import { useStore } from "@/lib/store";
-import { User, GraduationCap, Phone } from "lucide-react";
+import { User, GraduationCap, Phone, BookOpen } from "lucide-react";
 
 interface ProfileCompletionModalProps {
   isOpen: boolean;
@@ -29,6 +29,8 @@ export default function ProfileCompletionModal({
   const [formData, setFormData] = useState({
     studentId: "",
     phoneNumber: "",
+    department: "",
+    yearLevel: "",
   });
 
   const validatePhoneNumber = (phone: string): boolean => {
@@ -68,6 +70,24 @@ export default function ProfileCompletionModal({
       return;
     }
 
+    if (!formData.department.trim()) {
+      toast({
+        title: "Department Required",
+        description: "Please enter your department/program (e.g., BSIT, BSCS).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.yearLevel.trim()) {
+      toast({
+        title: "Year Level Required",
+        description: "Please select your year level.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!state.user?.uid) {
       toast({
         title: "Error",
@@ -84,6 +104,8 @@ export default function ProfileCompletionModal({
       await updateDocument("users", state.user.uid, {
         studentId: formData.studentId.trim(),
         phoneNumber: formData.phoneNumber.trim(),
+        department: formData.department.trim(),
+        yearLevel: formData.yearLevel.trim(),
         profileCompleted: true,
         updatedAt: new Date(),
       });
@@ -95,13 +117,15 @@ export default function ProfileCompletionModal({
           ...state.user,
           studentId: formData.studentId.trim(),
           phoneNumber: formData.phoneNumber.trim(),
-        },
+          department: formData.department.trim(),
+          yearLevel: formData.yearLevel.trim(),
+        } as any,
       });
 
       toast({
         title: "Profile Updated",
         description:
-          "Your student ID and phone number have been saved successfully!",
+          "Your profile information has been saved successfully!",
       });
 
       onComplete();
@@ -136,8 +160,8 @@ export default function ProfileCompletionModal({
                 <User className="w-8 h-8 text-white" />
               </div>
               <p className="text-sm text-gray-600">
-                To complete your registration, please provide your Student ID
-                and phone number.
+                To complete your registration, please provide your Student ID,
+                phone number, department, and year level.
               </p>
             </div>
 
@@ -191,6 +215,59 @@ export default function ProfileCompletionModal({
                 <p className="text-xs text-gray-500">
                   Required for order notifications and verification purposes.
                 </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor="department"
+                  className="flex items-center gap-2 text-gray-700"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Department/Program
+                </Label>
+                <Input
+                  id="department"
+                  type="text"
+                  placeholder="e.g., BSIT, BSCS, BSA"
+                  value={formData.department}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      department: e.target.value,
+                    }))
+                  }
+                  className="border-gray-300 focus:border-[#6d031e] focus:ring-[#6d031e]"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor="yearLevel"
+                  className="flex items-center gap-2 text-gray-700"
+                >
+                  <GraduationCap className="w-4 h-4" />
+                  Year Level
+                </Label>
+                <select
+                  id="yearLevel"
+                  value={formData.yearLevel}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      yearLevel: e.target.value,
+                    }))
+                  }
+                  className="w-full h-10 px-3 border border-gray-300 rounded-md focus:border-[#6d031e] focus:ring-[#6d031e] bg-white"
+                  required
+                >
+                  <option value="">Select Year Level</option>
+                  <option value="1st Year">1st Year</option>
+                  <option value="2nd Year">2nd Year</option>
+                  <option value="3rd Year">3rd Year</option>
+                  <option value="4th Year">4th Year</option>
+                  <option value="Graduate">Graduate</option>
+                </select>
               </div>
 
               <Button

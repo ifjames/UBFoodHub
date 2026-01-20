@@ -1628,6 +1628,11 @@ export default function StallDashboard() {
                                   <User className="w-4 h-4" />
                                   <span className="font-medium">{order.customerName || 'Student'}</span>
                                 </p>
+                                {(order.customerDepartment || order.customerYearLevel) && (
+                                  <p className="text-gray-500 text-xs ml-5">
+                                    {order.customerDepartment || ''}{order.customerDepartment && order.customerYearLevel ? ' • ' : ''}{order.customerYearLevel || ''}
+                                  </p>
+                                )}
                                 <p className="text-gray-500 text-xs flex items-center gap-1">
                                   <Clock className="w-3 h-3" />
                                   {order.createdAt?.toDate ? new Date(order.createdAt.toDate()).toLocaleString() : 'Just now'}
@@ -2702,7 +2707,14 @@ export default function StallDashboard() {
                                     : 'N/A'}
                                   {' - '}{order.items?.length || 0} item{order.items?.length !== 1 ? 's' : ''}
                                 </p>
-                                <p className="text-xs text-gray-400">{order.customerName || 'Customer'}</p>
+                                <p className="text-xs text-gray-400">
+                                  {order.customerName || 'Customer'}
+                                  {(order.customerDepartment || order.customerYearLevel) && (
+                                    <span className="ml-1">
+                                      ({order.customerDepartment || ''}{order.customerDepartment && order.customerYearLevel ? ' • ' : ''}{order.customerYearLevel || ''})
+                                    </span>
+                                  )}
+                                </p>
                               </div>
                               <div className="text-right">
                                 <p className="font-bold text-green-600">₱{order.totalAmount?.toFixed(2)}</p>
@@ -3743,6 +3755,8 @@ export default function StallDashboard() {
                 <div className="space-y-1 text-sm">
                   <p><span className="font-medium">Name:</span> {selectedOrder.customerName || 'Student'}</p>
                   <p><span className="font-medium">Student ID:</span> {selectedOrder.studentId || 'Not provided'}</p>
+                  <p><span className="font-medium">Department:</span> {selectedOrder.customerDepartment || 'Not provided'}</p>
+                  <p><span className="font-medium">Year Level:</span> {selectedOrder.customerYearLevel || 'Not provided'}</p>
                   <p><span className="font-medium">Email:</span> {selectedOrder.customerEmail || 'Not provided'}</p>
                   <p><span className="font-medium">Phone:</span> {selectedOrder.customerPhone || 'Not provided'}</p>
                   <p><span className="font-medium">Order Date:</span> {new Date(selectedOrder.createdAt?.toDate ? selectedOrder.createdAt.toDate() : selectedOrder.createdAt).toLocaleString()}</p>

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Mail, Lock, ArrowLeft, User, Phone, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowLeft, User, Phone, CheckCircle, GraduationCap } from "lucide-react";
 import { useAuth } from "@/lib/store";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -39,6 +39,8 @@ export default function LoginPage() {
     confirmPassword: "",
     phoneNumber: "",
     studentId: "",
+    department: "",
+    yearLevel: "",
   });
 
   // Use refs to always access current values without causing re-renders
@@ -158,6 +160,8 @@ export default function LoginPage() {
         name: signUpDataRef.current.name,
         phoneNumber: signUpDataRef.current.phoneNumber,
         studentId: signUpDataRef.current.studentId,
+        department: signUpDataRef.current.department,
+        yearLevel: signUpDataRef.current.yearLevel,
       });
       
       toast({
@@ -789,6 +793,46 @@ const EmailLoginForm = memo(function EmailLoginForm({
                     required
                     disabled={isLoading}
                   />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="department" className="text-[#6d031e] font-medium lg:text-gray-700">Department/Program</Label>
+                <div className="relative">
+                  <GraduationCap className="absolute left-3 top-3 h-4 w-4 text-[#6d031e]/60 lg:text-gray-400" />
+                  <Input
+                    id="department"
+                    type="text"
+                    placeholder="e.g., BSIT, BSCS, BSA"
+                    className="pl-10 bg-white border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] placeholder:text-[#6d031e]/40 lg:text-gray-900 lg:placeholder:text-gray-400 lg:border-gray-300 lg:focus:border-[#6d031e]"
+                    value={signUpData.department}
+                    onChange={(e) => updateSignUpData("department", e.target.value)}
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="yearLevel" className="text-[#6d031e] font-medium lg:text-gray-700">Year Level</Label>
+                <div className="relative">
+                  <GraduationCap className="absolute left-3 top-3 h-4 w-4 text-[#6d031e]/60 lg:text-gray-400" />
+                  <select
+                    id="yearLevel"
+                    className="w-full pl-10 bg-white border border-[#6d031e]/20 focus:border-[#6d031e] h-12 text-[#6d031e] rounded-md lg:text-gray-900 lg:border-gray-300 lg:focus:border-[#6d031e]"
+                    value={signUpData.yearLevel}
+                    onChange={(e) => updateSignUpData("yearLevel", e.target.value)}
+                    required
+                    disabled={isLoading}
+                  >
+                    <option value="">Select Year Level</option>
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                    <option value="5th Year">5th Year</option>
+                    <option value="Graduate">Graduate</option>
+                  </select>
                 </div>
               </div>
               

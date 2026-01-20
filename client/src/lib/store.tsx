@@ -11,6 +11,8 @@ interface User {
   fullName: string;
   studentId?: string | null;
   phoneNumber?: string | null;
+  department?: string | null;
+  yearLevel?: string | null;
   role: string;
   loyaltyPoints?: number;
   photoURL?: string | null;
@@ -106,6 +108,8 @@ export function useAuth() {
     name: string;
     phoneNumber: string;
     studentId: string;
+    department?: string;
+    yearLevel?: string;
   }) => {
     try {
       // Set a flag to indicate we're creating a new account
@@ -124,6 +128,8 @@ export function useAuth() {
         fullName: userData.name,
         phoneNumber: userData.phoneNumber,
         studentId: userData.studentId,
+        department: userData.department || "",
+        yearLevel: userData.yearLevel || "",
         role: "student",
         emailVerified: false,
         createdAt: new Date(),

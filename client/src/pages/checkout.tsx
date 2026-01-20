@@ -24,7 +24,6 @@ export default function Checkout() {
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [cashAmount, setCashAmount] = useState("");
-  const [specialInstructions, setSpecialInstructions] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [stallInfo, setStallInfo] = useState<any>(null);
   const [groupOrderEmails, setGroupOrderEmails] = useState<string[]>([]);
@@ -120,7 +119,6 @@ export default function Checkout() {
     }
     if (storedInstructions) {
       setDeliveryInstructions(storedInstructions);
-      setSpecialInstructions(storedInstructions);
     }
     if (storedCutlery) {
       setNoCutlery(JSON.parse(storedCutlery));
@@ -196,6 +194,8 @@ export default function Checkout() {
           customerEmail: state.user?.email || "Not provided",
           customerPhone: state.user?.phoneNumber || "Not provided",
           studentId: state.user?.studentId || "Not provided",
+          customerDepartment: (state.user as any)?.department || "Not provided",
+          customerYearLevel: (state.user as any)?.yearLevel || "Not provided",
           stallId,
           stallName: stallData?.name || "Unknown Stall",
           status: paymentMethod === "gcash" ? "awaiting_payment" : "pending",
@@ -216,7 +216,7 @@ export default function Checkout() {
             createdAt: new Date(),
             expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
           } : null,
-          specialInstructions: specialInstructions || deliveryInstructions || null,
+          specialInstructions: deliveryInstructions || null,
           qrCode: stallOrderId,
           estimatedTime: scheduledTime || "15-40 mins",
           scheduledTime: scheduledTime || null,
@@ -696,6 +696,60 @@ export default function Checkout() {
               </Label>
             </div>
             
+            {/* Cash Amount Display and Input - Directly below Cash option */}
+            {paymentMethod === "cash" && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="mt-3 p-4 bg-gradient-to-r from-[#6d031e]/5 to-[#6d031e]/10 border-2 border-[#6d031e] rounded-xl shadow-md"
+              >
+                <div className="flex items-center justify-center gap-3">
+                  <div className="p-2 bg-[#6d031e] rounded-full">
+                    <Banknote className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-[#6d031e] uppercase tracking-wide">Amount to Pay</p>
+                    <p className="text-3xl font-bold text-[#6d031e]">₱{subtotal.toFixed(2)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-center gap-2 mt-3 text-sm text-[#6d031e]/80 font-medium">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Please prepare exact amount or more for change</span>
+                </div>
+                
+                {/* Cash on hand input - directly here for easy access */}
+                <div className="mt-4 pt-4 border-t border-[#6d031e]/20">
+                  <Label className="text-sm font-medium text-[#6d031e]">Cash on hand (₱)</Label>
+                  <Input
+                    type="number"
+                    placeholder="Enter amount you'll pay with"
+                    value={cashAmount}
+                    onChange={(e) => setCashAmount(e.target.value)}
+                    className="mt-2 border-[#6d031e]/30 focus:border-[#6d031e]"
+                    step="0.01"
+                    autoComplete="off"
+                  />
+                  {cashAmount && (
+                    <div className="mt-2">
+                      {parseFloat(cashAmount) >= subtotal ? (
+                        <div className="p-2 bg-green-100 rounded-lg border border-green-300">
+                          <p className="text-sm text-green-700 font-medium">
+                            Change: ₱{(parseFloat(cashAmount) - subtotal).toFixed(2)}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="p-2 bg-red-100 rounded-lg border border-red-300">
+                          <p className="text-sm text-red-700 font-medium">
+                            Amount is not enough. Need at least ₱{subtotal.toFixed(2)}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+            
             {gcashAvailable ? (
               <div className={`flex items-center space-x-2 p-3 border rounded-lg ${paymentMethod === 'gcash' ? 'border-blue-500 bg-blue-50' : ''}`}>
                 <RadioGroupItem value="gcash" id="gcash" />
@@ -724,42 +778,6 @@ export default function Checkout() {
               </div>
             )}
           </RadioGroup>
-
-          {paymentMethod === "cash" && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="mt-4"
-            >
-              <Label className="text-sm font-medium">Cash on hand (₱)</Label>
-              <Input
-                type="number"
-                placeholder="Enter amount you'll pay with"
-                value={cashAmount}
-                onChange={(e) => setCashAmount(e.target.value)}
-                className="mt-2"
-                min={subtotal}
-                step="0.01"
-              />
-              {cashAmount && (
-                <div className="mt-2">
-                  {parseFloat(cashAmount) >= subtotal ? (
-                    <div className="p-2 bg-green-50 rounded-lg">
-                      <p className="text-sm text-green-700">
-                        Change: ₱{(parseFloat(cashAmount) - subtotal).toFixed(2)}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="p-2 bg-red-50 rounded-lg">
-                      <p className="text-sm text-red-700">
-                        Amount is not enough. Need at least ₱{subtotal.toFixed(2)}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </motion.div>
-          )}
 
           {/* GCash Payment Info */}
           {paymentMethod === "gcash" && gcashAvailable && (
@@ -802,22 +820,6 @@ export default function Checkout() {
               </Alert>
             </motion.div>
           )}
-        </motion.div>
-
-        {/* Special Instructions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-white rounded-lg p-4 md:p-6"
-        >
-          <Label className="text-base font-medium md:text-lg">Special Instructions (Optional)</Label>
-          <Textarea
-            placeholder="Any special requests for the stall owner"
-            value={specialInstructions}
-            onChange={(e) => setSpecialInstructions(e.target.value)}
-            className="mt-2 md:mt-3"
-          />
         </motion.div>
           </div>
 
